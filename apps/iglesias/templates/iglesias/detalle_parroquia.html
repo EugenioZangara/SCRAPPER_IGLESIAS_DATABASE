@@ -1,0 +1,333 @@
+{% extends "iglesias/base.html" %}
+
+{% block title %}{{ parroquia.nombre }}{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <div>
+        <h1>{{ parroquia.nombre }}</h1>
+        <p class="subtitle">
+            {% if parroquia.barrio %}{{ parroquia.barrio }}{% else %}Barrio no registrado{% endif %}
+            {% if parroquia.decanato %} · {{ parroquia.decanato }}{% endif %}
+            {% if parroquia.vicaria %} · {{ parroquia.vicaria }}{% endif %}
+        </p>
+    </div>
+    <a href="{% url 'iglesias:lista_parroquias' %}">Volver al listado</a>
+</div>
+
+<section class="stats">
+    <div class="stat">
+        <div class="stat-label">Sitio web</div>
+        <div class="stat-value">{% if parroquia.sitio_web %}Si{% else %}No{% endif %}</div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">Redes</div>
+        <div class="stat-value">{{ parroquia.redes.count }}</div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">Eventos futuros</div>
+        <div class="stat-value">{{ eventos_estado.eventos|length }}</div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">Actualizado</div>
+        <div class="stat-value">{{ parroquia.actualizado_el|date:"d/m" }}</div>
+    </div>
+</section>
+
+<div class="detail-grid">
+    <section class="panel">
+        <div class="section">
+            <h2>Identificacion</h2>
+            <div class="fields">
+                <div class="field-label">ID externo</div>
+                <div class="field-value">{{ parroquia.id_externo }}</div>
+
+                <div class="field-label">URL detalle</div>
+                <div class="field-value">
+                    {% if parroquia.url_detalle %}
+                        {{ parroquia.url_detalle }}
+                    {% else %}
+                        <span class="muted">Sin dato</span>
+                    {% endif %}
+                </div>
+
+                <div class="field-label">Actualizado</div>
+                <div class="field-value">{{ parroquia.actualizado_el|date:"d/m/Y H:i" }}</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Ubicacion y organizacion</h2>
+            <div class="fields">
+                <div class="field-label">Direccion</div>
+                <div class="field-value">{{ parroquia.direccion|default:"Sin dato" }}</div>
+
+                <div class="field-label">Codigo postal</div>
+                <div class="field-value">{{ parroquia.codigo_postal|default:"Sin dato" }}</div>
+
+                <div class="field-label">Barrio</div>
+                <div class="field-value">{{ parroquia.barrio|default:"Sin dato" }}</div>
+
+                <div class="field-label">Vicaria</div>
+                <div class="field-value">{{ parroquia.vicaria|default:"Sin dato" }}</div>
+
+                <div class="field-label">Decanato</div>
+                <div class="field-value">{{ parroquia.decanato|default:"Sin dato" }}</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Contacto</h2>
+            <div class="fields">
+                <div class="field-label">Telefonos</div>
+                <div class="field-value">{{ parroquia.telefonos|default:"Sin dato" }}</div>
+
+                <div class="field-label">Email 1</div>
+                <div class="field-value">
+                    {% if parroquia.mail_1 %}
+                        <a href="mailto:{{ parroquia.mail_1 }}">{{ parroquia.mail_1 }}</a>
+                    {% else %}
+                        <span class="muted">Sin dato</span>
+                    {% endif %}
+                </div>
+
+                <div class="field-label">Email 2</div>
+                <div class="field-value">
+                    {% if parroquia.mail_2 %}
+                        <a href="mailto:{{ parroquia.mail_2 }}">{{ parroquia.mail_2 }}</a>
+                    {% else %}
+                        <span class="muted">Sin dato</span>
+                    {% endif %}
+                </div>
+
+                <div class="field-label">Sitio web</div>
+                <div class="field-value">
+                    {% if parroquia.sitio_web %}
+                        <a href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener noreferrer">{{ parroquia.sitio_web }}</a>
+                    {% else %}
+                        <span class="muted">Sin dato</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Clero e historia</h2>
+            <div class="fields">
+                <div class="field-label">Clero a cargo</div>
+                <div class="field-value">{{ parroquia.clero_cargo|default:"Sin dato" }}</div>
+
+                <div class="field-label">Parroco</div>
+                <div class="field-value">{{ parroquia.parroco|default:"Sin dato" }}</div>
+
+                <div class="field-label">Ereccion canonica</div>
+                <div class="field-value">{{ parroquia.fecha_ereccion_canonica|default:"Sin dato" }}</div>
+
+                <div class="field-label">Comenzo a funcionar</div>
+                <div class="field-value">{{ parroquia.comenzo_a_funcionar|default:"Sin dato" }}</div>
+
+                <div class="field-label">Limite parroquial</div>
+                <div class="field-value">{{ parroquia.limite_parroquial|linebreaksbr|default:"Sin dato" }}</div>
+            </div>
+        </div>
+    </section>
+
+    <aside style="display: flex; flex-direction: column; gap: 18px;">
+
+        <!-- Panel de estado e info -->
+        <div class="panel">
+            <div class="section">
+                <h2>Estado de informacion</h2>
+                <div class="badges">
+                    {% if parroquia.sitio_web %}
+                        <span class="badge ok">Tiene web</span>
+                    {% else %}
+                        <span class="badge missing">Sin web</span>
+                    {% endif %}
+
+                    {% if parroquia.tiene_redes %}
+                        <span class="badge info">Tiene redes</span>
+                    {% else %}
+                        <span class="badge warn">Sin redes</span>
+                    {% endif %}
+
+                    {% if parroquia.detalles_completos %}
+                        <span class="badge ok">Detalles completos</span>
+                    {% else %}
+                        <span class="badge warn">Detalles pendientes</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Redes sociales</h2>
+                <div class="redes-list">
+                    {% for red in parroquia.redes.all %}
+                        <div class="red-item">
+                            <div class="badges">
+                                <span class="badge info">{{ red.get_tipo_display }}</span>
+                                {% if red.verificado %}
+                                    <span class="badge ok">Verificada</span>
+                                {% endif %}
+                                {% if not red.activo %}
+                                    <span class="badge missing">Inactiva</span>
+                                {% endif %}
+                            </div>
+                            {% if red.username %}
+                                <div style="margin-top: 8px;">{{ red.username }}</div>
+                            {% endif %}
+                            <div class="field-value" style="margin-top: 6px;">
+                                <a href="{{ red.url }}" target="_blank" rel="noopener noreferrer">{{ red.url }}</a>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p class="muted">No hay redes cargadas para esta parroquia.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de eventos futuros -->
+        <div class="panel">
+            <div class="section">
+                <h2>Eventos próximos</h2>
+                {% with e=eventos_estado %}
+                    <div class="badges" style="margin-bottom: 12px;">
+                        {% if e.estado == "validos" %}
+                            <span class="badge ok">Con eventos</span>
+                        {% elif e.estado == "requiere_verificacion" %}
+                            <span class="badge warn">Requiere verificación</span>
+                            <span class="badge warn">{{ e.incompletos|length }} incompleto{{ e.incompletos|length|pluralize }}</span>
+                        {% elif e.estado == "todos_incompletos" %}
+                            <span class="badge warn">Todos requieren verificación</span>
+                        {% else %}
+                            <span class="badge missing">Sin eventos cargados</span>
+                        {% endif %}
+                    </div>
+
+                    {% for evento in e.eventos %}
+                        <div class="evento-item">
+                            <div class="badges" style="margin-bottom: 8px;">
+                                <span class="badge info">{{ evento.get_tipo_display }}</span>
+                                {% if evento.verificado %}
+                                    <span class="badge ok">Verificado</span>
+                                {% elif evento.fecha and evento.lugar %}
+                                    <span class="badge warn">Pendiente verificación</span>
+                                {% else %}
+                                    <span class="badge warn">Requiere verificación</span>
+                                {% endif %}
+                                {% if not evento.activo %}
+                                    <span class="badge missing">Rechazado</span>
+                                {% endif %}
+                            </div>
+
+                            <div style="font-weight: 700; margin-bottom: 6px;">{{ evento.titulo }}</div>
+
+                            <div class="fields">
+                                <div class="field-label">Fecha</div>
+                                <div class="field-value">
+                                    {% if evento.fecha %}
+                                        {{ evento.fecha|date:"d/m/Y" }}
+                                        {% if evento.hora %} a las {{ evento.hora|time:"H:i" }}{% endif %}
+                                    {% else %}
+                                        <span class="muted">Sin fecha</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="field-label">Lugar</div>
+                                <div class="field-value">
+                                    {% if evento.lugar %}
+                                        {{ evento.lugar }}
+                                    {% else %}
+                                        <span class="muted">Sin lugar</span>
+                                    {% endif %}
+                                </div>
+
+                                {% if evento.descripcion %}
+                                    <div class="field-label">Descripcion</div>
+                                    <div class="field-value">{{ evento.descripcion }}</div>
+                                {% endif %}
+
+                                {% if evento.post %}
+                                    <div class="field-label">Post original</div>
+                                    <div class="field-value">
+                                        <a href="https://www.instagram.com/p/{{ evento.post.post_id }}/" target="_blank" rel="noopener noreferrer">Ver en Instagram</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+                                {% if not evento.verificado and evento.activo %}
+                                    <form method="post" action="{% url 'iglesias:aprobar_evento' evento.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <button type="submit" class="verify-button">✓ Aprobar</button>
+                                    </form>
+                                {% endif %}
+
+                                <a href="{% url 'iglesias:editar_evento' evento.pk %}" class="verify-button" style="display:inline-flex; align-items:center; min-height:22px; padding: 0 8px; font-size:11px; font-weight:700; border-radius:999px; border:1px solid var(--brand); color:var(--brand); text-decoration:none;">✎ Editar</a>
+
+                                {% if evento.activo %}
+                                    <form method="post" action="{% url 'iglesias:rechazar_evento' evento.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <button type="submit" class="reject-button">✕ Rechazar</button>
+                                    </form>
+                                {% else %}
+                                    <form method="post" action="{% url 'iglesias:aprobar_evento' evento.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <button type="submit" class="verify-button">↩ Restaurar</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p class="muted">No hay eventos futuros cargados.</p>
+                    {% endfor %}
+
+                    <!-- Acordeón de eventos pasados -->
+                    {% if e.eventos_pasados %}
+                        <details style="margin-top: 14px;">
+                            <summary style="cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 700; padding: 8px 0; list-style: none; display: flex; align-items: center; gap: 6px;">
+                                <span class="acordeon-arrow">▶</span>
+                                Eventos pasados ({{ e.eventos_pasados|length }})
+                            </summary>
+                            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                                {% for evento in e.eventos_pasados %}
+                                    <div class="evento-item" style="opacity: 0.7;">
+                                        <div class="badges" style="margin-bottom: 6px;">
+                                            <span class="badge info">{{ evento.get_tipo_display }}</span>
+                                            {% if evento.verificado %}
+                                                <span class="badge ok">Verificado</span>
+                                            {% endif %}
+                                        </div>
+                                        <div style="font-weight: 700; font-size: 13px;">{{ evento.titulo }}</div>
+                                        <div class="muted" style="font-size: 12px; margin-top: 4px;">
+                                            {{ evento.fecha|date:"d/m/Y" }}
+                                            {% if evento.lugar %} · {{ evento.lugar }}{% endif %}
+                                        </div>
+                                        {% if evento.post %}
+                                            <div style="margin-top: 4px; font-size: 12px;">
+                                                <a href="https://www.instagram.com/p/{{ evento.post.post_id }}/" target="_blank" rel="noopener noreferrer">Ver en Instagram</a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </details>
+                    {% endif %}
+
+                {% endwith %}
+            </div>
+        </div>
+
+    </aside>
+</div>
+
+<style>
+    details[open] .acordeon-arrow { transform: rotate(90deg); display: inline-block; }
+    .acordeon-arrow { display: inline-block; transition: transform 0.2s; }
+</style>
+
+{% endblock %}

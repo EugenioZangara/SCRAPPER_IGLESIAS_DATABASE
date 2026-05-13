@@ -1,0 +1,134 @@
+{% extends "iglesias/base.html" %}
+
+{% block title %}Parroquias{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <div>
+        <h1>Parroquias</h1>
+        <p class="subtitle">Estado de datos recolectados, webs oficiales y redes detectadas.</p>
+    </div>
+</div>
+
+<section class="stats stats-wide">
+    <div class="stat">
+        <div class="stat-label">Total</div>
+        <div class="stat-value">{{ stats.total }}</div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">Con web</div>
+        <div class="stat-value">{{ stats.con_web }}</div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">Con redes</div>
+        <div class="stat-value">{{ stats.con_redes }}</div>
+    </div>
+    {% for red in stats_redes %}
+        <div class="stat">
+            <div class="stat-label">{{ red.etiqueta }}</div>
+            <div class="stat-value">{{ red.cantidad }}</div>
+        </div>
+    {% endfor %}
+    <div class="stat">
+        <div class="stat-label">Detalles completos</div>
+        <div class="stat-value">{{ stats.detalles_completos }}</div>
+    </div>
+</section>
+
+<section class="panel">
+    <form class="filters" method="get">
+        <input type="search" name="q" value="{{ filtros.q }}" placeholder="Buscar por nombre, barrio, vicaria o direccion">
+        <select name="web">
+            <option value="">Web: todas</option>
+            <option value="con" {% if filtros.web == "con" %}selected{% endif %}>Con web</option>
+            <option value="sin" {% if filtros.web == "sin" %}selected{% endif %}>Sin web</option>
+        </select>
+        <select name="redes">
+            <option value="">Redes: todas</option>
+            <option value="con" {% if filtros.redes == "con" %}selected{% endif %}>Con redes</option>
+            <option value="sin" {% if filtros.redes == "sin" %}selected{% endif %}>Sin redes</option>
+        </select>
+        <select name="detalles">
+            <option value="">Detalles: todos</option>
+            <option value="completos" {% if filtros.detalles == "completos" %}selected{% endif %}>Completos</option>
+            <option value="pendientes" {% if filtros.detalles == "pendientes" %}selected{% endif %}>Pendientes</option>
+        </select>
+        <button type="submit">Filtrar</button>
+    </form>
+
+    <div class="parroquia-list">
+        <div class="parroquia-list-header">
+            <div>Parroquia</div>
+            <div>Web</div>
+            <div>Eventos</div>
+            {% for tipo, etiqueta in tipos_redes %}
+                <div class="red-header">{{ etiqueta }}</div>
+            {% endfor %}
+            <div>Actualizado</div>
+        </div>
+
+        {% for parroquia in parroquias %}
+            <article class="parroquia-row">
+                <div class="parroquia-main">
+                    <a class="name" href="{% url 'iglesias:detalle_parroquia' parroquia.pk %}">
+                        {{ parroquia.nombre }}
+                    </a>
+                    <div class="muted">ID externo: {{ parroquia.id_externo }}</div>
+                    {% if parroquia.parroco %}<div class="muted">Parroco: {{ parroquia.parroco }}</div>{% endif %}
+                </div>
+
+                <div class="hidden-data">
+                    {% if parroquia.direccion %}{{ parroquia.direccion }}{% else %}<span class="muted">Sin direccion</span>{% endif %}
+                    {% if parroquia.barrio %}<div class="muted">{{ parroquia.barrio }}</div>{% endif %}
+                    {% if parroquia.decanato %}<div class="muted">{{ parroquia.decanato }}</div>{% endif %}
+                    {% if parroquia.vicaria %}<div class="muted">{{ parroquia.vicaria }}</div>{% endif %}
+                </div>
+
+                <div class="hidden-data">
+                    {% if parroquia.mail_1 %}
+                        <a href="mailto:{{ parroquia.mail_1 }}">{{ parroquia.mail_1 }}</a>
+                    {% else %}
+                        <span class="muted">Sin email</span>
+                    {% endif %}
+                    {% if parroquia.mail_2 %}<div><a href="mailto:{{ parroquia.mail_2 }}">{{ parroquia.mail_2 }}</a></div>{% endif %}
+                    {% if parroquia.telefonos %}<div class="muted">{{ parroquia.telefonos }}</div>{% endif %}
+                </div>
+
+                <div class="parroquia-web">
+                    {% if parroquia.sitio_web %}
+                        <a class="badge ok link-badge" href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener noreferrer">Abrir web</a>
+                    {% else %}
+                        <span class="badge missing">Sin web</span>
+                    {% endif %}
+                </div>
+
+                <div class="parroquia-eventos">
+                    {% with e=parroquia.eventos_estado %}
+                        {% if e.estado == "validos" %}
+                            <span class="badge ok">Con eventos</span>
+                        {% elif e.estado == "requiere_verificacion" or e.estado == "todos_incompletos" %}
+                            <span class="badge warn">Requiere verif.</span>
+                        {% else %}
+                            <span class="badge missing">Sin eventos</span>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+                {% for grupo in parroquia.redes_resumen %}
+                    <div class="parroquia-red-status" data-label="{{ grupo.etiqueta }}">
+                        {% include "iglesias/partials/red_status.html" %}
+                    </div>
+                {% endfor %}
+
+                <div class="parroquia-updated">
+                    <span class="muted">{{ parroquia.actualizado_el|date:"d/m/Y H:i" }}</span>
+                </div>
+            </article>
+        {% empty %}
+            <div class="parroquia-row">
+                <div>No hay parroquias para los filtros seleccionados.</div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

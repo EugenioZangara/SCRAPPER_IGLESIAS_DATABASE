@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Parroquias{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #f6f7f9;
+            --surface: #ffffff;
+            --surface-soft: #eef2f5;
+            --text: #1f2933;
+            --muted: #667085;
+            --line: #d9e0e7;
+            --brand: #276749;
+            --brand-soft: #dff3e9;
+            --blue: #255f85;
+            --blue-soft: #e1eff7;
+            --amber: #936316;
+            --amber-soft: #fff0cf;
+            --red: #9f3a38;
+            --red-soft: #fde7e7;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            line-height: 1.45;
+        }
+
+        a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .topbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .topbar-inner,
+        .page {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .topbar-inner {
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand {
+            color: var(--text);
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .nav {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .page {
+            padding-top: 24px;
+            padding-bottom: 40px;
+        }
+
+        .page-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 26px;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            margin: 6px 0 0;
+            color: var(--muted);
+        }
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .stats-wide {
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        }
+
+        .stat {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .stat-value {
+            margin-top: 6px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(150px, 180px)) auto;
+            gap: 10px;
+            padding: 14px;
+            border-bottom: 1px solid var(--line);
+            background: var(--surface-soft);
+        }
+
+        input,
+        select,
+        button {
+            min-height: 38px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+            padding: 0 10px;
+            font: inherit;
+        }
+
+        button {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .name {
+            font-weight: 700;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .hidden-data {
+            display: none;
+        }
+
+        .parroquia-list {
+            display: grid;
+        }
+
+        /* Columnas: nombre | web | eventos | fb | ig | yt | tiktok | otro | actualizado */
+        .parroquia-list-header,
+        .parroquia-row {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.2fr) minmax(92px, 0.35fr) minmax(130px, 0.45fr) repeat(5, minmax(62px, 0.22fr)) minmax(110px, 0.38fr);
+            gap: 10px;
+            align-items: start;
+        }
+
+        .parroquia-list-header {
+            padding: 12px 14px;
+            background: #fbfcfd;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .parroquia-row {
+            padding: 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .parroquia-row:last-child {
+            border-bottom: 0;
+        }
+
+        .parroquia-main,
+        .parroquia-web,
+        .parroquia-eventos,
+        .parroquia-redes,
+        .parroquia-red-status,
+        .parroquia-updated {
+            min-width: 0;
+        }
+
+        .red-header {
+            text-align: center;
+        }
+
+        .parroquia-red-status {
+            display: flex;
+            justify-content: center;
+        }
+
+        .status-marker {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            border: 2px solid currentColor;
+            background: transparent;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1;
+            text-decoration: none;
+        }
+
+        .status-marker.has {
+            color: var(--brand);
+        }
+
+        .status-marker.verified {
+            background: var(--brand);
+            color: #ffffff;
+        }
+
+        .status-marker.no-network {
+            background: var(--red);
+            color: #ffffff;
+        }
+
+        .status-marker.pending {
+            background: transparent;
+            color: var(--brand);
+        }
+
+        .status-marker.missing {
+            color: var(--red);
+        }
+
+        .red-status-stack {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .review-actions {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .review-form {
+            margin: 0;
+        }
+
+        .verify-button,
+        .reject-button {
+            min-height: 22px;
+            border-radius: 999px;
+            padding: 0 8px;
+            background: var(--surface);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .verify-button {
+            color: var(--brand);
+            border: 1px solid var(--brand);
+        }
+
+        .reject-button {
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            border-radius: 999px;
+            padding: 2px 9px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .link-badge {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .link-list {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .ok {
+            background: var(--brand-soft);
+            color: var(--brand);
+        }
+
+        .info {
+            background: var(--blue-soft);
+            color: var(--blue);
+        }
+
+        .warn {
+            background: var(--amber-soft);
+            color: var(--amber);
+        }
+
+        .missing {
+            background: var(--red-soft);
+            color: var(--red);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .section {
+            padding: 16px;
+        }
+
+        .section + .section {
+            border-top: 1px solid var(--line);
+        }
+
+        .section h2 {
+            margin: 0 0 12px;
+            font-size: 17px;
+        }
+
+        .fields {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 10px 14px;
+        }
+
+        .field-label {
+            color: var(--muted);
+        }
+
+        .field-value {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .redes-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .red-item {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px;
+            background: #fbfcfd;
+        }
+
+        .evento-item {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px;
+            background: #fbfcfd;
+        }
+
+        .evento-item + .evento-item {
+            margin-top: 10px;
+        }
+
+        @media (max-width: 900px) {
+            .stats,
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .parroquia-list-header {
+                display: none;
+            }
+
+            .parroquia-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .parroquia-web::before,
+            .parroquia-eventos::before,
+            .parroquia-red-status::before,
+            .parroquia-updated::before {
+                display: block;
+                margin-bottom: 4px;
+                color: var(--muted);
+                font-size: 12px;
+                font-weight: 700;
+                text-transform: uppercase;
+            }
+
+            .parroquia-web::before {
+                content: "Web";
+            }
+
+            .parroquia-eventos::before {
+                content: "Eventos";
+            }
+
+            .parroquia-updated::before {
+                content: "Actualizado";
+            }
+
+            .parroquia-red-status {
+                justify-content: flex-start;
+            }
+
+            .parroquia-red-status::before {
+                content: attr(data-label);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .topbar-inner,
+            .page {
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .page-title {
+                display: block;
+            }
+
+            .filters,
+            .fields {
+                grid-template-columns: 1fr;
+            }
+
+            .hidden-data {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="{% url 'iglesias:lista_parroquias' %}">Scraper Catolico</a>
+            <nav class="nav">
+                <a href="{% url 'iglesias:lista_parroquias' %}">Parroquias</a>
+                <a href="/admin/">Admin</a>
+            </nav>
+        </div>
+    </header>
+    <main class="page">
+        {% block content %}{% endblock %}
+    </main>
+    <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+</body>
+</html>

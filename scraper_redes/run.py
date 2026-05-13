@@ -1,0 +1,176 @@
+import sys
+import os
+import time
+# Inicializar Django antes de importar modelos
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+
+import django
+django.setup()
+
+# Cargar .env manualmente
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env')
+if os.path.exists(env_path):
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, value = line.split('=', 1)
+                os.environ.setdefault(key.strip(), value.strip())
+
+from apps.iglesias.models import Parroquia, PostParroquia, Evento
+from scraper_redes.instagram import scrapear_perfil
+from scraper_redes.procesador import procesar_post
+from scraper_redes.config import INSTAGRAM_TEST_URL
+
+# ID de la parroquia de prueba
+PARROQUIA_TEST_ID = 559
+
+
+def guardar_posts(parroquia, posts: list[dict]) -> tuple[int, int]:
+    guardados = 0
+    omitidos = 0
+
+    for post in posts:
+        _, creado = PostParroquia.objects.get_or_create(
+            post_id=post["post_id"],
+            defaults={
+                "parroquia": parroquia,
+                "red_social": "instagram",
+                "imagen_url": post["imagen_url"],
+                "fecha_publicacion": post["fecha"],
+                "raw_data": post["raw_data"],
+            }
+        )
+        if creado:
+            guardados += 1
+            print(f"  Guardado: {post['post_id']} ({post['fecha']})")
+        else:
+            omitidos += 1
+            print(f"  Omitido (ya existe): {post['post_id']}")
+
+    return guardados, omitidos
+
+
+def procesar_posts_pendientes(parroquia):
+    """Procesa con Gemini los posts que aún no fueron analizados."""
+    pendientes = PostParroquia.objects.filter(
+        parroquia=parroquia,
+        procesado=False
+    )
+
+    print(f"\n=== Procesando {pendientes.count()} posts con Gemini ===")
+
+    for post_obj in pendientes:
+        post_dict = {
+            "post_id": post_obj.post_id,
+            "imagen_url": post_obj.imagen_url,
+            "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
+        }
+
+        resultado = procesar_post(post_dict)
+
+        # Actualizar el objeto en la DB
+        post_obj.es_evento = resultado.get("es_evento")
+        post_obj.procesado = True
+        post_obj.raw_data = {
+            **(post_obj.raw_data or {}),
+            "gemini": resultado
+        }
+        post_obj.save()
+   
+        # Crear evento si fue clasificado como tal y NO es pasado
+        if resultado.get("es_evento") and not resultado.get("es_pasado"):
+            crear_evento_desde_post(post_obj, resultado)
+        time.sleep(4)  # 4 segundos entre requests
+
+        es_evento_str = "✅ ES EVENTO" if resultado.get("es_evento") else "❌ no es evento"
+        if resultado.get("es_evento") is None:
+            es_evento_str = "⚠️  error al procesar"
+
+        es_evento_str = "✅ ES EVENTO" if resultado.get("es_evento") else "❌ no es evento"
+        if resultado.get("es_pasado"):
+            es_evento_str = "📅 evento pasado"
+        if resultado.get("es_evento") is None:
+            es_evento_str = "⚠️  error al procesar"
+
+        print(f"  {post_obj.post_id}: {es_evento_str}")
+        if resultado.get("es_evento"):
+            print(f"     Título : {resultado.get('titulo')}")
+            print(f"     Fecha  : {resultado.get('fecha')}")
+            print(f"     Tipo   : {resultado.get('tipo_evento')}")
+
+
+def main():
+    print(f"=== Scraper de redes sociales ===")
+    print(f"URL de prueba: {INSTAGRAM_TEST_URL}\n")
+
+    try:
+        parroquia = Parroquia.objects.get(id=PARROQUIA_TEST_ID)
+        print(f"Parroquia: {parroquia.nombre}\n")
+    except Parroquia.DoesNotExist:
+        print(f"ERROR: No existe parroquia con ID {PARROQUIA_TEST_ID}")
+        return
+
+    # 1. Scrapear posts nuevos
+    posts = scrapear_perfil(INSTAGRAM_TEST_URL)
+
+    if not posts:
+        print("No se obtuvieron posts.")
+        return
+
+    print(f"\n=== Guardando {len(posts)} posts en la DB ===")
+    guardados, omitidos = guardar_posts(parroquia, posts)
+    print(f"Resumen: {guardados} guardados, {omitidos} omitidos.")
+
+    # 2. Procesar con Gemini los pendientes
+    procesar_posts_pendientes(parroquia)
+
+    print(f"\n=== Finalizado ===")
+    total = PostParroquia.objects.filter(parroquia=parroquia).count()
+    eventos = PostParroquia.objects.filter(parroquia=parroquia, es_evento=True).count()
+    print(f"Total posts en DB : {total}")
+    print(f"Eventos detectados: {eventos}")
+
+def crear_evento_desde_post(post_obj, resultado: dict):
+    """Crea un Evento a partir de un PostParroquia clasificado como evento futuro."""
+
+    # Si ya tiene un evento asociado, no crear otro
+    if hasattr(post_obj, 'evento'):
+        return None
+
+    # Parsear fecha si viene como string DD/MM/YYYY
+    fecha = None
+    fecha_str = resultado.get("fecha")
+    if fecha_str:
+        try:
+            from datetime import datetime
+            fecha = datetime.strptime(fecha_str, "%d/%m/%Y").date()
+        except ValueError:
+            pass
+
+    # Parsear hora si viene como string HH:MM
+    hora = None
+    hora_str = resultado.get("hora")
+    if hora_str:
+        try:
+            from datetime import datetime
+            hora = datetime.strptime(hora_str, "%H:%M").time()
+        except ValueError:
+            pass
+
+    evento = Evento.objects.create(
+        parroquia=post_obj.parroquia,
+        post=post_obj,
+        titulo=resultado.get("titulo") or "Sin título",
+        tipo=resultado.get("tipo_evento") or "otro",
+        fecha=fecha,
+        hora=hora,
+        lugar=resultado.get("lugar"),
+        descripcion=resultado.get("descripcion"),
+        imagen_url=post_obj.imagen_url,
+    )
+
+    print(f"     Evento creado: {evento}")
+    return evento
+main()

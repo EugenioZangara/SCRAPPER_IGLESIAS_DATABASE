@@ -1,0 +1,49 @@
+{% if grupo.redes %}
+    <div class="red-status-stack">
+        <a
+            class="status-marker has {% if grupo.verificada %}verified{% else %}pending{% endif %}"
+            href="{{ grupo.red_principal.url }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="{{ grupo.etiqueta }}{% if grupo.red_principal.username %}: {{ grupo.red_principal.username }}{% endif %}{% if grupo.verificada %} - verificada{% else %} - sin verificar{% endif %}"
+            aria-label="{{ grupo.etiqueta }} cargado{% if grupo.verificada %} y verificado{% else %} sin verificar{% endif %}"
+        >
+            {% if grupo.redes|length > 1 %}{{ grupo.redes|length }}{% endif %}
+        </a>
+        {% if grupo.red_pendiente %}
+            <div class="review-actions">
+                <form
+                    class="review-form"
+                    method="post"
+                    action="{% url 'iglesias:verificar_red_social' grupo.red_pendiente.pk %}"
+                    hx-post="{% url 'iglesias:verificar_red_social' grupo.red_pendiente.pk %}"
+                    hx-target="closest .parroquia-red-status"
+                    hx-swap="innerHTML"
+                >
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="verify-button" type="submit">Verificar</button>
+                </form>
+                <form
+                    class="review-form"
+                    method="post"
+                    action="{% url 'iglesias:eliminar_red_social' grupo.red_pendiente.pk %}"
+                    hx-post="{% url 'iglesias:eliminar_red_social' grupo.red_pendiente.pk %}"
+                    hx-target="closest .parroquia-red-status"
+                    hx-swap="innerHTML"
+                    hx-confirm="Esta red no pertenece a la parroquia. Deseas quitarla?"
+                >
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button class="reject-button" type="submit">Quitar</button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+{% else %}
+    <span
+        class="status-marker no-network"
+        title="Sin {{ grupo.etiqueta }}"
+        aria-label="Sin {{ grupo.etiqueta }}"
+    ></span>
+{% endif %}

@@ -1,0 +1,6 @@
+instaloader
+requests
+groq
+openai
+httpx
+google-genai
