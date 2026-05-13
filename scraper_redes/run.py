@@ -1,6 +1,8 @@
 import sys
 import os
 import time
+import random
+import argparse
 # Inicializar Django antes de importar modelos
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
@@ -18,7 +20,7 @@ if os.path.exists(env_path):
                 key, value = line.split('=', 1)
                 os.environ.setdefault(key.strip(), value.strip())
 
-from apps.iglesias.models import Parroquia, PostParroquia, Evento
+from apps.iglesias.models import Parroquia, PostParroquia, Evento, RedSocial
 from scraper_redes.instagram import scrapear_perfil
 from scraper_redes.procesador import procesar_post
 from scraper_redes.config import INSTAGRAM_TEST_URL
@@ -132,6 +134,55 @@ def main():
     print(f"Total posts en DB : {total}")
     print(f"Eventos detectados: {eventos}")
 
+def main_produccion():
+    redes = RedSocial.objects.filter(
+        tipo="instagram", activo=True, verificado=True
+    ).select_related("parroquia").order_by("parroquia__nombre")
+
+    total = redes.count()
+    print(f"=== Modo producción: {total} perfiles de Instagram verificados ===\n")
+
+    resumen = {"procesadas": 0, "posts_nuevos": 0, "eventos_detectados": 0, "errores": 0}
+
+    for i, red in enumerate(redes, 1):
+        parroquia = red.parroquia
+        print(f"\n--- [{i}/{total}] {parroquia.nombre} ---")
+        print(f"URL: {red.url}")
+
+        try:
+            posts = scrapear_perfil(red.url)
+
+            if not posts:
+                print("  No se obtuvieron posts.")
+                resumen["procesadas"] += 1
+            else:
+                print(f"  Guardando {len(posts)} posts...")
+                guardados, omitidos = guardar_posts(parroquia, posts)
+                resumen["posts_nuevos"] += guardados
+                print(f"  {guardados} guardados, {omitidos} omitidos.")
+
+                eventos_antes = Evento.objects.filter(parroquia=parroquia).count()
+                procesar_posts_pendientes(parroquia)
+                resumen["eventos_detectados"] += Evento.objects.filter(parroquia=parroquia).count() - eventos_antes
+
+                resumen["procesadas"] += 1
+
+        except Exception as e:
+            print(f"  ERROR: {e}")
+            resumen["errores"] += 1
+
+        if i < total:
+            delay = random.randint(10, 20)
+            print(f"  Esperando {delay}s antes de la siguiente parroquia...")
+            time.sleep(delay)
+
+    print(f"\n=== RESUMEN FINAL ===")
+    print(f"Parroquias procesadas : {resumen['procesadas']}/{total}")
+    print(f"Posts nuevos guardados: {resumen['posts_nuevos']}")
+    print(f"Eventos detectados    : {resumen['eventos_detectados']}")
+    print(f"Errores               : {resumen['errores']}")
+
+
 def crear_evento_desde_post(post_obj, resultado: dict):
     """Crea un Evento a partir de un PostParroquia clasificado como evento futuro."""
 
@@ -173,4 +224,13 @@ def crear_evento_desde_post(post_obj, resultado: dict):
 
     print(f"     Evento creado: {evento}")
     return evento
-main()
+
+
+parser = argparse.ArgumentParser(description="Scraper de redes sociales")
+parser.add_argument("--produccion", action="store_true", help="Procesar todas las parroquias verificadas")
+args = parser.parse_args()
+
+if args.produccion:
+    main_produccion()
+else:
+    main()

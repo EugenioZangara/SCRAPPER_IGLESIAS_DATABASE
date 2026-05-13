@@ -114,8 +114,11 @@ INSTAGRAM_SESSION_USER=pilotosprogramadores
 
 ### Cómo correr el scraper
 ```bash
-# Desde la raíz del proyecto
+# Modo prueba: usa la URL hardcodeada en config.py (parroquia TEST)
 python -m scraper_redes.run
+
+# Modo producción: itera sobre todas las RedSocial tipo instagram, activo=True, verificado=True
+python -m scraper_redes.run --produccion
 ```
 
 ### Login de Instagram (solo la primera vez o cuando caduca la sesión)
