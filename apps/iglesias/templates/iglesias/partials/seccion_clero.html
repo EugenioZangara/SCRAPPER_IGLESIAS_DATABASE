@@ -1,0 +1,71 @@
+<div class="section" id="seccion-clero">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">Clero e historia</h2>
+        {% if request.user.is_staff and not editing %}
+            <button class="verify-button"
+                    hx-get="{% url 'iglesias:editar_seccion_clero' parroquia.pk %}"
+                    hx-target="#seccion-clero"
+                    hx-swap="outerHTML">Editar</button>
+        {% endif %}
+    </div>
+
+    {% if editing %}
+        <form hx-post="{% url 'iglesias:editar_seccion_clero' parroquia.pk %}"
+              hx-target="#seccion-clero"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <div class="fields">
+                <div class="field-label">Clero a cargo</div>
+                <div class="field-value">
+                    <input type="text" name="clero_cargo" value="{{ parroquia.clero_cargo|default:'' }}" style="width:100%;">
+                </div>
+
+                <div class="field-label">Párroco</div>
+                <div class="field-value">
+                    <input type="text" name="parroco" value="{{ parroquia.parroco|default:'' }}" style="width:100%;">
+                </div>
+
+                <div class="field-label">Erección canónica</div>
+                <div class="field-value">
+                    <input type="text" name="fecha_ereccion_canonica" value="{{ parroquia.fecha_ereccion_canonica|default:'' }}" style="width:100%;">
+                </div>
+
+                <div class="field-label">Comenzó a funcionar</div>
+                <div class="field-value">
+                    <input type="text" name="comenzo_a_funcionar" value="{{ parroquia.comenzo_a_funcionar|default:'' }}" style="width:100%;">
+                </div>
+
+                <div class="field-label">Límite parroquial</div>
+                <div class="field-value">
+                    <textarea name="limite_parroquial" rows="4"
+                              style="width:100%; min-height:80px; border:1px solid var(--line); border-radius:6px; padding:8px 10px; font:inherit; resize:vertical;">{{ parroquia.limite_parroquial|default:'' }}</textarea>
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:14px;">
+                <button type="submit">Guardar</button>
+                <button type="button"
+                        style="background:var(--surface); color:var(--text); border:1px solid var(--line);"
+                        hx-get="{% url 'iglesias:editar_seccion_clero' parroquia.pk %}?cancelar=1"
+                        hx-target="#seccion-clero"
+                        hx-swap="outerHTML">Cancelar</button>
+            </div>
+        </form>
+    {% else %}
+        <div class="fields">
+            <div class="field-label">Clero a cargo</div>
+            <div class="field-value">{{ parroquia.clero_cargo|default:"Sin dato" }}</div>
+
+            <div class="field-label">Párroco</div>
+            <div class="field-value">{{ parroquia.parroco|default:"Sin dato" }}</div>
+
+            <div class="field-label">Erección canónica</div>
+            <div class="field-value">{{ parroquia.fecha_ereccion_canonica|default:"Sin dato" }}</div>
+
+            <div class="field-label">Comenzó a funcionar</div>
+            <div class="field-value">{{ parroquia.comenzo_a_funcionar|default:"Sin dato" }}</div>
+
+            <div class="field-label">Límite parroquial</div>
+            <div class="field-value">{{ parroquia.limite_parroquial|linebreaksbr|default:"Sin dato" }}</div>
+        </div>
+    {% endif %}
+</div>

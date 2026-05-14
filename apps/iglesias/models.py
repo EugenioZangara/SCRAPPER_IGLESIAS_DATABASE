@@ -134,3 +134,37 @@ class Evento(models.Model):
     def __str__(self):
         fecha_str = self.fecha.strftime("%d/%m/%Y") if self.fecha else "Sin fecha"
         return f"{self.titulo} - {self.parroquia.nombre} ({fecha_str})"
+
+
+class InfoBaiglesias(models.Model):
+    parroquia = models.OneToOneField(
+        "Parroquia", on_delete=models.CASCADE, related_name="info_bai"
+    )
+    direccion_completa = models.TextField(blank=True, null=True)
+    como_llegar = models.TextField(blank=True, null=True)
+    url_scrapeada = models.URLField(max_length=500)
+    scrapeado_el = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Info BAIglesias"
+        verbose_name_plural = "Infos BAIglesias"
+
+    def __str__(self):
+        return f"Info BAI — {self.parroquia.nombre}"
+
+
+class HorarioMisa(models.Model):
+    parroquia = models.ForeignKey(
+        "Parroquia", on_delete=models.CASCADE, related_name="horarios_misa"
+    )
+    dias = models.CharField(max_length=100)
+    horarios = models.CharField(max_length=100)
+    nota = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Horario de Misa"
+        verbose_name_plural = "Horarios de Misa"
+        ordering = ["id"]
+
+    def __str__(self):
+        return f"{self.dias}: {self.horarios} — {self.parroquia.nombre}"

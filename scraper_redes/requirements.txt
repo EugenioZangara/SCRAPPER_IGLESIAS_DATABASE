@@ -4,3 +4,4 @@ groq
 openai
 httpx
 google-genai
+beautifulsoup4

@@ -12,7 +12,17 @@
             {% if parroquia.vicaria %} · {{ parroquia.vicaria }}{% endif %}
         </p>
     </div>
-    <a href="{% url 'iglesias:lista_parroquias' %}">Volver al listado</a>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        {% if anterior %}
+            <a href="{% url 'iglesias:detalle_parroquia' anterior.pk %}" class="verify-button"
+               style="display:inline-flex; align-items:center; min-height:22px; padding:0 10px; font-size:12px; font-weight:700; border-radius:999px; border:1px solid var(--brand); color:var(--brand); text-decoration:none;">← Anterior</a>
+        {% endif %}
+        <a href="{% url 'iglesias:lista_parroquias' %}">Volver al listado</a>
+        {% if siguiente %}
+            <a href="{% url 'iglesias:detalle_parroquia' siguiente.pk %}" class="verify-button"
+               style="display:inline-flex; align-items:center; min-height:22px; padding:0 10px; font-size:12px; font-weight:700; border-radius:999px; border:1px solid var(--brand); color:var(--brand); text-decoration:none;">Siguiente →</a>
+        {% endif %}
+    </div>
 </div>
 
 <section class="stats">
@@ -56,80 +66,10 @@
             </div>
         </div>
 
-        <div class="section">
-            <h2>Ubicacion y organizacion</h2>
-            <div class="fields">
-                <div class="field-label">Direccion</div>
-                <div class="field-value">{{ parroquia.direccion|default:"Sin dato" }}</div>
-
-                <div class="field-label">Codigo postal</div>
-                <div class="field-value">{{ parroquia.codigo_postal|default:"Sin dato" }}</div>
-
-                <div class="field-label">Barrio</div>
-                <div class="field-value">{{ parroquia.barrio|default:"Sin dato" }}</div>
-
-                <div class="field-label">Vicaria</div>
-                <div class="field-value">{{ parroquia.vicaria|default:"Sin dato" }}</div>
-
-                <div class="field-label">Decanato</div>
-                <div class="field-value">{{ parroquia.decanato|default:"Sin dato" }}</div>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>Contacto</h2>
-            <div class="fields">
-                <div class="field-label">Telefonos</div>
-                <div class="field-value">{{ parroquia.telefonos|default:"Sin dato" }}</div>
-
-                <div class="field-label">Email 1</div>
-                <div class="field-value">
-                    {% if parroquia.mail_1 %}
-                        <a href="mailto:{{ parroquia.mail_1 }}">{{ parroquia.mail_1 }}</a>
-                    {% else %}
-                        <span class="muted">Sin dato</span>
-                    {% endif %}
-                </div>
-
-                <div class="field-label">Email 2</div>
-                <div class="field-value">
-                    {% if parroquia.mail_2 %}
-                        <a href="mailto:{{ parroquia.mail_2 }}">{{ parroquia.mail_2 }}</a>
-                    {% else %}
-                        <span class="muted">Sin dato</span>
-                    {% endif %}
-                </div>
-
-                <div class="field-label">Sitio web</div>
-                <div class="field-value">
-                    {% if parroquia.sitio_web %}
-                        <a href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener noreferrer">{{ parroquia.sitio_web }}</a>
-                    {% else %}
-                        <span class="muted">Sin dato</span>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>Clero e historia</h2>
-            <div class="fields">
-                <div class="field-label">Clero a cargo</div>
-                <div class="field-value">{{ parroquia.clero_cargo|default:"Sin dato" }}</div>
-
-                <div class="field-label">Parroco</div>
-                <div class="field-value">{{ parroquia.parroco|default:"Sin dato" }}</div>
-
-                <div class="field-label">Ereccion canonica</div>
-                <div class="field-value">{{ parroquia.fecha_ereccion_canonica|default:"Sin dato" }}</div>
-
-                <div class="field-label">Comenzo a funcionar</div>
-                <div class="field-value">{{ parroquia.comenzo_a_funcionar|default:"Sin dato" }}</div>
-
-                <div class="field-label">Limite parroquial</div>
-                <div class="field-value">{{ parroquia.limite_parroquial|linebreaksbr|default:"Sin dato" }}</div>
-            </div>
-        </div>
+        {% include "iglesias/partials/seccion_ubicacion.html" with editing=False %}
+        {% include "iglesias/partials/seccion_contacto.html" with editing=False %}
+        {% include "iglesias/partials/seccion_clero.html" with editing=False %}
+        {% include "iglesias/partials/seccion_bai.html" with editing=False %}
     </section>
 
     <aside style="display: flex; flex-direction: column; gap: 18px;">

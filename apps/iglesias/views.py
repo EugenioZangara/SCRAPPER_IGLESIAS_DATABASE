@@ -1,10 +1,11 @@
 from datetime import date
 
 from django.db.models import Count, Q
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .models import Parroquia, RedSocial, Evento
+from .models import Parroquia, RedSocial, Evento, HorarioMisa
 
 
 def _armar_grupo_red(parroquia, tipo, etiqueta):
@@ -69,7 +70,7 @@ def _estado_eventos(parroquia):
         }
 
     resultado["eventos_pasados"] = eventos_pasados
-    return resultado 
+    return resultado
 
 def _enriquecer_parroquias(parroquias):
     tipos_redes = RedSocial.TIPO_CHOICES
@@ -178,10 +179,15 @@ def lista_parroquias(request):
 
 def detalle_parroquia(request, pk):
     parroquia = get_object_or_404(
-        Parroquia.objects.prefetch_related("redes", "eventos"),
+        Parroquia.objects.prefetch_related(
+            "redes", "eventos", "horarios_misa"
+        ).select_related("info_bai"),
         pk=pk,
     )
     eventos_estado = _estado_eventos(parroquia)
+
+    anterior = Parroquia.objects.filter(nombre__lt=parroquia.nombre).order_by("-nombre").first()
+    siguiente = Parroquia.objects.filter(nombre__gt=parroquia.nombre).order_by("nombre").first()
 
     return render(
         request,
@@ -189,6 +195,8 @@ def detalle_parroquia(request, pk):
         {
             "parroquia": parroquia,
             "eventos_estado": eventos_estado,
+            "anterior": anterior,
+            "siguiente": siguiente,
         },
     )
 
@@ -297,3 +305,126 @@ def editar_evento(request, pk):
             "tipo_choices": Evento.TIPO_CHOICES,
         },
     )
+
+
+def editar_seccion_contacto(request, pk):
+    if not request.user.is_staff:
+        return HttpResponseForbidden("No autorizado")
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+
+    if request.method == "POST":
+        parroquia.telefonos = request.POST.get("telefonos", "").strip() or None
+        parroquia.mail_1 = request.POST.get("mail_1", "").strip() or None
+        parroquia.mail_2 = request.POST.get("mail_2", "").strip() or None
+        parroquia.sitio_web = request.POST.get("sitio_web", "").strip() or None
+        parroquia.save(update_fields=["telefonos", "mail_1", "mail_2", "sitio_web"])
+        editing = False
+    else:
+        editing = request.GET.get("cancelar") != "1"
+
+    return render(request, "iglesias/partials/seccion_contacto.html", {
+        "parroquia": parroquia,
+        "editing": editing,
+    })
+
+
+def editar_seccion_ubicacion(request, pk):
+    if not request.user.is_staff:
+        return HttpResponseForbidden("No autorizado")
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+
+    if request.method == "POST":
+        parroquia.direccion = request.POST.get("direccion", "").strip() or None
+        parroquia.codigo_postal = request.POST.get("codigo_postal", "").strip() or None
+        parroquia.barrio = request.POST.get("barrio", "").strip() or None
+        parroquia.vicaria = request.POST.get("vicaria", "").strip() or None
+        parroquia.decanato = request.POST.get("decanato", "").strip() or None
+        parroquia.save(update_fields=["direccion", "codigo_postal", "barrio", "vicaria", "decanato"])
+        editing = False
+    else:
+        editing = request.GET.get("cancelar") != "1"
+
+    return render(request, "iglesias/partials/seccion_ubicacion.html", {
+        "parroquia": parroquia,
+        "editing": editing,
+    })
+
+
+def editar_seccion_clero(request, pk):
+    if not request.user.is_staff:
+        return HttpResponseForbidden("No autorizado")
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+
+    if request.method == "POST":
+        parroquia.clero_cargo = request.POST.get("clero_cargo", "").strip() or None
+        parroquia.parroco = request.POST.get("parroco", "").strip() or None
+        parroquia.fecha_ereccion_canonica = request.POST.get("fecha_ereccion_canonica", "").strip() or None
+        parroquia.comenzo_a_funcionar = request.POST.get("comenzo_a_funcionar", "").strip() or None
+        parroquia.limite_parroquial = request.POST.get("limite_parroquial", "").strip() or None
+        parroquia.save(update_fields=["clero_cargo", "parroco", "fecha_ereccion_canonica", "comenzo_a_funcionar", "limite_parroquial"])
+        editing = False
+    else:
+        editing = request.GET.get("cancelar") != "1"
+
+    return render(request, "iglesias/partials/seccion_clero.html", {
+        "parroquia": parroquia,
+        "editing": editing,
+    })
+
+
+def editar_seccion_bai(request, pk):
+    if not request.user.is_staff:
+        return HttpResponseForbidden("No autorizado")
+
+    parroquia = get_object_or_404(
+        Parroquia.objects.prefetch_related("horarios_misa").select_related("info_bai"),
+        pk=pk,
+    )
+
+    if request.method == "POST":
+        if hasattr(parroquia, "info_bai") and parroquia.info_bai:
+            info_bai = parroquia.info_bai
+            info_bai.direccion_completa = request.POST.get("direccion_completa", "").strip() or None
+            info_bai.como_llegar = request.POST.get("como_llegar", "").strip() or None
+            info_bai.save(update_fields=["direccion_completa", "como_llegar"])
+
+        for horario in list(parroquia.horarios_misa.all()):
+            if request.POST.get(f"delete_{horario.pk}"):
+                horario.delete()
+            else:
+                dias = request.POST.get(f"dias_{horario.pk}", "").strip()
+                horarios_val = request.POST.get(f"horarios_{horario.pk}", "").strip()
+                nota = request.POST.get(f"nota_{horario.pk}", "").strip() or None
+                if dias and horarios_val:
+                    horario.dias = dias
+                    horario.horarios = horarios_val
+                    horario.nota = nota
+                    horario.save(update_fields=["dias", "horarios", "nota"])
+
+        new_dias_list = request.POST.getlist("new_dias")
+        new_horarios_list = request.POST.getlist("new_horarios")
+        new_nota_list = request.POST.getlist("new_nota")
+        for dias, horarios_val, nota in zip(new_dias_list, new_horarios_list, new_nota_list):
+            dias = dias.strip()
+            horarios_val = horarios_val.strip()
+            nota = nota.strip() or None
+            if dias and horarios_val:
+                HorarioMisa.objects.create(
+                    parroquia=parroquia,
+                    dias=dias,
+                    horarios=horarios_val,
+                    nota=nota,
+                )
+
+        parroquia = get_object_or_404(
+            Parroquia.objects.prefetch_related("horarios_misa").select_related("info_bai"),
+            pk=pk,
+        )
+        editing = False
+    else:
+        editing = request.GET.get("cancelar") != "1"
+
+    return render(request, "iglesias/partials/seccion_bai.html", {
+        "parroquia": parroquia,
+        "editing": editing,
+    })

@@ -176,6 +176,10 @@ El JSON que devuelve la IA tiene estos campos:
 - `/` → redirige a lista de parroquias
 - `/parroquias/` → lista con filtros y stats
 - `/parroquias/<pk>/` → detalle con eventos y redes
+- `/parroquias/<pk>/editar/contacto/` → GET (form inline) / POST (guarda) — edición HTMX sección Contacto
+- `/parroquias/<pk>/editar/ubicacion/` → GET / POST — edición HTMX sección Ubicación
+- `/parroquias/<pk>/editar/clero/` → GET / POST — edición HTMX sección Clero e historia
+- `/parroquias/<pk>/editar/bai/` → GET / POST — edición HTMX sección BAIglesias
 - `/eventos/<pk>/aprobar/` → POST — aprueba evento
 - `/eventos/<pk>/rechazar/` → POST — rechaza evento
 - `/eventos/<pk>/editar/` → GET/POST — editar y aprobar evento
@@ -190,9 +194,22 @@ Calculado en `_estado_eventos()` en `views.py`:
 - `sin_eventos`: no hay eventos futuros activos
 
 ### Detalle de parroquia
-- Columna izquierda: datos de identificación, ubicación, contacto, clero
+- Columna izquierda: datos de identificación, ubicación, contacto, clero, BAIglesias
 - Columna derecha: estado de información, redes sociales, eventos próximos (máx 5)
 - Acordeón debajo de eventos próximos: eventos pasados colapsados
+- Navegación anterior/siguiente por nombre en el page-title
+
+### Edición inline (solo staff)
+- Las secciones Contacto, Ubicación, Clero e historia y BAIglesias tienen botón "Editar"
+  visible solo si `request.user.is_staff`
+- Al hacer clic, HTMX reemplaza la sección con un formulario inline (sin redirección)
+- Al guardar, HTMX reemplaza de vuelta con la vista actualizada
+- Cancelar rehace GET `?cancelar=1` que devuelve la vista sin guardar
+- Acceso directo a las URLs de edición sin ser staff devuelve 403
+- Los partials de sección están en `apps/iglesias/templates/iglesias/partials/`:
+  `seccion_contacto.html`, `seccion_ubicacion.html`, `seccion_clero.html`, `seccion_bai.html`
+- Cada partial maneja ambos modos (view/edit) según la variable `editing`
+- La sección BAIglesias permite editar/crear/eliminar horarios de misa con JS nativo
 
 ---
 
@@ -219,3 +236,27 @@ Calculado en `_estado_eventos()` en `views.py`:
 - **DJANGO_SETTINGS_MODULE**: `core.settings`
 - **Comando para correr el scraper**: siempre desde la raíz del proyecto con
   `python -m scraper_redes.run`
+
+---
+
+## Scraper BAIglesias
+
+- Se agregaron dos modelos nuevos: `InfoBaiglesias` (OneToOne con Parroquia) y
+  `HorarioMisa` (FK a Parroquia). Ambos en `apps/iglesias/models.py`.
+
+- El scraper se encuentra en `scraper_redes/baiglesias.py` y el orquestador
+  en `scraper_redes/run_baiglesias.py`.
+
+- Para correrlo: `python -m scraper_redes.run_baiglesias`
+  Procesa únicamente parroquias cuyo `sitio_web` contiene `"baiglesias.com"` (30 parroquias).
+
+- Los datos scrapeados son: dirección completa, cómo llegar y horarios de misas
+  por día. La historia no se guarda.
+
+- El scraper usa `httpx` + `BeautifulSoup4` para parsear el HTML estático del sitio.
+
+- La información se muestra en el detalle de la parroquia en el panel Django,
+  en una sección llamada "Información BAIglesias", solo si la parroquia tiene
+  datos scrapeados.
+
+- La dependencia `beautifulsoup4` fue agregada a `scraper_redes/requirements.txt`.

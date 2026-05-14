@@ -1,0 +1,133 @@
+{% if parroquia.info_bai or parroquia.horarios_misa.exists %}
+<div class="section" id="seccion-bai">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">Información BAIglesias</h2>
+        {% if request.user.is_staff and not editing %}
+            <button class="verify-button"
+                    hx-get="{% url 'iglesias:editar_seccion_bai' parroquia.pk %}"
+                    hx-target="#seccion-bai"
+                    hx-swap="outerHTML">Editar</button>
+        {% endif %}
+    </div>
+
+    {% if editing %}
+        <form hx-post="{% url 'iglesias:editar_seccion_bai' parroquia.pk %}"
+              hx-target="#seccion-bai"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+
+            {% if parroquia.info_bai %}
+                <div class="fields">
+                    <div class="field-label">Dirección completa</div>
+                    <div class="field-value">
+                        <textarea name="direccion_completa" rows="2"
+                                  style="width:100%; min-height:60px; border:1px solid var(--line); border-radius:6px; padding:8px 10px; font:inherit; resize:vertical;">{{ parroquia.info_bai.direccion_completa|default:'' }}</textarea>
+                    </div>
+
+                    <div class="field-label">Cómo llegar</div>
+                    <div class="field-value">
+                        <textarea name="como_llegar" rows="3"
+                                  style="width:100%; min-height:80px; border:1px solid var(--line); border-radius:6px; padding:8px 10px; font:inherit; resize:vertical;">{{ parroquia.info_bai.como_llegar|default:'' }}</textarea>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div style="margin-top:14px;">
+                <div class="field-label" style="margin-bottom:8px;">Horarios de misas</div>
+                <div class="redes-list" id="horarios-existentes">
+                    {% for horario in parroquia.horarios_misa.all %}
+                        <div class="red-item" id="horario-row-{{ horario.pk }}">
+                            <div class="fields">
+                                <div class="field-label">Días</div>
+                                <div class="field-value">
+                                    <input type="text" name="dias_{{ horario.pk }}" value="{{ horario.dias }}" style="width:100%;">
+                                </div>
+                                <div class="field-label">Horarios</div>
+                                <div class="field-value">
+                                    <input type="text" name="horarios_{{ horario.pk }}" value="{{ horario.horarios }}" style="width:100%;">
+                                </div>
+                                <div class="field-label">Nota</div>
+                                <div class="field-value">
+                                    <input type="text" name="nota_{{ horario.pk }}" value="{{ horario.nota|default:'' }}" style="width:100%;">
+                                </div>
+                            </div>
+                            <button type="button" class="reject-button"
+                                    style="margin-top:8px;"
+                                    onclick="(function(btn){
+                                        var row = document.getElementById('horario-row-{{ horario.pk }}');
+                                        row.innerHTML = '<input type=\'hidden\' name=\'delete_{{ horario.pk }}\' value=\'1\'><em class=\'muted\'>Horario marcado para eliminar</em>';
+                                    })(this)">✕ Eliminar</button>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div id="nuevos-horarios" style="margin-top:10px; display:grid; gap:10px;"></div>
+
+                <template id="horario-template">
+                    <div class="red-item new-horario-row">
+                        <div class="fields">
+                            <div class="field-label">Días</div>
+                            <div class="field-value">
+                                <input type="text" name="new_dias" placeholder="ej: Lunes a Viernes" style="width:100%;">
+                            </div>
+                            <div class="field-label">Horarios</div>
+                            <div class="field-value">
+                                <input type="text" name="new_horarios" placeholder="ej: 19:00" style="width:100%;">
+                            </div>
+                            <div class="field-label">Nota</div>
+                            <div class="field-value">
+                                <input type="text" name="new_nota" placeholder="opcional" style="width:100%;">
+                            </div>
+                        </div>
+                        <button type="button" class="reject-button"
+                                style="margin-top:8px;"
+                                onclick="this.closest('.new-horario-row').remove()">✕ Quitar</button>
+                    </div>
+                </template>
+
+                <button type="button" class="verify-button"
+                        style="margin-top:10px;"
+                        onclick="document.getElementById('nuevos-horarios').appendChild(document.getElementById('horario-template').content.cloneNode(true))">+ Agregar horario</button>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:16px;">
+                <button type="submit">Guardar</button>
+                <button type="button"
+                        style="background:var(--surface); color:var(--text); border:1px solid var(--line);"
+                        hx-get="{% url 'iglesias:editar_seccion_bai' parroquia.pk %}?cancelar=1"
+                        hx-target="#seccion-bai"
+                        hx-swap="outerHTML">Cancelar</button>
+            </div>
+        </form>
+    {% else %}
+        <div class="fields">
+            {% if parroquia.info_bai.direccion_completa %}
+                <div class="field-label">Dirección completa</div>
+                <div class="field-value">{{ parroquia.info_bai.direccion_completa }}</div>
+            {% endif %}
+
+            {% if parroquia.info_bai.como_llegar %}
+                <div class="field-label">Cómo llegar</div>
+                <div class="field-value">{{ parroquia.info_bai.como_llegar }}</div>
+            {% endif %}
+        </div>
+
+        {% if parroquia.horarios_misa.exists %}
+            <div style="margin-top:14px;">
+                <div class="field-label" style="margin-bottom:8px;">Horarios de misas</div>
+                <div class="redes-list">
+                    {% for horario in parroquia.horarios_misa.all %}
+                        <div class="red-item">
+                            <div style="font-weight:700; font-size:13px;">{{ horario.dias }}</div>
+                            <div style="margin-top:4px;">{{ horario.horarios }}</div>
+                            {% if horario.nota %}
+                                <div class="muted" style="font-size:12px; margin-top:4px;">{{ horario.nota }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endif %}

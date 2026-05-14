@@ -1,0 +1,70 @@
+<div class="section" id="seccion-ubicacion">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">Ubicacion y organizacion</h2>
+        {% if request.user.is_staff and not editing %}
+            <button class="verify-button"
+                    hx-get="{% url 'iglesias:editar_seccion_ubicacion' parroquia.pk %}"
+                    hx-target="#seccion-ubicacion"
+                    hx-swap="outerHTML">Editar</button>
+        {% endif %}
+    </div>
+
+    {% if editing %}
+        <form hx-post="{% url 'iglesias:editar_seccion_ubicacion' parroquia.pk %}"
+              hx-target="#seccion-ubicacion"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <div class="fields">
+                <div class="field-label">Dirección</div>
+                <div class="field-value">
+                    <input type="text" name="direccion" value="{{ parroquia.direccion|default:'' }}" style="width:100%;">
+                </div>
+
+                <div class="field-label">Código postal</div>
+                <div class="field-value">
+                    <input type="text" name="codigo_postal" value="{{ parroquia.codigo_postal|default:'' }}" style="width:100%;">
+                </div>
+
+                <div class="field-label">Barrio</div>
+                <div class="field-value">
+                    <input type="text" name="barrio" value="{{ parroquia.barrio|default:'' }}" style="width:100%;">
+                </div>
+
+                <div class="field-label">Vicaría</div>
+                <div class="field-value">
+                    <input type="text" name="vicaria" value="{{ parroquia.vicaria|default:'' }}" style="width:100%;">
+                </div>
+
+                <div class="field-label">Decanato</div>
+                <div class="field-value">
+                    <input type="text" name="decanato" value="{{ parroquia.decanato|default:'' }}" style="width:100%;">
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:14px;">
+                <button type="submit">Guardar</button>
+                <button type="button"
+                        style="background:var(--surface); color:var(--text); border:1px solid var(--line);"
+                        hx-get="{% url 'iglesias:editar_seccion_ubicacion' parroquia.pk %}?cancelar=1"
+                        hx-target="#seccion-ubicacion"
+                        hx-swap="outerHTML">Cancelar</button>
+            </div>
+        </form>
+    {% else %}
+        <div class="fields">
+            <div class="field-label">Dirección</div>
+            <div class="field-value">{{ parroquia.direccion|default:"Sin dato" }}</div>
+
+            <div class="field-label">Código postal</div>
+            <div class="field-value">{{ parroquia.codigo_postal|default:"Sin dato" }}</div>
+
+            <div class="field-label">Barrio</div>
+            <div class="field-value">{{ parroquia.barrio|default:"Sin dato" }}</div>
+
+            <div class="field-label">Vicaría</div>
+            <div class="field-value">{{ parroquia.vicaria|default:"Sin dato" }}</div>
+
+            <div class="field-label">Decanato</div>
+            <div class="field-value">{{ parroquia.decanato|default:"Sin dato" }}</div>
+        </div>
+    {% endif %}
+</div>

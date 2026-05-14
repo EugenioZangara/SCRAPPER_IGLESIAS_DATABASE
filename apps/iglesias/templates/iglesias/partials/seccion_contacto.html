@@ -1,0 +1,80 @@
+<div class="section" id="seccion-contacto">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h2 style="margin:0;">Contacto</h2>
+        {% if request.user.is_staff and not editing %}
+            <button class="verify-button"
+                    hx-get="{% url 'iglesias:editar_seccion_contacto' parroquia.pk %}"
+                    hx-target="#seccion-contacto"
+                    hx-swap="outerHTML">Editar</button>
+        {% endif %}
+    </div>
+
+    {% if editing %}
+        <form hx-post="{% url 'iglesias:editar_seccion_contacto' parroquia.pk %}"
+              hx-target="#seccion-contacto"
+              hx-swap="outerHTML">
+            {% csrf_token %}
+            <div class="fields">
+                <div class="field-label">Teléfonos</div>
+                <div class="field-value">
+                    <input type="text" name="telefonos" value="{{ parroquia.telefonos|default:'' }}" style="width:100%;">
+                </div>
+
+                <div class="field-label">Email 1</div>
+                <div class="field-value">
+                    <input type="email" name="mail_1" value="{{ parroquia.mail_1|default:'' }}" style="width:100%;">
+                </div>
+
+                <div class="field-label">Email 2</div>
+                <div class="field-value">
+                    <input type="email" name="mail_2" value="{{ parroquia.mail_2|default:'' }}" style="width:100%;">
+                </div>
+
+                <div class="field-label">Sitio web</div>
+                <div class="field-value">
+                    <input type="url" name="sitio_web" value="{{ parroquia.sitio_web|default:'' }}" style="width:100%;">
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:14px;">
+                <button type="submit">Guardar</button>
+                <button type="button"
+                        style="background:var(--surface); color:var(--text); border:1px solid var(--line);"
+                        hx-get="{% url 'iglesias:editar_seccion_contacto' parroquia.pk %}?cancelar=1"
+                        hx-target="#seccion-contacto"
+                        hx-swap="outerHTML">Cancelar</button>
+            </div>
+        </form>
+    {% else %}
+        <div class="fields">
+            <div class="field-label">Teléfonos</div>
+            <div class="field-value">{{ parroquia.telefonos|default:"Sin dato" }}</div>
+
+            <div class="field-label">Email 1</div>
+            <div class="field-value">
+                {% if parroquia.mail_1 %}
+                    <a href="mailto:{{ parroquia.mail_1 }}">{{ parroquia.mail_1 }}</a>
+                {% else %}
+                    <span class="muted">Sin dato</span>
+                {% endif %}
+            </div>
+
+            <div class="field-label">Email 2</div>
+            <div class="field-value">
+                {% if parroquia.mail_2 %}
+                    <a href="mailto:{{ parroquia.mail_2 }}">{{ parroquia.mail_2 }}</a>
+                {% else %}
+                    <span class="muted">Sin dato</span>
+                {% endif %}
+            </div>
+
+            <div class="field-label">Sitio web</div>
+            <div class="field-value">
+                {% if parroquia.sitio_web %}
+                    <a href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener noreferrer">{{ parroquia.sitio_web }}</a>
+                {% else %}
+                    <span class="muted">Sin dato</span>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
