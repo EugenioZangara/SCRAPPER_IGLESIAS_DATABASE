@@ -1,134 +1,183 @@
 {% extends "iglesias/base.html" %}
 
-{% block title %}Parroquias{% endblock %}
+{% block title %}Parroquias · Scraper Católico{% endblock %}
 
 {% block content %}
-<div class="page-title">
-    <div>
-        <h1>Parroquias</h1>
-        <p class="subtitle">Estado de datos recolectados, webs oficiales y redes detectadas.</p>
-    </div>
-</div>
 
-<section class="stats stats-wide">
-    <div class="stat">
-        <div class="stat-label">Total</div>
-        <div class="stat-value">{{ stats.total }}</div>
+<section class="head">
+    <div>
+        <div class="eyebrow">Directorio · Arquidiócesis de Buenos Aires</div>
+        <h1 class="title">Parroquias<em>.</em></h1>
+        <p class="lede">
+            Estado de los datos recolectados de cada parroquia: sitios web oficiales,
+            presencia en redes sociales detectada por el crawler y eventos próximos publicados.
+        </p>
     </div>
-    <div class="stat">
-        <div class="stat-label">Con web</div>
-        <div class="stat-value">{{ stats.con_web }}</div>
-    </div>
-    <div class="stat">
-        <div class="stat-label">Con redes</div>
-        <div class="stat-value">{{ stats.con_redes }}</div>
-    </div>
-    {% for red in stats_redes %}
-        <div class="stat">
-            <div class="stat-label">{{ red.etiqueta }}</div>
-            <div class="stat-value">{{ red.cantidad }}</div>
-        </div>
-    {% endfor %}
-    <div class="stat">
-        <div class="stat-label">Detalles completos</div>
-        <div class="stat-value">{{ stats.detalles_completos }}</div>
+    <div class="head-meta">
+        <strong>Base de datos</strong>
+        {{ stats.total }} parroquias registradas<br>
+        {{ stats.detalles_completos }} con detalles completos<br>
+        {{ stats.con_redes }} con redes detectadas
     </div>
 </section>
 
-<section class="panel">
-    <form class="filters" method="get">
-        <input type="search" name="q" value="{{ filtros.q }}" placeholder="Buscar por nombre, barrio, vicaria o direccion">
+<section class="stats-dir">
+    <div class="stat lead">
+        <div class="stat-label"><span>Total parroquias</span></div>
+        <div class="stat-num">{{ stats.total }}</div>
+        <div class="stat-foot">indexadas en la base</div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">
+            <span>Con sitio web</span>
+            <span style="color:var(--faint)">{% widthratio stats.con_web stats.total 100 %}%</span>
+        </div>
+        <div class="stat-num">{{ stats.con_web }}</div>
+        <div class="stat-foot">{{ stats.con_web }}/{{ stats.total }}</div>
+        <div class="stat-bar"><span style="width:{% widthratio stats.con_web stats.total 100 %}%"></span></div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">
+            <span>Con redes</span>
+            <span style="color:var(--faint)">{% widthratio stats.con_redes stats.total 100 %}%</span>
+        </div>
+        <div class="stat-num">{{ stats.con_redes }}</div>
+        <div class="stat-foot">{{ stats.con_redes }}/{{ stats.total }}</div>
+        <div class="stat-bar"><span style="width:{% widthratio stats.con_redes stats.total 100 %}%"></span></div>
+    </div>
+    {% for red in stats_redes %}
+    <div class="stat">
+        <div class="stat-label">
+            <span>{{ red.etiqueta }}</span>
+            <span style="color:var(--faint)">{% widthratio red.cantidad stats.total 100 %}%</span>
+        </div>
+        <div class="stat-num">{{ red.cantidad }}</div>
+        <div class="stat-foot">{{ red.cantidad }} cuentas</div>
+        <div class="stat-bar"><span style="width:{% widthratio red.cantidad stats.total 100 %}%"></span></div>
+    </div>
+    {% endfor %}
+</section>
+
+<form class="filters" method="get">
+    <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+        </svg>
+        <input type="search" name="q" value="{{ filtros.q }}" placeholder="Buscar por nombre, barrio, vicaría, dirección o párroco…">
+    </div>
+    <div class="select">
         <select name="web">
-            <option value="">Web: todas</option>
-            <option value="con" {% if filtros.web == "con" %}selected{% endif %}>Con web</option>
-            <option value="sin" {% if filtros.web == "sin" %}selected{% endif %}>Sin web</option>
+            <option value="">Web · todas</option>
+            <option value="con" {% if filtros.web == "con" %}selected{% endif %}>Con sitio web</option>
+            <option value="sin" {% if filtros.web == "sin" %}selected{% endif %}>Sin sitio web</option>
         </select>
+    </div>
+    <div class="select">
         <select name="redes">
-            <option value="">Redes: todas</option>
+            <option value="">Redes · todas</option>
             <option value="con" {% if filtros.redes == "con" %}selected{% endif %}>Con redes</option>
             <option value="sin" {% if filtros.redes == "sin" %}selected{% endif %}>Sin redes</option>
         </select>
+    </div>
+    <div class="select">
         <select name="detalles">
-            <option value="">Detalles: todos</option>
+            <option value="">Detalles · todos</option>
             <option value="completos" {% if filtros.detalles == "completos" %}selected{% endif %}>Completos</option>
             <option value="pendientes" {% if filtros.detalles == "pendientes" %}selected{% endif %}>Pendientes</option>
         </select>
-        <button type="submit">Filtrar</button>
-    </form>
+    </div>
+    <button class="btn-filter" type="submit">Filtrar</button>
+</form>
 
-    <div class="parroquia-list">
-        <div class="parroquia-list-header">
-            <div>Parroquia</div>
-            <div>Web</div>
-            <div>Eventos</div>
-            {% for tipo, etiqueta in tipos_redes %}
-                <div class="red-header">{{ etiqueta }}</div>
-            {% endfor %}
-            <div>Actualizado</div>
+<div class="results-row">
+    <div class="count">
+        Mostrando <strong>{{ parroquias|length }}</strong> de <strong>{{ stats.total }}</strong> parroquias
+    </div>
+</div>
+
+<section class="directory">
+    <div class="row head-row">
+        <div>№</div>
+        <div>Parroquia</div>
+        <div>Sitio web</div>
+        <div>Eventos</div>
+        <div style="display:flex;gap:8px">
+            <span style="width:26px;text-align:center">FB</span>
+            <span style="width:26px;text-align:center">IG</span>
+            <span style="width:26px;text-align:center">YT</span>
+            <span style="width:26px;text-align:center">TT</span>
+            <span style="width:26px;text-align:center">·</span>
+        </div>
+        <div style="text-align:right">Actualizado</div>
+    </div>
+
+    {% for parroquia in parroquias %}
+    <div class="row">
+        <div class="cell-idx">{{ forloop.counter|stringformat:"03d" }}</div>
+
+        <div class="cell-name">
+            <h3 class="name">
+                <a href="{% url 'iglesias:detalle_parroquia' parroquia.pk %}">{{ parroquia.nombre }}</a>
+            </h3>
+            <div class="sub">
+                {% if parroquia.barrio %}<span>{{ parroquia.barrio }}</span><span class="dot"></span>{% endif %}
+                {% if parroquia.vicaria %}<span>{{ parroquia.vicaria }}</span><span class="dot"></span>{% endif %}
+                <span class="ext">№ {{ parroquia.id_externo }}</span>
+            </div>
+            {% if parroquia.parroco %}
+                <div class="parroco">{{ parroquia.parroco }}</div>
+            {% endif %}
         </div>
 
-        {% for parroquia in parroquias %}
-            <article class="parroquia-row">
-                <div class="parroquia-main">
-                    <a class="name" href="{% url 'iglesias:detalle_parroquia' parroquia.pk %}">
-                        {{ parroquia.nombre }}
-                    </a>
-                    <div class="muted">ID externo: {{ parroquia.id_externo }}</div>
-                    {% if parroquia.parroco %}<div class="muted">Parroco: {{ parroquia.parroco }}</div>{% endif %}
-                </div>
+        <div>
+            {% if parroquia.sitio_web %}
+                <a class="web-link" href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener noreferrer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"/>
+                    </svg>
+                    {{ parroquia.sitio_web|cut:"https://"|cut:"http://"|cut:"www."|truncatechars:32 }}
+                </a>
+            {% else %}
+                <span class="web-none">sin sitio</span>
+            {% endif %}
+        </div>
 
-                <div class="hidden-data">
-                    {% if parroquia.direccion %}{{ parroquia.direccion }}{% else %}<span class="muted">Sin direccion</span>{% endif %}
-                    {% if parroquia.barrio %}<div class="muted">{{ parroquia.barrio }}</div>{% endif %}
-                    {% if parroquia.decanato %}<div class="muted">{{ parroquia.decanato }}</div>{% endif %}
-                    {% if parroquia.vicaria %}<div class="muted">{{ parroquia.vicaria }}</div>{% endif %}
-                </div>
+        <div class="ev{% if not parroquia.eventos_estado.eventos %} zero{% endif %}">
+            {% with n=parroquia.eventos_estado.eventos|length %}
+                <span class="num">{{ n }}</span> evento{{ n|pluralize }}
+            {% endwith %}
+        </div>
 
-                <div class="hidden-data">
-                    {% if parroquia.mail_1 %}
-                        <a href="mailto:{{ parroquia.mail_1 }}">{{ parroquia.mail_1 }}</a>
-                    {% else %}
-                        <span class="muted">Sin email</span>
-                    {% endif %}
-                    {% if parroquia.mail_2 %}<div><a href="mailto:{{ parroquia.mail_2 }}">{{ parroquia.mail_2 }}</a></div>{% endif %}
-                    {% if parroquia.telefonos %}<div class="muted">{{ parroquia.telefonos }}</div>{% endif %}
-                </div>
+        <div class="glyphs">
+            {% for grupo in parroquia.redes_resumen %}
+                {% if grupo.tipo == "facebook" %}
+                    <span class="g{% if grupo.redes %} on fb{% endif %}" title="Facebook">F</span>
+                {% elif grupo.tipo == "instagram" %}
+                    <span class="g{% if grupo.redes %} on ig{% endif %}" title="Instagram">I</span>
+                {% elif grupo.tipo == "youtube" %}
+                    <span class="g{% if grupo.redes %} on yt{% endif %}" title="YouTube">Y</span>
+                {% elif grupo.tipo == "tiktok" %}
+                    <span class="g{% if grupo.redes %} on tt{% endif %}" title="TikTok">T</span>
+                {% else %}
+                    <span class="g{% if grupo.redes %} on otro{% endif %}" title="Otro">·</span>
+                {% endif %}
+            {% endfor %}
+        </div>
 
-                <div class="parroquia-web">
-                    {% if parroquia.sitio_web %}
-                        <a class="badge ok link-badge" href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener noreferrer">Abrir web</a>
-                    {% else %}
-                        <span class="badge missing">Sin web</span>
-                    {% endif %}
-                </div>
-
-                <div class="parroquia-eventos">
-                    {% with e=parroquia.eventos_estado %}
-                        {% if e.estado == "validos" %}
-                            <span class="badge ok">Con eventos</span>
-                        {% elif e.estado == "requiere_verificacion" or e.estado == "todos_incompletos" %}
-                            <span class="badge warn">Requiere verif.</span>
-                        {% else %}
-                            <span class="badge missing">Sin eventos</span>
-                        {% endif %}
-                    {% endwith %}
-                </div>
-
-                {% for grupo in parroquia.redes_resumen %}
-                    <div class="parroquia-red-status" data-label="{{ grupo.etiqueta }}">
-                        {% include "iglesias/partials/red_status.html" %}
-                    </div>
-                {% endfor %}
-
-                <div class="parroquia-updated">
-                    <span class="muted">{{ parroquia.actualizado_el|date:"d/m/Y H:i" }}</span>
-                </div>
-            </article>
-        {% empty %}
-            <div class="parroquia-row">
-                <div>No hay parroquias para los filtros seleccionados.</div>
-            </div>
-        {% endfor %}
+        <div class="upd">
+            {{ parroquia.actualizado_el|date:"d/m/Y" }}
+            <span class="time">{{ parroquia.actualizado_el|time:"H:i" }}</span>
+        </div>
     </div>
+    {% empty %}
+    <div class="row">
+        <div></div>
+        <div style="color:var(--muted); font-family:var(--mono); font-size:12px;">
+            No hay parroquias para los filtros seleccionados.
+        </div>
+    </div>
+    {% endfor %}
 </section>
+
 {% endblock %}

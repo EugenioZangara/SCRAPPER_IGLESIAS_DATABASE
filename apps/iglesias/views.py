@@ -7,6 +7,21 @@ from django.views.decorators.http import require_POST
 
 from .models import Parroquia, RedSocial, Evento, HorarioMisa
 
+from django.views.decorators.http import require_POST
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+# --- Eliminar RedSocial ---
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def eliminar_red_social(request, pk):
+    red = get_object_or_404(RedSocial, pk=pk)
+    parroquia_id = red.parroquia_id
+    red.delete()
+    next_url = request.POST.get("next") or reverse("iglesias:detalle_parroquia", args=[parroquia_id])
+    return redirect(next_url)
+
 
 def _armar_grupo_red(parroquia, tipo, etiqueta):
     redes = [
