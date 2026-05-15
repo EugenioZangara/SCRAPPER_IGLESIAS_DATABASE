@@ -289,13 +289,16 @@
         text-transform: uppercase; color: var(--muted);
         padding: 2px 7px; border: 1px solid var(--rule); border-radius: 999px;
     }
+    .cell-web { overflow: hidden; min-width: 0; }
     .web-link {
-        display: inline-flex; align-items: center; gap: 6px;
+        display: flex; align-items: center; gap: 6px;
         font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
         color: var(--ink); text-decoration: none;
         border-bottom: 1px solid var(--accent); padding-bottom: 1px;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        max-width: 100%;
     }
-    .web-link svg { width: 11px; height: 11px; }
+    .web-link svg { width: 11px; height: 11px; flex-shrink: 0; }
     .web-link:hover { color: var(--accent); text-decoration: none; }
     .web-none { font-family: var(--mono); font-size: 11px; color: var(--faint); letter-spacing: 0.04em; }
     .web-none::before {
