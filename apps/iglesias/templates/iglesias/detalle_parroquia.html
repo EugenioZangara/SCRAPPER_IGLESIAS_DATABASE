@@ -336,6 +336,30 @@
             {% endfor %}
         </section>
 
+        <!-- Scraping Instagram (solo staff + IG verificada) -->
+        {% if request.user.is_staff and ig_verificada %}
+        <section class="block">
+            <div class="block-head">
+                <h2>Scraping</h2>
+            </div>
+            <form hx-post="{% url 'iglesias:scrapear_parroquia' parroquia.pk %}"
+                  hx-target="#scraping-resultado"
+                  hx-swap="innerHTML"
+                  hx-indicator="#scraping-loader">
+                {% csrf_token %}
+                <button type="submit" class="verify-button"
+                        style="width:100%; min-height:34px; justify-content:center; font-size:12px; display:flex; align-items:center; border-radius:8px; letter-spacing:0.06em; text-transform:uppercase;">
+                    Scrapear Instagram
+                </button>
+            </form>
+            <div id="scraping-loader" class="htmx-indicator"
+                 style="font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:10px; letter-spacing:0.06em; text-transform:uppercase;">
+                Scrapeando Instagram…
+            </div>
+            <div id="scraping-resultado"></div>
+        </section>
+        {% endif %}
+
         <!-- Acciones -->
         <section class="block">
             <div class="block-head">

@@ -185,6 +185,7 @@ El JSON que devuelve la IA tiene estos campos:
 - `/eventos/<pk>/editar/` → GET/POST — editar y aprobar evento
 - `/redes/<pk>/verificar/` → POST — verifica red social
 - `/redes/<pk>/eliminar/` → POST — elimina red social
+- `/parroquias/<pk>/scrapear/` → POST (staff only) — lanza scraping Instagram de esa parroquia y devuelve partial HTMX con resultado
 
 ### Lógica de estado de eventos en el listado
 Calculado en `_estado_eventos()` en `views.py`:
@@ -198,6 +199,18 @@ Calculado en `_estado_eventos()` en `views.py`:
 - Columna derecha: estado de información, redes sociales, eventos próximos (máx 5)
 - Acordeón debajo de eventos próximos: eventos pasados colapsados
 - Navegación anterior/siguiente por nombre en el page-title
+
+### Scraping Instagram desde el panel (botón por parroquia)
+- Visible en el aside del detalle solo si `request.user.is_staff` y la parroquia tiene
+  una red de Instagram `activo=True, verificado=True` (`ig_verificada` en el contexto)
+- HTMX POST a `/parroquias/<pk>/scrapear/` con indicador de carga (`#scraping-loader`)
+- La vista `scrapear_parroquia` en `views.py`: obtiene la red verificada, llama a
+  `scraper_redes.instagram.scrapear_perfil` y `scraper_redes.procesador.procesar_post`
+- Guarda posts nuevos con `get_or_create` por `post_id`, crea `Evento` para los nuevos
+- Retorna el partial `iglesias/partials/scraping_resultado.html` con stats o error
+- **No importar `scraper_redes.run`** — tiene código de nivel módulo (`argparse`) que
+  ejecuta `main()` al importar. La lógica de `_crear_evento_desde_post` está replicada
+  inline en `views.py`
 
 ### Edición inline (solo staff)
 - Las secciones Contacto, Ubicación, Clero e historia y BAIglesias tienen botón "Editar"

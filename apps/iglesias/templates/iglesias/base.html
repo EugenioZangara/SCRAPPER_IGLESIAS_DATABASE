@@ -387,6 +387,10 @@
     .evento-item { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #fbfcfd; }
     .evento-item + .evento-item { margin-top: 10px; }
 
+    .htmx-indicator { display: none; }
+    .htmx-request .htmx-indicator,
+    .htmx-request.htmx-indicator { display: block !important; }
+
     .verify-button, .reject-button {
         min-height: 22px; border-radius: 999px; padding: 0 8px;
         background: var(--surface); font-size: 11px; font-weight: 700; cursor: pointer;

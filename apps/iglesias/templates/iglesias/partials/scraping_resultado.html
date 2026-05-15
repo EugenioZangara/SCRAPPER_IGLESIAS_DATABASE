@@ -1,0 +1,20 @@
+{% if error %}
+    <div style="padding:12px; border-radius:8px; background:#fde7e7; color:#9f3a38; font-family:var(--mono); font-size:12px; margin-top:10px; line-height:1.5;">
+        ✕ {{ error }}
+    </div>
+{% else %}
+    <div style="padding:12px; border-radius:8px; background:#dff3e9; color:#276749; font-family:var(--mono); font-size:12px; margin-top:10px; line-height:1.6;">
+        ✓ Scraping completado<br>
+        <span style="opacity:0.8;">
+            {{ total_posts }} posts analizados ·
+            {{ guardados }} nuevo{{ guardados|pluralize }} guardado{{ guardados|pluralize }} ·
+            {{ eventos_nuevos }} evento{{ eventos_nuevos|pluralize }} detectado{{ eventos_nuevos|pluralize }}
+        </span>
+        {% if eventos_nuevos > 0 %}
+            <br><a href="{% url 'iglesias:detalle_parroquia' parroquia_pk %}"
+                   style="color:#276749; margin-top:4px; display:inline-block; border-bottom:1px solid #276749;">
+                Ver eventos →
+            </a>
+        {% endif %}
+    </div>
+{% endif %}

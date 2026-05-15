@@ -203,6 +203,10 @@ def detalle_parroquia(request, pk):
 
     anterior = Parroquia.objects.filter(nombre__lt=parroquia.nombre).order_by("-nombre").first()
     siguiente = Parroquia.objects.filter(nombre__gt=parroquia.nombre).order_by("nombre").first()
+    ig_verificada = any(
+        r.tipo == "instagram" and r.activo and r.verificado
+        for r in parroquia.redes.all()
+    )
 
     return render(
         request,
@@ -212,6 +216,7 @@ def detalle_parroquia(request, pk):
             "eventos_estado": eventos_estado,
             "anterior": anterior,
             "siguiente": siguiente,
+            "ig_verificada": ig_verificada,
         },
     )
 
@@ -385,6 +390,94 @@ def editar_seccion_clero(request, pk):
         "parroquia": parroquia,
         "editing": editing,
     })
+
+
+@require_POST
+def scrapear_parroquia(request, pk):
+    if not request.user.is_staff:
+        return HttpResponseForbidden("No autorizado")
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+    red = parroquia.redes.filter(tipo="instagram", activo=True, verificado=True).first()
+    if not red:
+        return render(request, "iglesias/partials/scraping_resultado.html", {
+            "error": "No hay cuenta de Instagram verificada para esta parroquia"
+        })
+    try:
+        from scraper_redes.instagram import scrapear_perfil
+        from scraper_redes.procesador import procesar_post
+        from .models import PostParroquia
+        posts = scrapear_perfil(red.url)
+        guardados = 0
+        for post in posts:
+            _, creado = PostParroquia.objects.get_or_create(
+                post_id=post["post_id"],
+                defaults={
+                    "parroquia": parroquia,
+                    "red_social": "instagram",
+                    "imagen_url": post["imagen_url"],
+                    "fecha_publicacion": post["fecha"],
+                    "raw_data": post.get("raw_data"),
+                },
+            )
+            if creado:
+                guardados += 1
+        pendientes = PostParroquia.objects.filter(parroquia=parroquia, procesado=False)
+        eventos_nuevos = 0
+        for post_obj in pendientes:
+            post_dict = {
+                "post_id": post_obj.post_id,
+                "imagen_url": post_obj.imagen_url,
+                "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
+            }
+            resultado = procesar_post(post_dict)
+            post_obj.es_evento = resultado.get("es_evento")
+            post_obj.procesado = resultado.get("es_evento") is not None
+            post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}
+            post_obj.save()
+            if resultado.get("es_evento") and not resultado.get("es_pasado"):
+                if not hasattr(post_obj, "evento"):
+                    _crear_evento_desde_post(post_obj, resultado)
+                    eventos_nuevos += 1
+        return render(request, "iglesias/partials/scraping_resultado.html", {
+            "ok": True,
+            "guardados": guardados,
+            "eventos_nuevos": eventos_nuevos,
+            "total_posts": len(posts),
+            "parroquia_pk": pk,
+        })
+    except Exception as e:
+        return render(request, "iglesias/partials/scraping_resultado.html", {
+            "error": str(e)[:200]
+        })
+
+
+def _crear_evento_desde_post(post_obj, resultado: dict):
+    from datetime import datetime as dt
+    if hasattr(post_obj, "evento"):
+        return None
+    fecha = None
+    if fecha_str := resultado.get("fecha"):
+        try:
+            fecha = dt.strptime(fecha_str, "%d/%m/%Y").date()
+        except ValueError:
+            pass
+    hora = None
+    if hora_str := resultado.get("hora"):
+        try:
+            hora = dt.strptime(hora_str, "%H:%M").time()
+        except ValueError:
+            pass
+    return Evento.objects.create(
+        parroquia=post_obj.parroquia,
+        post=post_obj,
+        titulo=resultado.get("titulo") or "Sin título",
+        tipo=resultado.get("tipo_evento") or "otro",
+        fecha=fecha,
+        hora=hora,
+        lugar=resultado.get("lugar"),
+        descripcion=resultado.get("descripcion"),
+        imagen_url=post_obj.imagen_url,
+    )
 
 
 def editar_seccion_bai(request, pk):
