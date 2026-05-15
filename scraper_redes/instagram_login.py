@@ -2,8 +2,10 @@ import instaloader
 import json
 import os
 import sys
+from dotenv import load_dotenv
+load_dotenv()
 
-INSTAGRAM_USER = "pilotosprogramadores"
+INSTAGRAM_USER = os.getenv("INSTAGRAM_USER")
 COOKIES_FILE = "instagram_cookies.json"
 
 

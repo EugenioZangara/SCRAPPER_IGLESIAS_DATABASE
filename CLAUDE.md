@@ -260,3 +260,110 @@ Calculado en `_estado_eventos()` en `views.py`:
   datos scrapeados.
 
 - La dependencia `beautifulsoup4` fue agregada a `scraper_redes/requirements.txt`.
+
+---
+
+## Sistema de diseño
+
+### Dirección estética
+Editorial / archivo — apropiado para contenido eclesiástico.
+Tipografía serif para display, sans neutra para cuerpo, mono para metadatos.
+Paleta cálida en papel crema con tinta profunda y acento litúrgico burdeos.
+Sin gradientes, sin emojis, datos tratados como tipografía editorial.
+
+### Fuentes (Google Fonts)
+- Newsreader — serif display (títulos, valores grandes, dd en fields)
+- Geist — sans neutra (cuerpo, nav, botones)
+- JetBrains Mono — mono (labels, metadatos, IDs, fechas, URLs)
+
+### Variables CSS principales
+```
+--paper: oklch(0.975 0.008 80)        ← fondo principal
+--paper-2: oklch(0.96 0.009 80)       ← fondo alternativo
+--ink: oklch(0.20 0.015 60)           ← texto principal
+--ink-2: oklch(0.36 0.015 60)         ← texto secundario
+--muted: oklch(0.55 0.012 60)         ← texto atenuado
+--faint: oklch(0.72 0.010 60)         ← texto muy atenuado
+--rule: oklch(0.86 0.012 60)          ← bordes principales
+--rule-2: oklch(0.91 0.010 80)        ← bordes suaves
+--accent: #7A1F2B                     ← burdeos litúrgico
+--accent-soft: #7A1F2B14              ← acento suave
+--ok: oklch(0.48 0.08 150)            ← verde confirmación
+--serif: "Newsreader", Georgia, serif
+--sans: "Geist", system-ui, sans-serif
+--mono: "JetBrains Mono", monospace
+```
+
+### Componentes clave
+- `.masthead`: header con brand-mark (serif + em italic accent) y nav mono uppercase
+- `.fiche-head`: grid 1fr/auto con título serif grande + número de registro
+- `.meta-strip`: grid 4 columnas con `.meta-cell` (lbl mono + val serif grande + foot)
+- `.block` + `.block-head`: secciones con h2 serif y numeración romana en `.num`
+- `dl.fields > div`: grid 180px/1fr con dt mono uppercase y dd serif 19px
+- `.social-card`: tarjeta de red social con sc-head/sc-handle/sc-url/sc-open
+- `.actions`: lista de acciones con `.action` (primary = fondo ink)
+- `.events .ev-row`: grid 80px/1fr/auto para timeline de eventos
+- `.empty`: estado vacío con SVG + texto italic serif
+- `.badge`: pill mono uppercase con punto de color antes del texto
+  - `.ok` → punto acento, borde ink
+  - `.warn` → punto hueco, color faint
+  - `.missing` → variante rojo
+
+### Archivos de referencia
+- Diseño estático original: `Parroquia-detalle.html` (en raíz del proyecto)
+- Template Django implementado: `apps/iglesias/templates/iglesias/detalle_parroquia.html`
+- Estilos base compartidos: `apps/iglesias/templates/iglesias/base.html`
+
+### Notas de implementación
+- Los nombres de parroquias usan la última palabra en `<em>` italic accent
+- IDs y URLs van en `<span class="mono">`
+- Valores secundarios van en `<span class="secondary">`
+- Links con `border-bottom: 1px solid var(--accent)`, sin text-decoration
+- El aside es sticky (`top: 24px`) en desktop, static en mobile
+- `body::before` tiene textura de puntos con radial-gradient (`mix-blend-mode: multiply`)
+
+---
+
+## Deploy en Render
+
+### Archivos de configuración
+- `render.yaml` — Blueprint con web service, cron job y base de datos
+- `build.sh` — Script de build: `pip install`, `collectstatic`, `migrate`
+
+### Servicios en Render
+| Servicio | Tipo | Descripción |
+|---|---|---|
+| `scraper-catolico` | Web | App Django con gunicorn |
+| `scraper-instagram` | Cron | Scraper semanal, lunes 06:00 UTC |
+| `scraper-catolico-db` | PostgreSQL | Plan free |
+
+### Variables de entorno (configurar manualmente en Render)
+Las siguientes variables tienen `sync: false` y deben setearse a mano en el dashboard:
+- `GEMINI_API_KEY`
+- `OPENROUTER_API_KEY`
+- `META_ACCESS_TOKEN`
+- `INSTAGRAM_SESSION_USER`
+
+Las siguientes se generan o setean automáticamente via `render.yaml`:
+- `DATABASE_URL` — inyectada desde la base de datos
+- `SECRET_KEY` — generada automáticamente por Render
+- `ALLOWED_HOSTS` — dominio de Render
+- `CSRF_TRUSTED_ORIGINS` — origen HTTPS de Render
+- `DEBUG` — false
+
+### Settings relevantes en core/settings.py
+- `ALLOWED_HOSTS` y `CSRF_TRUSTED_ORIGINS` se leen con `env.list()`
+- `STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"`
+- `STATIC_ROOT = BASE_DIR / "staticfiles"` — directorio generado por `collectstatic`
+- WhiteNoise va inmediatamente después de `SecurityMiddleware` en `MIDDLEWARE`
+
+### Dependencias de producción (en requirements.txt)
+- `gunicorn` — servidor WSGI
+- `whitenoise` — sirve archivos estáticos sin Nginx
+- `psycopg2-binary` — driver PostgreSQL
+
+### Notas
+- El cron job del scraper necesita las cookies de Instagram en la sesión de Render;
+  por ahora corre solo si la sesión está activa en el entorno.
+- `staticfiles/` está en `.gitignore` — se genera en cada build.
+- Para deploy manual: push a la rama conectada en Render o usar `render deploy`.

@@ -3,3 +3,7 @@ __pycache__/
 .env
 .vscode/
 *.log
+instagram_cookies.json
+*.session
+staticfiles/
+reconocimiento_web_resultados.json
