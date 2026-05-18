@@ -184,11 +184,11 @@
                             </div>
                             <div class="ev-actions">
                                 {% if not evento.verificado and evento.activo %}
-                                    <form method="post" action="{% url 'iglesias:aprobar_evento' evento.pk %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="next" value="{{ request.path }}">
-                                        <button type="submit" class="verify-button">✓ Aprobar</button>
-                                    </form>
+                                    <a href="{% url 'iglesias:aprobar_extendido' evento.pk %}?next={{ request.path }}"
+                                       class="verify-button"
+                                       style="display:inline-flex; align-items:center; min-height:22px; padding:0 8px; font-size:11px; font-weight:700; border-radius:999px; border:1px solid var(--brand); color:var(--brand); text-decoration:none;">
+                                        ✓ Aprobar
+                                    </a>
                                 {% endif %}
                                 <a href="{% url 'iglesias:editar_evento' evento.pk %}"
                                    class="verify-button"

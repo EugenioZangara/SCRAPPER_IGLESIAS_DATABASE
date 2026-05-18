@@ -94,6 +94,19 @@ class PostParroquia(models.Model):
     def __str__(self):
         return f"{self.red_social.capitalize()} post ({self.post_id}) - {self.parroquia.nombre}"
 
+class CategoriaEvento(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["nombre"]
+        verbose_name = "Categoría de Evento"
+        verbose_name_plural = "Categorías de Evento"
+
+    def __str__(self):
+        return self.nombre
+
+
 class Evento(models.Model):
     TIPO_CHOICES = [
         ("misa", "Misa"),
@@ -120,6 +133,33 @@ class Evento(models.Model):
     hora = models.TimeField(null=True, blank=True)
     lugar = models.CharField(max_length=255, blank=True, null=True)
     descripcion = models.TextField(blank=True, null=True)
+    categoria = models.ForeignKey(
+        "CategoriaEvento", on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="eventos"
+    )
+    fecha_fin = models.DateTimeField(null=True, blank=True)
+    url_externa = models.URLField(max_length=500, blank=True, null=True,
+        help_text="Link de contacto o inscripción (WhatsApp, formulario, etc.)")
+    AUDIENCIA_CHOICES = [
+        ("ambos", "Hombres y Mujeres"),
+        ("hombres", "Hombres"),
+        ("mujeres", "Mujeres"),
+    ]
+    audiencia = models.CharField(max_length=20, choices=AUDIENCIA_CHOICES,
+        blank=True, null=True)
+    edad_desde = models.PositiveIntegerField(null=True, blank=True, default=0)
+    edad_hasta = models.PositiveIntegerField(null=True, blank=True, default=100)
+    gratuito = models.BooleanField(null=True, blank=True)
+    capacidad = models.PositiveIntegerField(null=True, blank=True)
+    ubicacion_lugar = models.CharField(max_length=255, blank=True, null=True)
+    ubicacion_direccion = models.CharField(max_length=255, blank=True, null=True)
+    ubicacion_ciudad = models.CharField(max_length=100, blank=True, null=True,
+        default="Buenos Aires")
+    ubicacion_cp = models.CharField(max_length=20, blank=True, null=True)
+    ubicacion_provincia = models.CharField(max_length=100, blank=True, null=True,
+        default="Buenos Aires")
+    exportado_sheets = models.BooleanField(default=False,
+        help_text="True si fue exportado a Google Sheets")
     imagen_url = models.URLField(max_length=1000, blank=True, null=True)
 
     activo = models.BooleanField(default=True)

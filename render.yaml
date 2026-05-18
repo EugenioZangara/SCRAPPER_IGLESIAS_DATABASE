@@ -29,6 +29,10 @@ services:
         sync: false
       - key: INSTAGRAM_SESSION_USER
         sync: false
+      - key: GOOGLE_SHEETS_ID
+        value: "13Rdk0iLA9GPAcmBwnFgA9Qykjz_9AcmWaXv6nzzAPfU"
+      - key: GOOGLE_CREDENTIALS_JSON
+        sync: false
 
   - type: cron
     name: scraper-instagram

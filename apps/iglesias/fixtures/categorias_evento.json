@@ -1,0 +1,22 @@
+[
+  {"model": "iglesias.categoriaevento", "pk": 1,
+   "fields": {"nombre": "Retiros espirituales", "activo": true}},
+  {"model": "iglesias.categoriaevento", "pk": 2,
+   "fields": {"nombre": "Misas especiales", "activo": true}},
+  {"model": "iglesias.categoriaevento", "pk": 3,
+   "fields": {"nombre": "Charlas y conferencias", "activo": true}},
+  {"model": "iglesias.categoriaevento", "pk": 4,
+   "fields": {"nombre": "Peregrinaciones", "activo": true}},
+  {"model": "iglesias.categoriaevento", "pk": 5,
+   "fields": {"nombre": "Actividades juveniles", "activo": true}},
+  {"model": "iglesias.categoriaevento", "pk": 6,
+   "fields": {"nombre": "Sacramentos", "activo": true}},
+  {"model": "iglesias.categoriaevento", "pk": 7,
+   "fields": {"nombre": "Catequesis", "activo": true}},
+  {"model": "iglesias.categoriaevento", "pk": 8,
+   "fields": {"nombre": "Festividades patronales", "activo": true}},
+  {"model": "iglesias.categoriaevento", "pk": 9,
+   "fields": {"nombre": "Actividades solidarias", "activo": true}},
+  {"model": "iglesias.categoriaevento", "pk": 10,
+   "fields": {"nombre": "Formación y talleres", "activo": true}}
+]

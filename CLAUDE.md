@@ -183,6 +183,7 @@ El JSON que devuelve la IA tiene estos campos:
 - `/eventos/<pk>/aprobar/` → POST — aprueba evento
 - `/eventos/<pk>/rechazar/` → POST — rechaza evento
 - `/eventos/<pk>/editar/` → GET/POST — editar y aprobar evento
+- `/eventos/<pk>/aprobar-extendido/` → GET/POST (staff only) — formulario extendido de aprobación con campos de categoría, audiencia, ubicación, logística y datos del scraper en panel lateral
 - `/redes/<pk>/verificar/` → POST — verifica red social
 - `/redes/<pk>/eliminar/` → POST — elimina red social
 - `/parroquias/<pk>/scrapear/` → POST (staff only) — lanza scraping Instagram de esa parroquia y devuelve partial HTMX con resultado
@@ -212,6 +213,15 @@ Calculado en `_estado_eventos()` en `views.py`:
 - **No importar `scraper_redes.run`** — tiene código de nivel módulo (`argparse`) que
   ejecuta `main()` al importar. La lógica de `_crear_evento_desde_post` está replicada
   inline en `views.py`
+
+### Vista aprobar_extendido (solo staff)
+- URL: `/eventos/<pk>/aprobar-extendido/` → vista `aprobar_extendido`
+- Layout dos columnas: formulario a la izquierda, paneles informativos sticky a la derecha
+- Columna derecha muestra datos detectados por IA (`evento.post.raw_data["gemini"]`), link IG y datos de parroquia
+- Preselecciona `ubicacion_lugar` desde `evento.lugar` si está vacío
+- `gratuito` preselecciona "sí" cuando el campo es `True` o `None` (no establecido)
+- Los botones "✓ Aprobar" en `moderacion_eventos` y `detalle_parroquia` redirigen aquí (no hacen POST directo)
+- El parámetro `next` lleva de vuelta a la tab activa de moderación codificando `?` como `%3F`
 
 ### Moderación de eventos (solo staff)
 - URL: `/eventos/moderacion/` → vista `moderacion_eventos`
@@ -346,6 +356,55 @@ Sin gradientes, sin emojis, datos tratados como tipografía editorial.
 - Links con `border-bottom: 1px solid var(--accent)`, sin text-decoration
 - El aside es sticky (`top: 24px`) en desktop, static en mobile
 - `body::before` tiene textura de puntos con radial-gradient (`mix-blend-mode: multiply`)
+
+---
+
+## Exportación a Google Sheets
+
+### Modelo CategoriaEvento
+Tabla de categorías para clasificar eventos antes de exportar a Sheets.
+- `nombre`: CharField(100), unique
+- `activo`: BooleanField, default=True
+- Ordering: `["nombre"]`
+- Fixture inicial: `apps/iglesias/fixtures/categorias_evento.json` (10 categorías)
+
+### Campos nuevos en modelo Evento
+Agregados después de `descripcion`, antes de `imagen_url`:
+
+| Campo | Tipo | Notas |
+|---|---|---|
+| `categoria` | FK → CategoriaEvento | null/blank, SET_NULL |
+| `fecha_fin` | DateTimeField | null/blank — fin del evento |
+| `url_externa` | URLField(500) | WhatsApp, formulario, etc. |
+| `audiencia` | CharField(20) | choices: ambos/hombres/mujeres |
+| `edad_desde` | PositiveIntegerField | default 0 |
+| `edad_hasta` | PositiveIntegerField | default 100 |
+| `gratuito` | BooleanField | null/blank |
+| `capacidad` | PositiveIntegerField | null/blank |
+| `ubicacion_lugar` | CharField(255) | null/blank |
+| `ubicacion_direccion` | CharField(255) | null/blank |
+| `ubicacion_ciudad` | CharField(100) | default "Buenos Aires" |
+| `ubicacion_cp` | CharField(20) | null/blank |
+| `ubicacion_provincia` | CharField(100) | default "Buenos Aires" |
+| `exportado_sheets` | BooleanField | default False |
+
+### Fixture inicial de categorías
+```bash
+python manage.py loaddata apps/iglesias/fixtures/categorias_evento.json
+```
+10 categorías: Retiros espirituales, Misas especiales, Charlas y conferencias,
+Peregrinaciones, Actividades juveniles, Sacramentos, Catequesis,
+Festividades patronales, Actividades solidarias, Formación y talleres.
+
+### Integración Google Sheets
+- Archivo: `apps/iglesias/sheets.py`
+- Función principal: `exportar_evento_a_sheets(evento)` — agrega una fila al sheet y retorna `True/False`
+- Credenciales locales: archivo `google_credentials.json` (en `.gitignore`)
+- Credenciales producción: variable `GOOGLE_CREDENTIALS_JSON` (contenido del JSON)
+- `GOOGLE_SHEETS_ID`: ID del spreadsheet destino
+- La exportación ocurre automáticamente en `aprobar_extendido` POST; si falla, **no bloquea** la aprobación (captura excepción con print)
+- El campo `exportado_sheets` en `Evento` queda en `True` cuando la exportación fue exitosa
+- Columnas exportadas: título, tipo, url_externa, categoría, descripción, fecha_inicio, fecha_fin, lugar, dirección, ciudad, CP, provincia, estado ("Borrador"), audiencia, rango edad, gratuito, capacidad
 
 ---
 

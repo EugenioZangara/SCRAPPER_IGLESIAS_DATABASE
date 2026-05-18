@@ -4,6 +4,7 @@ from .models import (
     Parroquia,
     RedSocial,
     PostParroquia,
+    CategoriaEvento,
     Evento,
     InfoBaiglesias,
     HorarioMisa,
@@ -44,9 +45,18 @@ class PostParroquiaAdmin(admin.ModelAdmin):
     readonly_fields = ("creado_en", "raw_data")
 
 
+@admin.register(CategoriaEvento)
+class CategoriaEventoAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "activo")
+    search_fields = ("nombre",)
+    list_filter = ("activo",)
+
+
 @admin.register(Evento)
 class EventoAdmin(admin.ModelAdmin):
-    list_display = ("titulo", "parroquia", "tipo", "fecha", "hora", "lugar", "activo", "creado_en")
+    list_display = ("titulo", "parroquia", "tipo", "categoria", "fecha",
+                    "hora", "lugar", "activo", "verificado",
+                    "exportado_sheets", "creado_en")
     search_fields = ("titulo", "parroquia__nombre", "lugar")
     list_filter = ("tipo", "activo", "fecha")
     readonly_fields = ("creado_en",)

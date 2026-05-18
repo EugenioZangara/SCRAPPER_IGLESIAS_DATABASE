@@ -1,0 +1,259 @@
+{% extends "iglesias/base.html" %}
+
+{% block title %}Aprobar Evento — {{ evento.titulo }}{% endblock %}
+
+{% block content %}
+<div class="page-title">
+    <div>
+        <h1>Aprobar Evento</h1>
+        <p class="subtitle">{{ evento.parroquia.nombre }}</p>
+    </div>
+    <a href="{{ next|default:'/' }}">Volver</a>
+</div>
+
+<div class="detail-grid">
+
+    <!-- COLUMNA IZQUIERDA: formulario -->
+    <div>
+        <section class="panel">
+            <form method="post" action="{% url 'iglesias:aprobar_extendido' evento.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+
+                <div class="section">
+                    <h2>Datos del evento</h2>
+                    <div class="fields" style="margin-top:12px;">
+
+                        <div class="field-label">Título</div>
+                        <div class="field-value">
+                            <input type="text" name="titulo" value="{{ evento.titulo }}" style="width:100%;" required>
+                        </div>
+
+                        <div class="field-label">Tipo</div>
+                        <div class="field-value">
+                            <select name="tipo" style="width:100%;">
+                                {% for value, label in tipo_choices %}
+                                    <option value="{{ value }}" {% if evento.tipo == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="field-label">Categoría</div>
+                        <div class="field-value">
+                            <select name="categoria" style="width:100%;">
+                                <option value="">Sin categoría</option>
+                                {% for cat in categorias %}
+                                    <option value="{{ cat.pk }}" {% if evento.categoria_id == cat.pk %}selected{% endif %}>{{ cat.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="field-label">Descripción</div>
+                        <div class="field-value">
+                            <textarea name="descripcion" rows="4" style="width:100%; padding:8px; border:1px solid var(--line); border-radius:6px; font:inherit; resize:vertical;">{{ evento.descripcion|default:'' }}</textarea>
+                        </div>
+
+                        <div class="field-label">URL externa</div>
+                        <div class="field-value">
+                            <input type="url" name="url_externa" value="{{ evento.url_externa|default:'' }}" style="width:100%;" placeholder="https://wa.me/...">
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Fecha y hora</h2>
+                    <div class="fields" style="margin-top:12px;">
+
+                        <div class="field-label">Fecha</div>
+                        <div class="field-value">
+                            <input type="date" name="fecha" value="{{ evento.fecha|date:'Y-m-d' }}" style="width:100%;">
+                        </div>
+
+                        <div class="field-label">Hora</div>
+                        <div class="field-value">
+                            <input type="time" name="hora" value="{{ evento.hora|time:'H:i' }}" style="width:100%;">
+                        </div>
+
+                        <div class="field-label">Fecha de finalización</div>
+                        <div class="field-value">
+                            <input type="date" name="fecha_fin" value="{% if evento.fecha_fin %}{{ evento.fecha_fin|date:'Y-m-d' }}{% endif %}" style="width:100%;">
+                        </div>
+
+                        <div class="field-label">Hora de finalización</div>
+                        <div class="field-value">
+                            <input type="time" name="hora_fin" value="{% if evento.fecha_fin %}{{ evento.fecha_fin|time:'H:i' }}{% endif %}" style="width:100%;">
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Lugar</h2>
+                    <div class="fields" style="margin-top:12px;">
+
+                        <div class="field-label">Nombre del lugar</div>
+                        <div class="field-value">
+                            <input type="text" name="lugar" value="{{ evento.lugar|default:'' }}" style="width:100%;">
+                        </div>
+
+                        <div class="field-label">Nombre del espacio</div>
+                        <div class="field-value">
+                            <input type="text" name="ubicacion_lugar" value="{{ evento.ubicacion_lugar|default:'' }}" style="width:100%;">
+                        </div>
+
+                        <div class="field-label">Dirección</div>
+                        <div class="field-value">
+                            <input type="text" name="ubicacion_direccion" value="{{ evento.ubicacion_direccion|default:'' }}" style="width:100%;">
+                        </div>
+
+                        <div class="field-label">Ciudad</div>
+                        <div class="field-value">
+                            <input type="text" name="ubicacion_ciudad" value="{{ evento.ubicacion_ciudad|default:'Buenos Aires' }}" style="width:100%;">
+                        </div>
+
+                        <div class="field-label">Código Postal</div>
+                        <div class="field-value">
+                            <input type="text" name="ubicacion_cp" value="{{ evento.ubicacion_cp|default:'' }}" style="width:100%;">
+                        </div>
+
+                        <div class="field-label">Provincia</div>
+                        <div class="field-value">
+                            <input type="text" name="ubicacion_provincia" value="{{ evento.ubicacion_provincia|default:'Buenos Aires' }}" style="width:100%;">
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Audiencia</h2>
+                    <div class="fields" style="margin-top:12px;">
+
+                        <div class="field-label">Audiencia</div>
+                        <div class="field-value">
+                            <select name="audiencia" style="width:100%;">
+                                <option value="">Sin especificar</option>
+                                {% for value, label in audiencia_choices %}
+                                    <option value="{{ value }}" {% if evento.audiencia == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="field-label">Edad desde</div>
+                        <div class="field-value">
+                            <input type="number" name="edad_desde" value="{{ evento.edad_desde|default:0 }}" min="0" max="100" style="width:100%;">
+                        </div>
+
+                        <div class="field-label">Edad hasta</div>
+                        <div class="field-value">
+                            <input type="number" name="edad_hasta" value="{{ evento.edad_hasta|default:100 }}" min="0" max="100" style="width:100%;">
+                        </div>
+
+                    </div>
+                    <p class="muted" style="margin:8px 0 0; font-size:12px;">Para todo público usar 0 a 100</p>
+                </div>
+
+                <div class="section">
+                    <h2>Logística</h2>
+                    <div class="fields" style="margin-top:12px;">
+
+                        <div class="field-label">Gratuito</div>
+                        <div class="field-value" style="display:flex; gap:16px; align-items:center;">
+                            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                                <input type="radio" name="gratuito" value="si" {% if evento.gratuito != False %}checked{% endif %}> Sí
+                            </label>
+                            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+                                <input type="radio" name="gratuito" value="no" {% if evento.gratuito == False %}checked{% endif %}> No
+                            </label>
+                        </div>
+
+                        <div class="field-label">Capacidad</div>
+                        <div class="field-value">
+                            <input type="number" name="capacidad" value="{{ evento.capacidad|default:'' }}" min="1" style="width:100%;" placeholder="Dejar vacío si no hay límite">
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="section" style="display:flex; gap:10px;">
+                    <button type="submit">Guardar y aprobar</button>
+                    <a href="{{ next|default:'/' }}"
+                       style="display:inline-flex; align-items:center; min-height:38px; padding:0 12px; border-radius:6px; border:1px solid var(--line); color:var(--text); font-weight:700; text-decoration:none;">
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
+        </section>
+    </div>
+
+    <!-- COLUMNA DERECHA: info del scraper -->
+    <aside>
+
+        <section class="panel">
+            <div class="section">
+                <h2>Datos detectados por IA</h2>
+            </div>
+            <div class="section">
+                <div class="fields">
+                    <div class="field-label">Título</div>
+                    <div class="field-value">{{ gemini_data.titulo|default:"—" }}</div>
+                    <div class="field-label">Fecha</div>
+                    <div class="field-value">{{ gemini_data.fecha|default:"—" }}</div>
+                    <div class="field-label">Hora</div>
+                    <div class="field-value">{{ gemini_data.hora|default:"—" }}</div>
+                    <div class="field-label">Lugar</div>
+                    <div class="field-value">{{ gemini_data.lugar|default:"—" }}</div>
+                    <div class="field-label">Tipo</div>
+                    <div class="field-value">{{ gemini_data.tipo_evento|default:"—" }}</div>
+                    <div class="field-label">Descripción</div>
+                    <div class="field-value">{{ gemini_data.descripcion|default:"—" }}</div>
+                </div>
+            </div>
+        </section>
+
+        {% if evento.post %}
+        <section class="panel" style="margin-top:12px;">
+            <div class="section">
+                <h2>Post original</h2>
+            </div>
+            <div class="section">
+                <p class="muted" style="margin:0;">
+                    <a href="https://www.instagram.com/p/{{ evento.post.post_id }}/"
+                       target="_blank" rel="noopener noreferrer">Ver en Instagram</a>
+                    {% if evento.post.fecha_publicacion %}
+                        — publicado el {{ evento.post.fecha_publicacion|date:"d/m/Y" }}
+                    {% endif %}
+                </p>
+            </div>
+        </section>
+        {% endif %}
+
+        <section class="panel" style="margin-top:12px;">
+            <div class="section">
+                <h2>Parroquia</h2>
+            </div>
+            <div class="section">
+                <div class="fields">
+                    <div class="field-label">Dirección</div>
+                    <div class="field-value">{{ evento.parroquia.direccion|default:"—" }}</div>
+                    <div class="field-label">Barrio</div>
+                    <div class="field-value">{{ evento.parroquia.barrio|default:"—" }}</div>
+                </div>
+            </div>
+        </section>
+
+        {% if evento.exportado_sheets %}
+        <section class="panel" style="margin-top:12px;">
+            <div class="section">
+                <div class="badges">
+                    <span class="badge ok">Exportado a Sheets</span>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+    </aside>
+
+</div>
+{% endblock %}

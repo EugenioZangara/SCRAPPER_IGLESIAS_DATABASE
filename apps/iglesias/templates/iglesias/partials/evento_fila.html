@@ -30,15 +30,17 @@
         {% else %}
             <span class="badge warn">Pendiente</span>
         {% endif %}
+        {% if evento.exportado_sheets %}
+            <span style="display:block; font-size:10px; color:var(--ok, #2D6A4F); margin-top:4px;">✓ Sheets</span>
+        {% endif %}
     </div>
     <div class="mod-cell mod-actions">
         {% if evento.activo and not evento.verificado %}
-            <form hx-post="{% url 'iglesias:aprobar_evento' evento.pk %}"
-                  hx-target="#evento-{{ evento.pk }}"
-                  hx-swap="outerHTML">
-                {% csrf_token %}
-                <button type="submit" class="verify-button">✓ Aprobar</button>
-            </form>
+            <a href="{% url 'iglesias:aprobar_extendido' evento.pk %}?next={% url 'iglesias:moderacion_eventos' %}%3Festado={{ estado|default:'' }}"
+               class="verify-button"
+               style="display:inline-flex; align-items:center; min-height:22px; padding:0 8px; font-size:11px; font-weight:700; border-radius:999px; border:1px solid var(--brand); color:var(--brand); text-decoration:none;">
+                ✓ Aprobar
+            </a>
             <a href="{% url 'iglesias:editar_evento' evento.pk %}?next={% url 'iglesias:moderacion_eventos' %}%3Festado={{ estado|default:'' }}" class="verify-button"
                style="display:inline-flex;align-items:center;min-height:22px;padding:0 8px;font-size:11px;font-weight:700;border-radius:999px;border:1px solid var(--brand);color:var(--brand);text-decoration:none;">
                 ✎ Editar
