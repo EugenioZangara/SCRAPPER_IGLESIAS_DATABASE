@@ -315,7 +315,7 @@
                                     <button type="submit" class="verify-button">✓ Verificar</button>
                                 </form>
                             {% endif %}
-                            <form method="post" action="{% url 'iglesias:eliminar_red_social' red.pk %}">
+                            <form method="post" action="{% url 'iglesias:eliminar_red' red.pk %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.path }}">
                                 <button type="submit" class="reject-button">✕ Eliminar</button>
