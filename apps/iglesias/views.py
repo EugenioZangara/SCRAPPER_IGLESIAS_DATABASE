@@ -9,6 +9,7 @@ from .models import Parroquia, RedSocial, PostParroquia, Evento, CategoriaEvento
 
 from django.views.decorators.http import require_POST
 from django.urls import reverse
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 # --- Eliminar RedSocial ---
@@ -291,30 +292,56 @@ def moderacion_eventos(request):
         from django.http import HttpResponse
         return HttpResponse("Forbidden", status=403)
 
+    hoy = date.today()
+
+    def es_futuro(qs):
+        return qs.filter(Q(fecha__isnull=True) | Q(fecha__gte=hoy))
+
     estado = request.GET.get("estado", "pendiente")
 
     if estado == "pendiente":
-        eventos = Evento.objects.filter(verificado=False, activo=True)
+        eventos = es_futuro(Evento.objects.filter(verificado=False, activo=True))
     elif estado == "aprobado":
-        eventos = Evento.objects.filter(verificado=True, activo=True)
+        eventos = es_futuro(Evento.objects.filter(verificado=True, activo=True))
     elif estado == "rechazado":
-        eventos = Evento.objects.filter(activo=False)
+        eventos = es_futuro(Evento.objects.filter(activo=False))
     else:
-        eventos = Evento.objects.all()
+        eventos = es_futuro(Evento.objects.all())
 
-    eventos = eventos.select_related("parroquia", "post").order_by("-creado_en")
+    eventos = eventos.select_related("parroquia", "post").order_by("fecha", "-creado_en")
 
     counts = {
-        "pendiente": Evento.objects.filter(verificado=False, activo=True).count(),
-        "aprobado": Evento.objects.filter(verificado=True, activo=True).count(),
-        "rechazado": Evento.objects.filter(activo=False).count(),
-        "total": Evento.objects.count(),
+        "pendiente": es_futuro(Evento.objects.filter(verificado=False, activo=True)).count(),
+        "aprobado": es_futuro(Evento.objects.filter(verificado=True, activo=True)).count(),
+        "rechazado": es_futuro(Evento.objects.filter(activo=False)).count(),
+        "total": es_futuro(Evento.objects.all()).count(),
     }
 
     return render(request, "iglesias/moderacion_eventos.html", {
         "eventos": eventos,
         "estado": estado,
         "counts": counts,
+        "total_pasados": Evento.objects.filter(
+            fecha__lt=hoy, fecha__isnull=False
+        ).count(),
+    })
+
+
+def moderacion_eventos_pasados(request):
+    if not request.user.is_staff:
+        from django.http import HttpResponse
+        return HttpResponse("Forbidden", status=403)
+
+    hoy = date.today()
+    eventos = (
+        Evento.objects.filter(fecha__lt=hoy, fecha__isnull=False)
+        .select_related("parroquia", "post")
+        .order_by("-fecha")
+    )
+
+    return render(request, "iglesias/moderacion_eventos_pasados.html", {
+        "eventos": eventos,
+        "total": eventos.count(),
     })
 
 
@@ -449,8 +476,20 @@ def aprobar_extendido(request, pk):
             if exportado:
                 evento.exportado_sheets = True
                 evento.save(update_fields=["exportado_sheets"])
+                messages.success(
+                    request,
+                    f'Evento "{evento.titulo}" aprobado y exportado a Google Sheets.'
+                )
+            else:
+                messages.warning(
+                    request,
+                    f'Evento "{evento.titulo}" aprobado, pero no se pudo exportar a Google Sheets.'
+                )
         except Exception as e:
-            print(f"Sheets export failed: {e}")
+            messages.warning(
+                request,
+                f'Evento "{evento.titulo}" aprobado, pero falló la exportación a Sheets: {str(e)[:100]}'
+            )
 
         next_url = request.POST.get("next", "").strip()
         if next_url and next_url.startswith("/"):

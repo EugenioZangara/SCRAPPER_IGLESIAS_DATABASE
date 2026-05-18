@@ -74,6 +74,17 @@
     </a>
 </div>
 
+{% if total_pasados %}
+    <div style="text-align:right; margin-bottom: 8px;">
+        <a href="{% url 'iglesias:moderacion_eventos_pasados' %}"
+           style="font-family:var(--mono); font-size:11px;
+                  color:var(--muted); text-decoration:none;
+                  letter-spacing:0.05em;">
+            Ver {{ total_pasados }} evento{{ total_pasados|pluralize }} pasado{{ total_pasados|pluralize }} →
+        </a>
+    </div>
+{% endif %}
+
 <div class="mod-table">
     <div class="mod-row mod-head-row">
         <div class="mod-cell">Cargado</div>

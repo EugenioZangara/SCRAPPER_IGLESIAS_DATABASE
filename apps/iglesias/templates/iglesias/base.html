@@ -583,6 +583,49 @@
         .events .ev-row { grid-template-columns: 60px 1fr; gap: 12px; }
         .events .ev-row .ev-actions { grid-column: 1 / -1; flex-direction: row; align-items: center; }
     }
+
+    .messages-container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 12px 20px 0;
+    }
+    .message {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        margin-bottom: 8px;
+        font-family: var(--sans, Arial, sans-serif);
+    }
+    .message-success {
+        background: var(--brand-soft, #dff3e9);
+        color: var(--brand, #276749);
+        border: 1px solid var(--brand, #276749);
+    }
+    .message-warning {
+        background: var(--amber-soft, #fff0cf);
+        color: var(--amber, #936316);
+        border: 1px solid var(--amber, #936316);
+    }
+    .message-error {
+        background: var(--red-soft, #fde7e7);
+        color: var(--red, #9f3a38);
+        border: 1px solid var(--red, #9f3a38);
+    }
+    .message-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+        padding: 0 0 0 12px;
+        color: inherit;
+        min-height: unset;
+        opacity: 0.7;
+    }
+    .message-close:hover { opacity: 1; }
     </style>
 </head>
 <body>
@@ -603,6 +646,16 @@
     </header>
 
     <main class="wrap" style="padding-bottom: 48px;">
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="message message-{{ message.tags }}">
+                        {{ message }}
+                        <button class="message-close" onclick="this.parentElement.remove()">×</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
 

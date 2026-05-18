@@ -1,0 +1,208 @@
+{% extends "iglesias/base.html" %}
+
+{% block title %}Eventos Pasados · Scraper Católico{% endblock %}
+
+{% block content %}
+
+<div class="page-title">
+    <div>
+        <h1>Eventos Pasados</h1>
+        <p class="subtitle">{{ total }} evento{{ total|pluralize }} con fecha anterior a hoy</p>
+    </div>
+    <a href="{% url 'iglesias:moderacion_eventos' %}">← Volver a moderación</a>
+</div>
+
+<div class="mod-table">
+    <div class="mod-row mod-head-row">
+        <div class="mod-cell">Cargado</div>
+        <div class="mod-cell">Parroquia</div>
+        <div class="mod-cell">Título</div>
+        <div class="mod-cell">Fecha evento</div>
+        <div class="mod-cell">Tipo</div>
+        <div class="mod-cell">Estado</div>
+        <div class="mod-cell">Acciones</div>
+    </div>
+
+    {% for evento in eventos %}
+    <div id="evento-{{ evento.pk }}" class="mod-row">
+        <div class="mod-cell mod-fecha-carga">
+            {{ evento.creado_en|date:"d/m/Y" }}<br>
+            <span class="t">{{ evento.creado_en|time:"H:i" }}</span>
+        </div>
+        <div class="mod-cell mod-parroquia">
+            <a href="{% url 'iglesias:detalle_parroquia' evento.parroquia.pk %}">{{ evento.parroquia.nombre }}</a>
+        </div>
+        <div class="mod-cell mod-titulo">
+            {{ evento.titulo }}
+            {% if evento.descripcion %}
+                <span class="t">{{ evento.descripcion|truncatechars:60 }}</span>
+            {% endif %}
+        </div>
+        <div class="mod-cell">
+            {% if evento.fecha %}
+                {{ evento.fecha|date:"d/m/Y" }}
+            {% else %}
+                <span style="color:var(--muted);">Sin fecha</span>
+            {% endif %}
+        </div>
+        <div class="mod-cell">
+            <span class="badge info">{{ evento.get_tipo_display }}</span>
+        </div>
+        <div class="mod-cell">
+            {% if not evento.activo %}
+                <span class="badge missing">Rechazado</span>
+            {% elif evento.verificado %}
+                <span class="badge ok">Aprobado</span>
+            {% else %}
+                <span class="badge warn">Pendiente</span>
+            {% endif %}
+        </div>
+        <div class="mod-cell mod-actions">
+            <a href="{% url 'iglesias:editar_evento' evento.pk %}?next={% url 'iglesias:moderacion_eventos_pasados' %}"
+               class="verify-button"
+               style="display:inline-flex; align-items:center; min-height:22px; padding:0 8px; font-size:11px; font-weight:700; border-radius:999px; border:1px solid var(--brand); color:var(--brand); text-decoration:none;">
+                ✎ Editar
+            </a>
+            {% if evento.activo %}
+                <form hx-post="{% url 'iglesias:rechazar_evento' evento.pk %}"
+                      hx-target="#evento-{{ evento.pk }}"
+                      hx-swap="outerHTML">
+                    {% csrf_token %}
+                    <button type="submit" class="reject-button">✕ Rechazar</button>
+                </form>
+            {% else %}
+                <form hx-post="{% url 'iglesias:aprobar_evento' evento.pk %}"
+                      hx-target="#evento-{{ evento.pk }}"
+                      hx-swap="outerHTML">
+                    {% csrf_token %}
+                    <button type="submit" class="verify-button">↩ Restaurar</button>
+                </form>
+            {% endif %}
+            {% if evento.post %}
+                <a href="https://www.instagram.com/p/{{ evento.post.post_id }}/"
+                   target="_blank" rel="noopener noreferrer"
+                   class="ig-link">IG</a>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+        <div class="mod-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" style="width:32px;height:32px;color:var(--faint);">
+                <rect x="3" y="5" width="18" height="16" rx="2"/>
+                <path d="M3 9h18M8 3v4M16 3v4"/>
+            </svg>
+            <span>No hay eventos pasados.</span>
+        </div>
+    {% endfor %}
+</div>
+
+<style>
+    .mod-table {
+        margin-top: 18px;
+        border: 1px solid var(--rule);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    .mod-row {
+        display: grid;
+        grid-template-columns: 90px 160px 1fr 100px 90px 120px 220px;
+        align-items: start;
+        gap: 0;
+        border-bottom: 1px solid var(--rule-2);
+    }
+    .mod-row:last-child { border-bottom: none; }
+    .mod-head-row {
+        background: var(--paper-2);
+        border-bottom: 1px solid var(--rule);
+    }
+    .mod-head-row .mod-cell {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 10px 14px;
+        font-weight: 500;
+    }
+    .mod-cell {
+        padding: 14px 14px;
+        font-family: var(--sans);
+        font-size: 13px;
+        color: var(--ink-2);
+        line-height: 1.4;
+        border-right: 1px solid var(--rule-2);
+        min-width: 0;
+        overflow: hidden;
+    }
+    .mod-cell:last-child { border-right: none; }
+    .mod-fecha-carga {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+    }
+    .mod-fecha-carga .t { display: block; opacity: 0.7; }
+    .mod-parroquia a {
+        color: var(--ink);
+        text-decoration: none;
+        border-bottom: 1px solid var(--accent);
+        font-size: 13px;
+    }
+    .mod-titulo {
+        font-family: var(--serif);
+        font-size: 14px;
+        color: var(--ink);
+    }
+    .mod-titulo .t {
+        display: block;
+        font-family: var(--sans);
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .mod-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        align-items: center;
+        padding: 10px 12px;
+    }
+    .mod-actions form { margin: 0; }
+    .ig-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 0 8px;
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 999px;
+        border: 1px solid var(--rule);
+        color: var(--muted);
+        text-decoration: none;
+        letter-spacing: 0.06em;
+    }
+    .ig-link:hover { border-color: var(--ink-2); color: var(--ink-2); }
+    .mod-empty {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 40px 20px;
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 16px;
+        color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+        .mod-row { grid-template-columns: 1fr; }
+        .mod-head-row { display: none; }
+        .mod-cell { border-right: none; border-bottom: 1px solid var(--rule-2); }
+        .mod-cell:last-child { border-bottom: none; }
+    }
+</style>
+
+{% endblock %}

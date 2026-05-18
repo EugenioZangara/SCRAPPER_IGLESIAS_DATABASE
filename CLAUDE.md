@@ -187,7 +187,8 @@ El JSON que devuelve la IA tiene estos campos:
 - `/redes/<pk>/verificar/` → POST — verifica red social
 - `/redes/<pk>/eliminar/` → POST — elimina red social
 - `/parroquias/<pk>/scrapear/` → POST (staff only) — lanza scraping Instagram de esa parroquia y devuelve partial HTMX con resultado
-- `/eventos/moderacion/` → GET (staff only) — lista de moderación de eventos con tabs y acciones HTMX inline
+- `/eventos/moderacion/` → GET (staff only) — lista de moderación de eventos con tabs y acciones HTMX inline (solo futuros o sin fecha)
+- `/eventos/moderacion/pasados/` → GET (staff only) — lista de eventos pasados (fecha < hoy); acciones Editar, Rechazar/Restaurar
 
 ### Lógica de estado de eventos en el listado
 Calculado en `_estado_eventos()` en `views.py`:
@@ -225,6 +226,8 @@ Calculado en `_estado_eventos()` en `views.py`:
 
 ### Moderación de eventos (solo staff)
 - URL: `/eventos/moderacion/` → vista `moderacion_eventos`
+- Solo muestra eventos futuros o sin fecha (`fecha >= hoy` o `fecha=None`)
+- Enlace "Ver N eventos pasados →" hacia `/eventos/moderacion/pasados/` si hay alguno
 - Tabs por estado: `pendiente` (default) / `aprobado` / `rechazado` / `todos`
 - Cada fila tiene `id="evento-{{ evento.pk }}"` como target de HTMX
 - Acciones Aprobar/Rechazar/Restaurar usan `hx-post` + `hx-swap="outerHTML"` sobre la fila
