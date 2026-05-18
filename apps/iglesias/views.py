@@ -267,6 +267,9 @@ def aprobar_evento(request, pk):
     evento.activo = True
     evento.save(update_fields=["verificado", "activo"])
 
+    if request.headers.get("HX-Request"):
+        return render(request, "iglesias/partials/evento_fila.html", {"evento": evento})
+
     return redirect(request.POST.get("next") or "iglesias:lista_parroquias")
 
 
@@ -277,7 +280,42 @@ def rechazar_evento(request, pk):
     evento.verificado = False
     evento.save(update_fields=["activo", "verificado"])
 
+    if request.headers.get("HX-Request"):
+        return render(request, "iglesias/partials/evento_fila.html", {"evento": evento})
+
     return redirect(request.POST.get("next") or "iglesias:lista_parroquias")
+
+
+def moderacion_eventos(request):
+    if not request.user.is_staff:
+        from django.http import HttpResponse
+        return HttpResponse("Forbidden", status=403)
+
+    estado = request.GET.get("estado", "pendiente")
+
+    if estado == "pendiente":
+        eventos = Evento.objects.filter(verificado=False, activo=True)
+    elif estado == "aprobado":
+        eventos = Evento.objects.filter(verificado=True, activo=True)
+    elif estado == "rechazado":
+        eventos = Evento.objects.filter(activo=False)
+    else:
+        eventos = Evento.objects.all()
+
+    eventos = eventos.select_related("parroquia", "post").order_by("-creado_en")
+
+    counts = {
+        "pendiente": Evento.objects.filter(verificado=False, activo=True).count(),
+        "aprobado": Evento.objects.filter(verificado=True, activo=True).count(),
+        "rechazado": Evento.objects.filter(activo=False).count(),
+        "total": Evento.objects.count(),
+    }
+
+    return render(request, "iglesias/moderacion_eventos.html", {
+        "eventos": eventos,
+        "estado": estado,
+        "counts": counts,
+    })
 
 
 def editar_evento(request, pk):
@@ -314,6 +352,9 @@ def editar_evento(request, pk):
         evento.activo = True
         evento.save()
 
+        next_url = request.POST.get("next", "").strip()
+        if next_url and next_url.startswith("/"):
+            return redirect(next_url)
         return redirect("iglesias:detalle_parroquia", pk=parroquia.pk)
 
     return render(

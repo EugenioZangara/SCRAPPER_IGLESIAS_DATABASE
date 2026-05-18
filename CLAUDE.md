@@ -186,6 +186,7 @@ El JSON que devuelve la IA tiene estos campos:
 - `/redes/<pk>/verificar/` → POST — verifica red social
 - `/redes/<pk>/eliminar/` → POST — elimina red social
 - `/parroquias/<pk>/scrapear/` → POST (staff only) — lanza scraping Instagram de esa parroquia y devuelve partial HTMX con resultado
+- `/eventos/moderacion/` → GET (staff only) — lista de moderación de eventos con tabs y acciones HTMX inline
 
 ### Lógica de estado de eventos en el listado
 Calculado en `_estado_eventos()` en `views.py`:
@@ -211,6 +212,17 @@ Calculado en `_estado_eventos()` en `views.py`:
 - **No importar `scraper_redes.run`** — tiene código de nivel módulo (`argparse`) que
   ejecuta `main()` al importar. La lógica de `_crear_evento_desde_post` está replicada
   inline en `views.py`
+
+### Moderación de eventos (solo staff)
+- URL: `/eventos/moderacion/` → vista `moderacion_eventos`
+- Tabs por estado: `pendiente` (default) / `aprobado` / `rechazado` / `todos`
+- Cada fila tiene `id="evento-{{ evento.pk }}"` como target de HTMX
+- Acciones Aprobar/Rechazar/Restaurar usan `hx-post` + `hx-swap="outerHTML"` sobre la fila
+- `aprobar_evento` y `rechazar_evento` detectan `HX-Request` y devuelven el partial
+  `iglesias/partials/evento_fila.html` en lugar de redirigir
+- El partial `evento_fila.html` determina los botones a mostrar por el estado del objeto
+  (no por el filtro activo), usando `evento.activo` y `evento.verificado`
+- Link "IG" visible solo si el evento tiene `post` asociado
 
 ### Edición inline (solo staff)
 - Las secciones Contacto, Ubicación, Clero e historia y BAIglesias tienen botón "Editar"

@@ -1,0 +1,258 @@
+{% extends "iglesias/base.html" %}
+
+{% block title %}Moderación de Eventos · Scraper Católico{% endblock %}
+
+{% block content %}
+
+<section class="head">
+    <div>
+        <div class="eyebrow">Panel de revisión</div>
+        <h1 class="title">Moderación de <em>Eventos</em></h1>
+        <p class="lede">
+            Eventos detectados por IA pendientes de revisión manual antes de publicar.
+        </p>
+    </div>
+    <div class="head-meta">
+        <strong>Resumen</strong>
+        {{ counts.total }} eventos en total<br>
+        {{ counts.pendiente }} pendientes de revisión<br>
+        {{ counts.aprobado }} aprobados
+    </div>
+</section>
+
+<section class="stats-dir">
+    <div class="stat lead">
+        <div class="stat-label"><span>Total eventos</span></div>
+        <div class="stat-num">{{ counts.total }}</div>
+        <div class="stat-foot">en la base de datos</div>
+    </div>
+    <div class="stat">
+        <div class="stat-label">
+            <span>Pendientes</span>
+            {% if counts.total %}<span style="color:var(--faint)">{% widthratio counts.pendiente counts.total 100 %}%</span>{% endif %}
+        </div>
+        <div class="stat-num">{{ counts.pendiente }}</div>
+        <div class="stat-foot">requieren revisión</div>
+        {% if counts.total %}<div class="stat-bar"><span style="width:{% widthratio counts.pendiente counts.total 100 %}%"></span></div>{% endif %}
+    </div>
+    <div class="stat">
+        <div class="stat-label">
+            <span>Aprobados</span>
+            {% if counts.total %}<span style="color:var(--faint)">{% widthratio counts.aprobado counts.total 100 %}%</span>{% endif %}
+        </div>
+        <div class="stat-num">{{ counts.aprobado }}</div>
+        <div class="stat-foot">publicados</div>
+        {% if counts.total %}<div class="stat-bar"><span style="width:{% widthratio counts.aprobado counts.total 100 %}%"></span></div>{% endif %}
+    </div>
+    <div class="stat">
+        <div class="stat-label">
+            <span>Rechazados</span>
+            {% if counts.total %}<span style="color:var(--faint)">{% widthratio counts.rechazado counts.total 100 %}%</span>{% endif %}
+        </div>
+        <div class="stat-num">{{ counts.rechazado }}</div>
+        <div class="stat-foot">descartados</div>
+        {% if counts.total %}<div class="stat-bar"><span style="width:{% widthratio counts.rechazado counts.total 100 %}%"></span></div>{% endif %}
+    </div>
+</section>
+
+<div class="mod-tabs">
+    <a href="?estado=pendiente" class="mod-tab {% if estado == 'pendiente' %}active{% endif %}">
+        Pendientes
+        <span class="mod-tab-count">{{ counts.pendiente }}</span>
+    </a>
+    <a href="?estado=aprobado" class="mod-tab {% if estado == 'aprobado' %}active{% endif %}">
+        Aprobados
+        <span class="mod-tab-count">{{ counts.aprobado }}</span>
+    </a>
+    <a href="?estado=rechazado" class="mod-tab {% if estado == 'rechazado' %}active{% endif %}">
+        Rechazados
+        <span class="mod-tab-count">{{ counts.rechazado }}</span>
+    </a>
+    <a href="?estado=todos" class="mod-tab {% if estado == 'todos' %}active{% endif %}">
+        Todos
+        <span class="mod-tab-count">{{ counts.total }}</span>
+    </a>
+</div>
+
+<div class="mod-table">
+    <div class="mod-row mod-head-row">
+        <div class="mod-cell">Cargado</div>
+        <div class="mod-cell">Parroquia</div>
+        <div class="mod-cell">Título</div>
+        <div class="mod-cell">Fecha evento</div>
+        <div class="mod-cell">Tipo</div>
+        <div class="mod-cell">Estado</div>
+        <div class="mod-cell">Acciones</div>
+    </div>
+
+    {% for evento in eventos %}
+        {% include "iglesias/partials/evento_fila.html" %}
+    {% empty %}
+        <div class="mod-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" style="width:32px;height:32px;color:var(--faint);">
+                <rect x="3" y="5" width="18" height="16" rx="2"/>
+                <path d="M3 9h18M8 3v4M16 3v4"/>
+            </svg>
+            <span>No hay eventos en este estado.</span>
+        </div>
+    {% endfor %}
+</div>
+
+<style>
+    .mod-tabs {
+        display: flex;
+        gap: 4px;
+        margin: 28px 0 0;
+        border-bottom: 1px solid var(--rule);
+        padding-bottom: 0;
+    }
+    .mod-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--muted);
+        text-decoration: none;
+        border: 1px solid transparent;
+        border-bottom: none;
+        border-radius: 4px 4px 0 0;
+        margin-bottom: -1px;
+        background: transparent;
+        transition: color 0.15s;
+    }
+    .mod-tab:hover { color: var(--ink-2); background: var(--paper-2); }
+    .mod-tab.active {
+        color: var(--ink);
+        background: var(--paper);
+        border-color: var(--rule);
+        border-bottom-color: var(--paper);
+    }
+    .mod-tab-count {
+        background: var(--paper-2);
+        border: 1px solid var(--rule);
+        border-radius: 999px;
+        padding: 1px 7px;
+        font-size: 10px;
+        color: var(--muted);
+    }
+    .mod-tab.active .mod-tab-count {
+        background: var(--ink);
+        color: var(--paper);
+        border-color: var(--ink);
+    }
+
+    .mod-table {
+        margin-top: 0;
+        border: 1px solid var(--rule);
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+        overflow: hidden;
+    }
+    .mod-row {
+        display: grid;
+grid-template-columns: 90px 160px 1fr 100px 90px 120px 220px;      align-items: start;
+        gap: 0;
+        border-bottom: 1px solid var(--rule-2);
+    }
+    .mod-row:last-child { border-bottom: none; }
+    .mod-head-row {
+        background: var(--paper-2);
+        border-bottom: 1px solid var(--rule);
+    }
+    .mod-head-row .mod-cell {
+        font-family: var(--mono);
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 10px 14px;
+        font-weight: 500;
+    }
+    .mod-cell {
+        padding: 14px 14px;
+        font-family: var(--sans);
+        font-size: 13px;
+        color: var(--ink-2);
+        line-height: 1.4;
+        border-right: 1px solid var(--rule-2);
+        min-width: 0;
+        overflow: hidden;
+    }
+    .mod-cell:last-child { border-right: none; }
+    .mod-fecha-carga {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+    }
+    .mod-fecha-carga .t { display: block; opacity: 0.7; }
+    .mod-parroquia a {
+        color: var(--ink);
+        text-decoration: none;
+        border-bottom: 1px solid var(--accent);
+        font-size: 13px;
+    }
+    .mod-titulo {
+        font-family: var(--serif);
+        font-size: 14px;
+        color: var(--ink);
+    }
+    .mod-titulo .t {
+        display: block;
+        font-family: var(--sans);
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .mod-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        align-items: center;
+        padding: 10px 12px;
+    }
+    .mod-actions form { margin: 0; }
+    .ig-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 0 8px;
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 999px;
+        border: 1px solid var(--rule);
+        color: var(--muted);
+        text-decoration: none;
+        letter-spacing: 0.06em;
+    }
+    .ig-link:hover { border-color: var(--ink-2); color: var(--ink-2); }
+    .mod-empty {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 40px 20px;
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 16px;
+        color: var(--muted);
+    }
+
+    @media (max-width: 900px) {
+        .mod-row {
+            grid-template-columns: 1fr;
+        }
+        .mod-head-row { display: none; }
+        .mod-cell { border-right: none; border-bottom: 1px solid var(--rule-2); }
+        .mod-cell:last-child { border-bottom: none; }
+    }
+</style>
+
+{% endblock %}

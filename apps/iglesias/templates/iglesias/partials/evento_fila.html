@@ -1,0 +1,73 @@
+<div id="evento-{{ evento.pk }}" class="mod-row">
+    <div class="mod-cell mod-fecha-carga">
+        {{ evento.creado_en|date:"d/m/Y" }}<br>
+        <span class="t">{{ evento.creado_en|time:"H:i" }}</span>
+    </div>
+    <div class="mod-cell mod-parroquia">
+        <a href="{% url 'iglesias:detalle_parroquia' evento.parroquia.pk %}">{{ evento.parroquia.nombre }}</a>
+    </div>
+    <div class="mod-cell mod-titulo">
+        {{ evento.titulo }}
+        {% if evento.descripcion %}
+            <span class="t">{{ evento.descripcion|truncatechars:60 }}</span>
+        {% endif %}
+    </div>
+    <div class="mod-cell">
+        {% if evento.fecha %}
+            {{ evento.fecha|date:"d/m/Y" }}
+        {% else %}
+            <span style="color:var(--muted);">Sin fecha</span>
+        {% endif %}
+    </div>
+    <div class="mod-cell">
+        <span class="badge info">{{ evento.get_tipo_display }}</span>
+    </div>
+    <div class="mod-cell">
+        {% if not evento.activo %}
+            <span class="badge missing">Rechazado</span>
+        {% elif evento.verificado %}
+            <span class="badge ok">Aprobado</span>
+        {% else %}
+            <span class="badge warn">Pendiente</span>
+        {% endif %}
+    </div>
+    <div class="mod-cell mod-actions">
+        {% if evento.activo and not evento.verificado %}
+            <form hx-post="{% url 'iglesias:aprobar_evento' evento.pk %}"
+                  hx-target="#evento-{{ evento.pk }}"
+                  hx-swap="outerHTML">
+                {% csrf_token %}
+                <button type="submit" class="verify-button">✓ Aprobar</button>
+            </form>
+            <a href="{% url 'iglesias:editar_evento' evento.pk %}?next={% url 'iglesias:moderacion_eventos' %}%3Festado={{ estado|default:'' }}" class="verify-button"
+               style="display:inline-flex;align-items:center;min-height:22px;padding:0 8px;font-size:11px;font-weight:700;border-radius:999px;border:1px solid var(--brand);color:var(--brand);text-decoration:none;">
+                ✎ Editar
+            </a>
+            <form hx-post="{% url 'iglesias:rechazar_evento' evento.pk %}"
+                  hx-target="#evento-{{ evento.pk }}"
+                  hx-swap="outerHTML">
+                {% csrf_token %}
+                <button type="submit" class="reject-button">✕ Rechazar</button>
+            </form>
+        {% elif evento.activo and evento.verificado %}
+            <form hx-post="{% url 'iglesias:rechazar_evento' evento.pk %}"
+                  hx-target="#evento-{{ evento.pk }}"
+                  hx-swap="outerHTML">
+                {% csrf_token %}
+                <button type="submit" class="reject-button">✕ Rechazar</button>
+            </form>
+        {% else %}
+            <form hx-post="{% url 'iglesias:aprobar_evento' evento.pk %}"
+                  hx-target="#evento-{{ evento.pk }}"
+                  hx-swap="outerHTML">
+                {% csrf_token %}
+                <button type="submit" class="verify-button">↩ Restaurar</button>
+            </form>
+        {% endif %}
+        {% if evento.post %}
+            <a href="https://www.instagram.com/p/{{ evento.post.post_id }}/"
+               target="_blank" rel="noopener noreferrer"
+               class="ig-link">IG</a>
+        {% endif %}
+    </div>
+</div>

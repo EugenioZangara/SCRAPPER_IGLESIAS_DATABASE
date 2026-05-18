@@ -594,6 +594,9 @@
             </div>
             <nav class="nav">
                 <a href="{% url 'iglesias:lista_parroquias' %}" {% if request.resolver_match.url_name == 'lista_parroquias' %}class="active"{% endif %}>Parroquias</a>
+                {% if request.user.is_staff %}
+                <a href="{% url 'iglesias:moderacion_eventos' %}" {% if request.resolver_match.url_name == 'moderacion_eventos' %}class="active"{% endif %}>Moderación</a>
+                {% endif %}
                 <a href="/admin/">Admin</a>
             </nav>
         </div>

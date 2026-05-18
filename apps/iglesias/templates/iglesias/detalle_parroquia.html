@@ -309,13 +309,13 @@
                     {% if request.user.is_staff %}
                         <div style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
                             {% if not red.verificado %}
-                                <form method="post" action="{% url 'iglesias:verificar_red' red.pk %}">
+                                <form method="post" action="{% url 'iglesias:verificar_red_social' red.pk %}">
                                     {% csrf_token %}
                                     <input type="hidden" name="next" value="{{ request.path }}">
                                     <button type="submit" class="verify-button">✓ Verificar</button>
                                 </form>
                             {% endif %}
-                            <form method="post" action="{% url 'iglesias:eliminar_red' red.pk %}">
+                            <form method="post" action="{% url 'iglesias:eliminar_red_social' red.pk %}">
                                 {% csrf_token %}
                                 <input type="hidden" name="next" value="{{ request.path }}">
                                 <button type="submit" class="reject-button">✕ Eliminar</button>

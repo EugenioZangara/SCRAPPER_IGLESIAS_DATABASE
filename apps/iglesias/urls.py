@@ -17,6 +17,7 @@ urlpatterns = [
     path("redes/<int:pk>/eliminar/", views.eliminar_red_social, name="eliminar_red"),
     path("eventos/<int:pk>/aprobar/", views.aprobar_evento, name="aprobar_evento"),
     path("eventos/<int:pk>/rechazar/", views.rechazar_evento, name="rechazar_evento"),
+    path("eventos/moderacion/", views.moderacion_eventos, name="moderacion_eventos"),
     path("eventos/<int:pk>/editar/", views.editar_evento, name="editar_evento"),
     path("parroquias/<int:pk>/scrapear/", views.scrapear_parroquia, name="scrapear_parroquia"),
 ]

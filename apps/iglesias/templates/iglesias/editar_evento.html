@@ -15,6 +15,7 @@
     <section class="panel">
         <form method="post" action="{% url 'iglesias:editar_evento' evento.pk %}">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
             <div class="section">
                 <h2>Datos del evento</h2>
                 <div class="fields">
