@@ -348,18 +348,19 @@ def moderacion_eventos_pasados(request):
 def editar_evento(request, pk):
     evento = get_object_or_404(Evento, pk=pk)
     parroquia = evento.parroquia
+    categorias = CategoriaEvento.objects.filter(activo=True)
 
     if request.method == "POST":
+        from datetime import datetime as dt
+
         evento.titulo = request.POST.get("titulo", evento.titulo).strip()
         evento.tipo = request.POST.get("tipo", evento.tipo)
-        evento.lugar = request.POST.get("lugar", "").strip() or None
         evento.descripcion = request.POST.get("descripcion", "").strip() or None
 
         fecha_str = request.POST.get("fecha", "").strip()
         if fecha_str:
             try:
-                from datetime import datetime
-                evento.fecha = datetime.strptime(fecha_str, "%Y-%m-%d").date()
+                evento.fecha = dt.strptime(fecha_str, "%Y-%m-%d").date()
             except ValueError:
                 pass
         else:
@@ -368,15 +369,47 @@ def editar_evento(request, pk):
         hora_str = request.POST.get("hora", "").strip()
         if hora_str:
             try:
-                from datetime import datetime
-                evento.hora = datetime.strptime(hora_str, "%H:%M").time()
+                evento.hora = dt.strptime(hora_str, "%H:%M").time()
             except ValueError:
                 pass
         else:
             evento.hora = None
 
-        evento.verificado = True
-        evento.activo = True
+        fecha_fin_str = request.POST.get("fecha_fin", "").strip()
+        hora_fin_str = request.POST.get("hora_fin", "").strip()
+        if fecha_fin_str:
+            try:
+                fecha_fin = dt.strptime(fecha_fin_str, "%Y-%m-%d")
+                if hora_fin_str:
+                    hora_fin = dt.strptime(hora_fin_str, "%H:%M")
+                    fecha_fin = fecha_fin.replace(hour=hora_fin.hour, minute=hora_fin.minute)
+                evento.fecha_fin = fecha_fin
+            except ValueError:
+                pass
+        else:
+            evento.fecha_fin = None
+
+        categoria_id = request.POST.get("categoria", "").strip()
+        evento.categoria_id = int(categoria_id) if categoria_id else None
+        evento.url_externa = request.POST.get("url_externa", "").strip() or None
+        evento.audiencia = request.POST.get("audiencia", "").strip() or None
+        evento.lugar = request.POST.get("lugar", "").strip() or None
+
+        edad_desde = request.POST.get("edad_desde", "").strip()
+        edad_hasta = request.POST.get("edad_hasta", "").strip()
+        evento.edad_desde = int(edad_desde) if edad_desde else 0
+        evento.edad_hasta = int(edad_hasta) if edad_hasta else 100
+
+        evento.gratuito = request.POST.get("gratuito") == "si"
+        capacidad_str = request.POST.get("capacidad", "").strip()
+        evento.capacidad = int(capacidad_str) if capacidad_str else None
+
+        evento.ubicacion_lugar = request.POST.get("ubicacion_lugar", "").strip() or None
+        evento.ubicacion_direccion = request.POST.get("ubicacion_direccion", "").strip() or None
+        evento.ubicacion_ciudad = request.POST.get("ubicacion_ciudad", "Buenos Aires").strip()
+        evento.ubicacion_cp = request.POST.get("ubicacion_cp", "").strip() or None
+        evento.ubicacion_provincia = request.POST.get("ubicacion_provincia", "Buenos Aires").strip()
+
         evento.save()
 
         next_url = request.POST.get("next", "").strip()
@@ -384,15 +417,25 @@ def editar_evento(request, pk):
             return redirect(next_url)
         return redirect("iglesias:detalle_parroquia", pk=parroquia.pk)
 
-    return render(
-        request,
-        "iglesias/editar_evento.html",
-        {
-            "evento": evento,
-            "parroquia": parroquia,
-            "tipo_choices": Evento.TIPO_CHOICES,
-        },
-    )
+    gemini_data = {}
+    if evento.post and evento.post.raw_data and "gemini" in evento.post.raw_data:
+        gemini_data = evento.post.raw_data["gemini"]
+
+    if not evento.ubicacion_lugar and evento.lugar:
+        evento.ubicacion_lugar = evento.lugar
+
+    hora_fin_str = evento.fecha_fin.strftime("%H:%M") if evento.fecha_fin else ""
+
+    return render(request, "iglesias/editar_evento.html", {
+        "evento": evento,
+        "parroquia": parroquia,
+        "categorias": categorias,
+        "tipo_choices": Evento.TIPO_CHOICES,
+        "audiencia_choices": Evento.AUDIENCIA_CHOICES,
+        "gemini_data": gemini_data,
+        "hora_fin_str": hora_fin_str,
+        "next": request.GET.get("next", ""),
+    })
 
 
 def aprobar_extendido(request, pk):
@@ -503,12 +546,15 @@ def aprobar_extendido(request, pk):
     if not evento.ubicacion_lugar and evento.lugar:
         evento.ubicacion_lugar = evento.lugar
 
+    hora_fin_str = evento.fecha_fin.strftime("%H:%M") if evento.fecha_fin else ""
+
     return render(request, "iglesias/aprobar_extendido.html", {
         "evento": evento,
         "categorias": categorias,
         "tipo_choices": Evento.TIPO_CHOICES,
         "audiencia_choices": Evento.AUDIENCIA_CHOICES,
         "gemini_data": gemini_data,
+        "hora_fin_str": hora_fin_str,
         "next": request.GET.get("next", ""),
     })
 

@@ -182,7 +182,7 @@ El JSON que devuelve la IA tiene estos campos:
 - `/parroquias/<pk>/editar/bai/` → GET / POST — edición HTMX sección BAIglesias
 - `/eventos/<pk>/aprobar/` → POST — aprueba evento
 - `/eventos/<pk>/rechazar/` → POST — rechaza evento
-- `/eventos/<pk>/editar/` → GET/POST — editar y aprobar evento
+- `/eventos/<pk>/editar/` → GET/POST — editar evento (mismo layout que aprobar_extendido, sin exportar a Sheets; botón "Guardar cambios")
 - `/eventos/<pk>/aprobar-extendido/` → GET/POST (staff only) — formulario extendido de aprobación con campos de categoría, audiencia, ubicación, logística y datos del scraper en panel lateral
 - `/redes/<pk>/verificar/` → POST — verifica red social
 - `/redes/<pk>/eliminar/` → POST — elimina red social

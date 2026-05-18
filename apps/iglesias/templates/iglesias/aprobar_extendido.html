@@ -82,7 +82,7 @@
 
                         <div class="field-label">Hora de finalización</div>
                         <div class="field-value">
-                            <input type="time" name="hora_fin" value="{% if evento.fecha_fin %}{{ evento.fecha_fin|time:'H:i' }}{% endif %}" style="width:100%;">
+                            <input type="time" name="hora_fin" value="{{ hora_fin_str }}" style="width:100%;">
                         </div>
 
                     </div>
@@ -216,15 +216,24 @@
         <section class="panel" style="margin-top:12px;">
             <div class="section">
                 <h2>Post original</h2>
-            </div>
-            <div class="section">
-                <p class="muted" style="margin:0;">
-                    <a href="https://www.instagram.com/p/{{ evento.post.post_id }}/"
-                       target="_blank" rel="noopener noreferrer">Ver en Instagram</a>
+                <div class="fields" style="margin-top:12px;">
+                    <div class="field-label">Red social</div>
+                    <div class="field-value">{{ evento.post.get_red_social_display }}</div>
                     {% if evento.post.fecha_publicacion %}
-                        — publicado el {{ evento.post.fecha_publicacion|date:"d/m/Y" }}
+                    <div class="field-label">Publicado</div>
+                    <div class="field-value">{{ evento.post.fecha_publicacion|date:"d/m/Y H:i" }}</div>
                     {% endif %}
-                </p>
+                    <div class="field-label">Ver post</div>
+                    <div class="field-value">
+                        <a href="https://www.instagram.com/p/{{ evento.post.post_id }}/"
+                           target="_blank" rel="noopener noreferrer">Ver en Instagram</a>
+                    </div>
+                </div>
+                {% if evento.imagen_url %}
+                    <img src="{{ evento.imagen_url }}"
+                         alt="Flyer del evento"
+                         style="max-width:100%; border-radius:8px; margin-top:12px;">
+                {% endif %}
             </div>
         </section>
         {% endif %}
