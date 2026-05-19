@@ -1,17 +1,38 @@
 import instaloader
+import base64
+import os
 from .config import INSTAGRAM_SESSION_USER, POSTS_A_REVISAR
 from datetime import timezone
 
 def get_loader():
     """Inicializa Instaloader con la sesión guardada."""
     L = instaloader.Instaloader()
+
+    # Opción A: sesión desde variable de entorno (producción)
+    session_b64 = os.environ.get("INSTAGRAM_SESSION_B64")
+    if session_b64:
+        try:
+            session_data = base64.b64decode(session_b64)
+            session_dir = os.path.expanduser("~/.config/instaloader")
+            os.makedirs(session_dir, exist_ok=True)
+            session_path = os.path.join(session_dir, f"session-{INSTAGRAM_SESSION_USER}")
+            with open(session_path, 'wb') as f:
+                f.write(session_data)
+            L.load_session_from_file(username=INSTAGRAM_SESSION_USER, filename=session_path)
+            print(f"Sesión cargada desde variable de entorno para: {INSTAGRAM_SESSION_USER}")
+            return L
+        except Exception as e:
+            print(f"ERROR cargando sesión desde variable de entorno: {e}")
+            return None
+
+    # Opción B: sesión desde archivo local (desarrollo)
     try:
         L.load_session_from_file(username=INSTAGRAM_SESSION_USER)
-        print(f"Sesión cargada para: {INSTAGRAM_SESSION_USER}")
+        print(f"Sesión cargada desde archivo para: {INSTAGRAM_SESSION_USER}")
         return L
     except FileNotFoundError:
         print("ERROR: No encontró el archivo de sesión.")
-        print("Corré primero instagram_login.py en la raíz del proyecto.")
+        print("Corré primero instagram_login.py o configurá INSTAGRAM_SESSION_B64.")
         return None
 
 

@@ -421,7 +421,7 @@ Festividades patronales, Actividades solidarias, Formación y talleres.
 | Servicio | Tipo | Descripción |
 |---|---|---|
 | `scraper-catolico` | Web | App Django con gunicorn |
-| `scraper-instagram` | Cron | Scraper semanal, lunes 06:00 UTC |
+| `scraper-instagram` | Cron | Scraper bisemanal, lunes y jueves 06:00 UTC |
 | `scraper-catolico-db` | PostgreSQL | Plan free |
 
 ### Variables de entorno (configurar manualmente en Render)
@@ -430,6 +430,10 @@ Las siguientes variables tienen `sync: false` y deben setearse a mano en el dash
 - `OPENROUTER_API_KEY`
 - `META_ACCESS_TOKEN`
 - `INSTAGRAM_SESSION_USER`
+- `INSTAGRAM_SESSION_B64` — contenido del archivo de sesión de instaloader codificado en base64.
+  Para generar: `base64 -w0 ~/.config/instaloader/session-pilotosprogramadores` (Linux/Render)
+  o en Windows: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("ruta\al\archivo\session"))`.
+  Renovar cuando caduque la sesión: correr `instagram_login.py` localmente y actualizar la variable.
 
 Las siguientes se generan o setean automáticamente via `render.yaml`:
 - `DATABASE_URL` — inyectada desde la base de datos

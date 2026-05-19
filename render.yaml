@@ -37,7 +37,7 @@ services:
   - type: cron
     name: scraper-instagram
     runtime: python
-    schedule: "0 6 * * 1"
+    schedule: "0 6 * * 1,4"
     buildCommand: pip install -r requirements.txt
     startCommand: python -m scraper_redes.run --produccion
     envVars:
@@ -50,4 +50,6 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: INSTAGRAM_SESSION_USER
+        sync: false
+      - key: INSTAGRAM_SESSION_B64
         sync: false
