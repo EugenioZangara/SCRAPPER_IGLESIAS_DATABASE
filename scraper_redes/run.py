@@ -3,6 +3,8 @@ import os
 import time
 import random
 import argparse
+from scraper_redes.config import SCRAPER_BACKEND
+
 # Inicializar Django antes de importar modelos
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
@@ -80,7 +82,7 @@ def procesar_posts_pendientes(parroquia):
             "gemini": resultado
         }
         post_obj.save()
-   
+
         # Crear evento si fue clasificado como tal y NO es pasado
         if resultado.get("es_evento") and not resultado.get("es_pasado"):
             crear_evento_desde_post(post_obj, resultado)
@@ -103,6 +105,19 @@ def procesar_posts_pendientes(parroquia):
             print(f"     Tipo   : {resultado.get('tipo_evento')}")
 
 
+def scrapear_con_backend(url: str) -> list[dict]:
+    """Selecciona el backend de scraping según configuración."""
+    if SCRAPER_BACKEND == "apify":
+        from scraper_redes.apify_scraper import scrapear_perfil_apify
+        from scraper_redes.config import POSTS_A_REVISAR
+
+        return scrapear_perfil_apify(url, limite=POSTS_A_REVISAR)
+    else:
+        from scraper_redes.instagram import scrapear_perfil
+
+        return scrapear_perfil(url)
+
+
 def main():
     print(f"=== Scraper de redes sociales ===")
     print(f"URL de prueba: {INSTAGRAM_TEST_URL}\n")
@@ -115,7 +130,7 @@ def main():
         return
 
     # 1. Scrapear posts nuevos
-    posts = scrapear_perfil(INSTAGRAM_TEST_URL)
+    posts = scrapear_con_backend(INSTAGRAM_TEST_URL)
 
     if not posts:
         print("No se obtuvieron posts.")
@@ -150,7 +165,7 @@ def main_produccion():
         print(f"URL: {red.url}")
 
         try:
-            posts = scrapear_perfil(red.url)
+            posts = scrapear_con_backend(red.url)
 
             if not posts:
                 print("  No se obtuvieron posts.")
@@ -226,11 +241,12 @@ def crear_evento_desde_post(post_obj, resultado: dict):
     return evento
 
 
-parser = argparse.ArgumentParser(description="Scraper de redes sociales")
-parser.add_argument("--produccion", action="store_true", help="Procesar todas las parroquias verificadas")
-args = parser.parse_args()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Scraper de redes sociales")
+    parser.add_argument("--produccion", action="store_true", help="Procesar todas las parroquias verificadas")
+    args = parser.parse_args()
 
-if args.produccion:
-    main_produccion()
-else:
-    main()
+    if args.produccion:
+        main_produccion()
+    else:
+        main()

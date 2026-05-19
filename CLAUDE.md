@@ -106,6 +106,8 @@ META_ACCESS_TOKEN=...           # Graph API de Facebook (opcional por ahora)
 GEMINI_API_KEY=...              # Google AI Studio — modelo principal
 OPENROUTER_API_KEY=...          # OpenRouter — fallback cuando Gemini falla
 INSTAGRAM_SESSION_USER=pilotosprogramadores
+APIFY_API_TOKEN=...             # Apify — backend de scraping Instagram por defecto
+SCRAPER_BACKEND=apify           # "apify" (default) o "instaloader"
 ```
 
 ---
@@ -187,6 +189,7 @@ El JSON que devuelve la IA tiene estos campos:
 - `/redes/<pk>/verificar/` → POST — verifica red social
 - `/redes/<pk>/eliminar/` → POST — elimina red social
 - `/parroquias/<pk>/scrapear/` → POST (staff only) — lanza scraping Instagram de esa parroquia y devuelve partial HTMX con resultado
+- `/scraper/ejecutar/` → POST (staff only) — ejecuta el scraper completo sobre todas las cuentas de Instagram verificadas; redirige con `messages` de resultado
 - `/eventos/moderacion/` → GET (staff only) — lista de moderación de eventos con tabs y acciones HTMX inline (solo futuros o sin fecha)
 - `/eventos/moderacion/pasados/` → GET (staff only) — lista de eventos pasados (fecha < hoy); acciones Editar, Rechazar/Restaurar
 
@@ -430,6 +433,9 @@ Las siguientes variables tienen `sync: false` y deben setearse a mano en el dash
 - `OPENROUTER_API_KEY`
 - `META_ACCESS_TOKEN`
 - `INSTAGRAM_SESSION_USER`
+- `APIFY_API_TOKEN` — token de Apify para el backend de scraping Instagram
+- `SCRAPER_BACKEND` — `"apify"` (default) o `"instaloader"`. Para volver a instaloader:
+  setear `SCRAPER_BACKEND=instaloader` en `.env` y en Render.
 - `INSTAGRAM_SESSION_B64` — contenido del archivo de sesión de instaloader codificado en base64.
   Para generar: `base64 -w0 ~/.config/instaloader/session-pilotosprogramadores` (Linux/Render)
   o en Windows: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("ruta\al\archivo\session"))`.
@@ -458,3 +464,6 @@ Las siguientes se generan o setean automáticamente via `render.yaml`:
   por ahora corre solo si la sesión está activa en el entorno.
 - `staticfiles/` está en `.gitignore` — se genera en cada build.
 - Para deploy manual: push a la rama conectada en Render o usar `render deploy`.
+- **Timeout de gunicorn**: el startCommand usa `--timeout 120` para tolerar el scraper
+  completo desde la UI (puede tardar 10–15 min para 34 cuentas). Para volúmenes mayores,
+  usar el cron job en lugar del botón web.

@@ -24,4 +24,5 @@ urlpatterns = [
     path("parroquias/<int:pk>/scrapear/", views.scrapear_parroquia, name="scrapear_parroquia"),
     path("eventos/tipos/crear/", views.crear_tipo_evento, name="crear_tipo_evento"),
     path("eventos/categorias/crear/", views.crear_categoria_evento, name="crear_categoria_evento"),
+    path("scraper/ejecutar/", views.ejecutar_scraper_completo, name="ejecutar_scraper_completo"),
 ]

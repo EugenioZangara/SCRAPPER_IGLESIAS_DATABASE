@@ -9,17 +9,33 @@ def get_loader():
     L = instaloader.Instaloader()
 
     # Opción A: sesión desde variable de entorno (producción)
+    # Opción A: sesión desde variable de entorno (producción)
     session_b64 = os.environ.get("INSTAGRAM_SESSION_B64")
     if session_b64:
         try:
             session_data = base64.b64decode(session_b64)
-            session_dir = os.path.expanduser("~/.config/instaloader")
+            # En Windows: AppData\Local\Instaloader\
+            # En Linux: ~/.config/instaloader/
+            if os.name == "nt":
+                session_dir = os.path.join(
+                    os.environ.get("LOCALAPPDATA", os.path.expanduser("~")),
+                    "Instaloader",
+                )
+            else:
+                session_dir = os.path.join(
+                    os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config")),
+                    "instaloader",
+                )
             os.makedirs(session_dir, exist_ok=True)
-            session_path = os.path.join(session_dir, f"session-{INSTAGRAM_SESSION_USER}")
-            with open(session_path, 'wb') as f:
+            session_path = os.path.join(
+                session_dir, f"session-{INSTAGRAM_SESSION_USER}"
+            )
+            with open(session_path, "wb") as f:
                 f.write(session_data)
-            L.load_session_from_file(username=INSTAGRAM_SESSION_USER, filename=session_path)
-            print(f"Sesión cargada desde variable de entorno para: {INSTAGRAM_SESSION_USER}")
+            L.load_session_from_file(username=INSTAGRAM_SESSION_USER)
+            print(
+                f"Sesión cargada desde variable de entorno para: {INSTAGRAM_SESSION_USER}"
+            )
             return L
         except Exception as e:
             print(f"ERROR cargando sesión desde variable de entorno: {e}")

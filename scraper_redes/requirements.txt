@@ -1,4 +1,4 @@
-instaloader
+instaloader==4.15.1
 requests
 groq
 openai

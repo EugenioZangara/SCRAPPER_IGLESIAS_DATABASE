@@ -324,6 +324,9 @@ def moderacion_eventos(request):
         "total_pasados": Evento.objects.filter(
             fecha__lt=hoy, fecha__isnull=False
         ).count(),
+        "total_cuentas_ig": RedSocial.objects.filter(
+            tipo="instagram", activo=True, verificado=True
+        ).count(),
     })
 
 
@@ -343,6 +346,96 @@ def moderacion_eventos_pasados(request):
         "eventos": eventos,
         "total": eventos.count(),
     })
+
+
+@require_POST
+def ejecutar_scraper_completo(request):
+    if not request.user.is_staff:
+        return HttpResponseForbidden("No autorizado")
+
+    from scraper_redes.run import scrapear_con_backend
+    from scraper_redes.procesador import procesar_post
+
+    redes = RedSocial.objects.filter(
+        tipo="instagram", activo=True, verificado=True
+    ).select_related("parroquia")
+
+    total_parroquias = redes.count()
+    total_posts_nuevos = 0
+    total_eventos_nuevos = 0
+    total_errores = 0
+    parroquias_con_eventos = []
+
+    for red in redes:
+        try:
+            posts = scrapear_con_backend(red.url)
+
+            for post in posts:
+                _, creado = PostParroquia.objects.get_or_create(
+                    post_id=post["post_id"],
+                    defaults={
+                        "parroquia": red.parroquia,
+                        "red_social": "instagram",
+                        "imagen_url": post["imagen_url"],
+                        "fecha_publicacion": post["fecha"],
+                        "raw_data": post["raw_data"],
+                    }
+                )
+                if creado:
+                    total_posts_nuevos += 1
+
+            pendientes = PostParroquia.objects.filter(
+                parroquia=red.parroquia, procesado=False
+            )
+
+            eventos_parroquia = 0
+            for post_obj in pendientes:
+                post_dict = {
+                    "post_id": post_obj.post_id,
+                    "imagen_url": post_obj.imagen_url,
+                    "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
+                }
+                resultado = procesar_post(post_dict)
+                post_obj.es_evento = resultado.get("es_evento")
+                post_obj.procesado = resultado.get("es_evento") is not None
+                post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}
+                post_obj.save()
+
+                if resultado.get("es_evento") and not resultado.get("es_pasado"):
+                    if not hasattr(post_obj, "evento"):
+                        _crear_evento_desde_post(post_obj, resultado)
+                        eventos_parroquia += 1
+                        total_eventos_nuevos += 1
+
+            if eventos_parroquia > 0:
+                parroquias_con_eventos.append(
+                    f"{red.parroquia.nombre} ({eventos_parroquia})"
+                )
+
+        except Exception as e:
+            total_errores += 1
+            print(f"ERROR scrapeando {red.parroquia.nombre}: {e}")
+
+    resumen = (
+        f"Scraping completado: {total_parroquias} parroquias procesadas · "
+        f"{total_posts_nuevos} posts nuevos · "
+        f"{total_eventos_nuevos} eventos detectados · "
+        f"{total_errores} errores"
+    )
+    if parroquias_con_eventos:
+        resumen += f" · Parroquias con eventos: {', '.join(parroquias_con_eventos[:5])}"
+        if len(parroquias_con_eventos) > 5:
+            resumen += f" y {len(parroquias_con_eventos) - 5} más"
+
+    if total_errores > 0:
+        messages.warning(request, resumen)
+    else:
+        messages.success(request, resumen)
+
+    next_url = request.POST.get("next", "").strip()
+    if next_url and next_url.startswith("/"):
+        return redirect(next_url)
+    return redirect("iglesias:moderacion_eventos")
 
 
 def editar_evento(request, pk):
@@ -637,10 +730,10 @@ def scrapear_parroquia(request, pk):
             "error": "No hay cuenta de Instagram verificada para esta parroquia"
         })
     try:
-        from scraper_redes.instagram import scrapear_perfil
+        from scraper_redes.run import scrapear_con_backend
         from scraper_redes.procesador import procesar_post
         from .models import PostParroquia
-        posts = scrapear_perfil(red.url)
+        posts = scrapear_con_backend(red.url)
         guardados = 0
         for post in posts:
             _, creado = PostParroquia.objects.get_or_create(
