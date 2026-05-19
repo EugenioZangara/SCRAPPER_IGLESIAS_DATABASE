@@ -5,7 +5,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .models import Parroquia, RedSocial, PostParroquia, Evento, CategoriaEvento, HorarioMisa
+from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa
 
 from django.views.decorators.http import require_POST
 from django.urls import reverse
@@ -354,7 +354,8 @@ def editar_evento(request, pk):
         from datetime import datetime as dt
 
         evento.titulo = request.POST.get("titulo", evento.titulo).strip()
-        evento.tipo = request.POST.get("tipo", evento.tipo)
+        tipo_id = request.POST.get("tipo", "").strip()
+        evento.tipo_id = int(tipo_id) if tipo_id else None
         evento.descripcion = request.POST.get("descripcion", "").strip() or None
 
         fecha_str = request.POST.get("fecha", "").strip()
@@ -430,7 +431,7 @@ def editar_evento(request, pk):
         "evento": evento,
         "parroquia": parroquia,
         "categorias": categorias,
-        "tipo_choices": Evento.TIPO_CHOICES,
+        "tipos": TipoEvento.objects.filter(activo=True),
         "audiencia_choices": Evento.AUDIENCIA_CHOICES,
         "gemini_data": gemini_data,
         "hora_fin_str": hora_fin_str,
@@ -453,7 +454,8 @@ def aprobar_extendido(request, pk):
         from datetime import datetime as dt
 
         evento.titulo = request.POST.get("titulo", evento.titulo).strip()
-        evento.tipo = request.POST.get("tipo", evento.tipo)
+        tipo_id = request.POST.get("tipo", "").strip()
+        evento.tipo_id = int(tipo_id) if tipo_id else None
         evento.descripcion = request.POST.get("descripcion", "").strip() or None
 
         fecha_str = request.POST.get("fecha", "").strip()
@@ -551,7 +553,7 @@ def aprobar_extendido(request, pk):
     return render(request, "iglesias/aprobar_extendido.html", {
         "evento": evento,
         "categorias": categorias,
-        "tipo_choices": Evento.TIPO_CHOICES,
+        "tipos": TipoEvento.objects.filter(activo=True),
         "audiencia_choices": Evento.AUDIENCIA_CHOICES,
         "gemini_data": gemini_data,
         "hora_fin_str": hora_fin_str,
@@ -683,6 +685,18 @@ def scrapear_parroquia(request, pk):
         })
 
 
+_TIPO_SLUG_MAP = {
+    "misa": "Misa",
+    "retiro": "Retiro",
+    "charla": "Charla",
+    "bautismo": "Bautismo",
+    "confirmacion": "Confirmación",
+    "peregrinacion": "Peregrinación",
+    "juventud": "Juventud",
+    "otro": "Otro",
+}
+
+
 def _crear_evento_desde_post(post_obj, resultado: dict):
     from datetime import datetime as dt
     if hasattr(post_obj, "evento"):
@@ -699,17 +713,50 @@ def _crear_evento_desde_post(post_obj, resultado: dict):
             hora = dt.strptime(hora_str, "%H:%M").time()
         except ValueError:
             pass
+    tipo_slug = resultado.get("tipo_evento") or "otro"
+    tipo_nombre = _TIPO_SLUG_MAP.get(tipo_slug, "Otro")
+    tipo_obj = TipoEvento.objects.filter(nombre__iexact=tipo_nombre).first()
     return Evento.objects.create(
         parroquia=post_obj.parroquia,
         post=post_obj,
         titulo=resultado.get("titulo") or "Sin título",
-        tipo=resultado.get("tipo_evento") or "otro",
+        tipo=tipo_obj,
         fecha=fecha,
         hora=hora,
         lugar=resultado.get("lugar"),
         descripcion=resultado.get("descripcion"),
         imagen_url=post_obj.imagen_url,
     )
+
+
+@require_POST
+def crear_tipo_evento(request):
+    if not request.user.is_staff:
+        from django.http import JsonResponse
+        return JsonResponse({"error": "Forbidden"}, status=403)
+    nombre = request.POST.get("nombre", "").strip()
+    if not nombre:
+        from django.http import JsonResponse
+        return JsonResponse({"error": "Nombre requerido"}, status=400)
+    tipo, _ = TipoEvento.objects.get_or_create(nombre=nombre, defaults={"activo": True})
+    tipos = list(TipoEvento.objects.filter(activo=True).values("pk", "nombre"))
+    from django.http import JsonResponse
+    return JsonResponse({"pk": tipo.pk, "nombre": tipo.nombre, "tipos": tipos})
+
+
+@require_POST
+def crear_categoria_evento(request):
+    if not request.user.is_staff:
+        from django.http import JsonResponse
+        return JsonResponse({"error": "Forbidden"}, status=403)
+    nombre = request.POST.get("nombre", "").strip()
+    if not nombre:
+        from django.http import JsonResponse
+        return JsonResponse({"error": "Nombre requerido"}, status=400)
+    cat, _ = CategoriaEvento.objects.get_or_create(nombre=nombre, defaults={"activo": True})
+    categorias = list(CategoriaEvento.objects.filter(activo=True).values("pk", "nombre"))
+    from django.http import JsonResponse
+    return JsonResponse({"pk": cat.pk, "nombre": cat.nombre, "categorias": categorias})
 
 
 def editar_seccion_bai(request, pk):

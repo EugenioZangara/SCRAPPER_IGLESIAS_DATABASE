@@ -29,23 +29,57 @@
                             <input type="text" name="titulo" value="{{ evento.titulo }}" style="width:100%;" required>
                         </div>
 
+                        <!-- TIPO -->
                         <div class="field-label">Tipo</div>
                         <div class="field-value">
-                            <select name="tipo" style="width:100%;">
-                                {% for value, label in tipo_choices %}
-                                    <option value="{{ value }}" {% if evento.tipo == value %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
+                            <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+                                <select name="tipo" id="select-tipo" style="flex:1; min-height:38px;">
+                                    <option value="">Sin tipo</option>
+                                    {% for tipo in tipos %}
+                                        <option value="{{ tipo.pk }}"
+                                            {% if evento.tipo_id == tipo.pk %}selected{% endif %}>
+                                            {{ tipo.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <input type="text" id="input-nuevo-tipo"
+                                       placeholder="Nuevo tipo..."
+                                       style="flex:1; min-height:38px;">
+                                <button type="button" id="btn-nuevo-tipo"
+                                        class="verify-button"
+                                        style="white-space:nowrap; min-height:38px;">
+                                    ＋ Crear
+                                </button>
+                            </div>
                         </div>
 
+                        <!-- CATEGORÍA -->
                         <div class="field-label">Categoría</div>
                         <div class="field-value">
-                            <select name="categoria" style="width:100%;">
-                                <option value="">Sin categoría</option>
-                                {% for cat in categorias %}
-                                    <option value="{{ cat.pk }}" {% if evento.categoria_id == cat.pk %}selected{% endif %}>{{ cat.nombre }}</option>
-                                {% endfor %}
-                            </select>
+                            <div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">
+                                <select name="categoria" id="select-categoria"
+                                        style="flex:1; min-height:38px;">
+                                    <option value="">Sin categoría</option>
+                                    {% for cat in categorias %}
+                                        <option value="{{ cat.pk }}"
+                                            {% if evento.categoria_id == cat.pk %}selected{% endif %}>
+                                            {{ cat.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <input type="text" id="input-nueva-categoria"
+                                       placeholder="Nueva categoría..."
+                                       style="flex:1; min-height:38px;">
+                                <button type="button" id="btn-nueva-categoria"
+                                        class="verify-button"
+                                        style="white-space:nowrap; min-height:38px;">
+                                    ＋ Crear
+                                </button>
+                            </div>
                         </div>
 
                         <div class="field-label">Descripción</div>
@@ -255,4 +289,52 @@
     </aside>
 
 </div>
+
+<script>
+function crearOpcion(inputId, selectId, url, csrfToken, listaKey) {
+    const input = document.getElementById(inputId);
+    const select = document.getElementById(selectId);
+    const nombre = input.value.trim();
+    if (!nombre) return;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'nombre=' + encodeURIComponent(nombre)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.error) { alert(data.error); return; }
+        const firstOption = select.options[0].outerHTML;
+        select.innerHTML = firstOption +
+            data[listaKey].map(item =>
+                `<option value="${item.pk}"${item.pk === data.pk ? ' selected' : ''}>${item.nombre}</option>`
+            ).join('');
+        select.value = data.pk;
+        input.value = '';
+    })
+    .catch(e => console.error('Error:', e));
+}
+
+document.getElementById('btn-nuevo-tipo').addEventListener('click', () => {
+    crearOpcion(
+        'input-nuevo-tipo', 'select-tipo',
+        '{% url "iglesias:crear_tipo_evento" %}',
+        '{{ csrf_token }}',
+        'tipos'
+    );
+});
+
+document.getElementById('btn-nueva-categoria').addEventListener('click', () => {
+    crearOpcion(
+        'input-nueva-categoria', 'select-categoria',
+        '{% url "iglesias:crear_categoria_evento" %}',
+        '{{ csrf_token }}',
+        'categorias'
+    );
+});
+</script>
 {% endblock %}

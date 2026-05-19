@@ -94,6 +94,19 @@ class PostParroquia(models.Model):
     def __str__(self):
         return f"{self.red_social.capitalize()} post ({self.post_id}) - {self.parroquia.nombre}"
 
+class TipoEvento(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["nombre"]
+        verbose_name = "Tipo de Evento"
+        verbose_name_plural = "Tipos de Evento"
+
+    def __str__(self):
+        return self.nombre
+
+
 class CategoriaEvento(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     activo = models.BooleanField(default=True)
@@ -108,17 +121,6 @@ class CategoriaEvento(models.Model):
 
 
 class Evento(models.Model):
-    TIPO_CHOICES = [
-        ("misa", "Misa"),
-        ("retiro", "Retiro"),
-        ("charla", "Charla"),
-        ("bautismo", "Bautismo"),
-        ("confirmacion", "Confirmación"),
-        ("peregrinacion", "Peregrinación"),
-        ("juventud", "Juventud"),
-        ("otro", "Otro"),
-    ]
-
     parroquia = models.ForeignKey(
         "Parroquia", on_delete=models.CASCADE, related_name="eventos"
     )
@@ -128,7 +130,10 @@ class Evento(models.Model):
     )
 
     titulo = models.CharField(max_length=255)
-    tipo = models.CharField(max_length=50, choices=TIPO_CHOICES, default="otro")
+    tipo = models.ForeignKey(
+        "TipoEvento", on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="eventos"
+    )
     fecha = models.DateField(null=True, blank=True)
     hora = models.TimeField(null=True, blank=True)
     lugar = models.CharField(max_length=255, blank=True, null=True)

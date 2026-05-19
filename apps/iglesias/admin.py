@@ -4,6 +4,7 @@ from .models import (
     Parroquia,
     RedSocial,
     PostParroquia,
+    TipoEvento,
     CategoriaEvento,
     Evento,
     InfoBaiglesias,
@@ -43,6 +44,13 @@ class PostParroquiaAdmin(admin.ModelAdmin):
     search_fields = ("parroquia__nombre", "post_id")
     list_filter = ("red_social", "procesado", "es_evento")
     readonly_fields = ("creado_en", "raw_data")
+
+
+@admin.register(TipoEvento)
+class TipoEventoAdmin(admin.ModelAdmin):
+    list_display = ("nombre", "activo")
+    search_fields = ("nombre",)
+    list_filter = ("activo",)
 
 
 @admin.register(CategoriaEvento)

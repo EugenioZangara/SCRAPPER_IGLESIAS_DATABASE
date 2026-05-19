@@ -160,7 +160,7 @@
                             </div>
                             <div class="ttl">
                                 <div class="badges" style="margin-bottom:8px;">
-                                    <span class="badge info">{{ evento.get_tipo_display }}</span>
+                                    <span class="badge info">{% if evento.tipo %}{{ evento.tipo.nombre }}{% endif %}</span>
                                     {% if evento.verificado %}
                                         <span class="badge ok">Verificado</span>
                                     {% elif evento.fecha and evento.lugar %}
@@ -233,7 +233,7 @@
                             {% for evento in e.eventos_pasados %}
                             <div style="padding:14px 0; border-bottom:1px solid var(--rule-2); opacity:0.7;">
                                 <div class="badges" style="margin-bottom:6px;">
-                                    <span class="badge info">{{ evento.get_tipo_display }}</span>
+                                    <span class="badge info">{% if evento.tipo %}{{ evento.tipo.nombre }}{% endif %}</span>
                                     {% if evento.verificado %}<span class="badge ok">Verificado</span>{% endif %}
                                 </div>
                                 <div style="font-family:var(--serif); font-size:17px;">{{ evento.titulo }}</div>

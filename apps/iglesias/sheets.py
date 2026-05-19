@@ -86,7 +86,7 @@ def exportar_evento_a_sheets(evento) -> bool:
 
         fila = [
             evento.titulo or "",
-            evento.get_tipo_display() if evento.tipo else "",
+            evento.tipo.nombre if evento.tipo else "",
             evento.url_externa or "",
             evento.categoria.nombre if evento.categoria else "",
             evento.descripcion or "",

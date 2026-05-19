@@ -1,0 +1,10 @@
+[
+  {"model": "iglesias.tipoevento", "pk": 1, "fields": {"nombre": "Misa", "activo": true}},
+  {"model": "iglesias.tipoevento", "pk": 2, "fields": {"nombre": "Retiro", "activo": true}},
+  {"model": "iglesias.tipoevento", "pk": 3, "fields": {"nombre": "Charla", "activo": true}},
+  {"model": "iglesias.tipoevento", "pk": 4, "fields": {"nombre": "Bautismo", "activo": true}},
+  {"model": "iglesias.tipoevento", "pk": 5, "fields": {"nombre": "Confirmación", "activo": true}},
+  {"model": "iglesias.tipoevento", "pk": 6, "fields": {"nombre": "Peregrinación", "activo": true}},
+  {"model": "iglesias.tipoevento", "pk": 7, "fields": {"nombre": "Juventud", "activo": true}},
+  {"model": "iglesias.tipoevento", "pk": 8, "fields": {"nombre": "Otro", "activo": true}}
+]

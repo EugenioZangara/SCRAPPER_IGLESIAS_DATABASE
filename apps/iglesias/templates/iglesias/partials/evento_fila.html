@@ -20,7 +20,7 @@
         {% endif %}
     </div>
     <div class="mod-cell">
-        <span class="badge info">{{ evento.get_tipo_display }}</span>
+        <span class="badge info">{{ evento.tipo.nombre|default:"—" }}</span>
     </div>
     <div class="mod-cell">
         {% if not evento.activo %}
