@@ -704,60 +704,82 @@ def editar_seccion_clero(request, pk):
 @require_POST
 def scrapear_parroquia(request, pk):
     if not request.user.is_staff:
-        return HttpResponseForbidden("No autorizado")
+        return HttpResponse("Forbidden", status=403)
+
     parroquia = get_object_or_404(Parroquia, pk=pk)
-    red = parroquia.redes.filter(tipo="instagram", activo=True, verificado=True).first()
+    red = parroquia.redes.filter(
+        tipo="instagram", activo=True, verificado=True
+    ).first()
+
     if not red:
-        return render(request, "iglesias/partials/scraping_resultado.html", {
-            "error": "No hay cuenta de Instagram verificada para esta parroquia"
-        })
-    try:
+        messages.error(
+            request,
+            f'No hay cuenta de Instagram verificada para {parroquia.nombre}.'
+        )
+        return redirect("iglesias:detalle_parroquia", pk=pk)
+
+    import threading
+
+    def correr_scraper_parroquia():
         from scraper_redes.run import scrapear_con_backend
         from scraper_redes.procesador import procesar_post
-        from .models import PostParroquia
-        posts = scrapear_con_backend(red.url)
-        guardados = 0
-        for post in posts:
-            _, creado = PostParroquia.objects.get_or_create(
-                post_id=post["post_id"],
-                defaults={
-                    "parroquia": parroquia,
-                    "red_social": "instagram",
-                    "imagen_url": post["imagen_url"],
-                    "fecha_publicacion": post["fecha"],
-                    "raw_data": post.get("raw_data"),
-                },
+        from apps.iglesias.models import PostParroquia
+        from scraper_redes.run import crear_evento_desde_post
+
+        try:
+            posts = scrapear_con_backend(red.url)
+            guardados = 0
+            eventos_nuevos = 0
+
+            for post in posts:
+                _, creado = PostParroquia.objects.get_or_create(
+                    post_id=post["post_id"],
+                    defaults={
+                        "parroquia": parroquia,
+                        "red_social": "instagram",
+                        "imagen_url": post["imagen_url"],
+                        "fecha_publicacion": post["fecha"],
+                        "raw_data": post["raw_data"],
+                    }
+                )
+                if creado:
+                    guardados += 1
+
+            pendientes = PostParroquia.objects.filter(
+                parroquia=parroquia, procesado=False
             )
-            if creado:
-                guardados += 1
-        pendientes = PostParroquia.objects.filter(parroquia=parroquia, procesado=False)
-        eventos_nuevos = 0
-        for post_obj in pendientes:
-            post_dict = {
-                "post_id": post_obj.post_id,
-                "imagen_url": post_obj.imagen_url,
-                "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
-            }
-            resultado = procesar_post(post_dict)
-            post_obj.es_evento = resultado.get("es_evento")
-            post_obj.procesado = resultado.get("es_evento") is not None
-            post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}
-            post_obj.save()
-            if resultado.get("es_evento") and not resultado.get("es_pasado"):
-                if not hasattr(post_obj, "evento"):
-                    _crear_evento_desde_post(post_obj, resultado)
-                    eventos_nuevos += 1
-        return render(request, "iglesias/partials/scraping_resultado.html", {
-            "ok": True,
-            "guardados": guardados,
-            "eventos_nuevos": eventos_nuevos,
-            "total_posts": len(posts),
-            "parroquia_pk": pk,
-        })
-    except Exception as e:
-        return render(request, "iglesias/partials/scraping_resultado.html", {
-            "error": str(e)[:200]
-        })
+
+            for post_obj in pendientes:
+                post_dict = {
+                    "post_id": post_obj.post_id,
+                    "imagen_url": post_obj.imagen_url,
+                    "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
+                }
+                resultado = procesar_post(post_dict)
+                post_obj.es_evento = resultado.get("es_evento")
+                post_obj.procesado = resultado.get("es_evento") is not None
+                post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}
+                post_obj.save()
+
+                if resultado.get("es_evento") and not resultado.get("es_pasado"):
+                    if not hasattr(post_obj, "evento"):
+                        crear_evento_desde_post(post_obj, resultado)
+                        eventos_nuevos += 1
+
+            print(f"Scraper {parroquia.nombre}: {guardados} guardados, {eventos_nuevos} eventos")
+
+        except Exception as e:
+            print(f"ERROR scraper {parroquia.nombre}: {e}")
+
+    thread = threading.Thread(target=correr_scraper_parroquia, daemon=True)
+    thread.start()
+
+    messages.success(
+        request,
+        f'Scraping de {parroquia.nombre} iniciado. '
+        f'Los nuevos eventos aparecerán en moderación en unos minutos.'
+    )
+    return redirect("iglesias:detalle_parroquia", pk=pk)
 
 
 _TIPO_SLUG_MAP = {
