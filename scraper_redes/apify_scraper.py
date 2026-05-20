@@ -11,6 +11,22 @@ def get_client():
     return ApifyClient(token)
 
 
+def normalizar_url_instagram(url: str) -> str:
+    """
+    Normaliza una URL de Instagram para que sea válida para Apify.
+    - Asegura https://www.instagram.com/
+    - Elimina parámetros (?hl=es, etc.)
+    - Elimina trailing slashes extras
+    """
+    from urllib.parse import urlparse
+
+    parsed = urlparse(url)
+    # Extraer solo el path limpio
+    path = parsed.path.rstrip("/")
+    # Reconstruir URL limpia
+    return f"https://www.instagram.com{path}/"
+
+
 def scrapear_perfil_apify(url: str, limite: int = 5) -> list[dict]:
     """
     Scrapea un perfil de Instagram usando Apify.
@@ -18,9 +34,11 @@ def scrapear_perfil_apify(url: str, limite: int = 5) -> list[dict]:
     """
     print(f"  [Apify] Scrapeando: {url}")
     client = get_client()
-
+    url_limpia = normalizar_url_instagram(url)
+    print(f"  [Apify] Scrapeando: {url_limpia}")
     run_input = {
-        "directUrls": [url],
+    "directUrls": [url_limpia],
+        
         "resultsType": "posts",
         "resultsLimit": limite,
     }
