@@ -800,7 +800,19 @@
             }
         }
 
-        consultarEstado();
+        // Iniciar polling al cargar — si hay job activo continúa automáticamente
+consultarEstado();
+// Si el job está activo, arrancar el polling continuo
+fetch('/scraper/estado/')
+    .then(r => r.json())
+    .then(data => {
+        if (data.activo) {
+            iniciarPolling();
+        } else if (data.pk && data.estado === 'completado') {
+            actualizarTarjeta(data);
+        }
+    })
+    .catch(() => {});
         window.iniciarScraperPolling = iniciarPolling;
     })();
     </script>
