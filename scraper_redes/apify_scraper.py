@@ -1,61 +1,76 @@
 import os
+import httpx
 from datetime import datetime, timezone
 
-
-def get_client():
-    from apify_client import ApifyClient
-
-    token = os.environ.get("APIFY_API_TOKEN")
-    if not token:
-        raise ValueError("APIFY_API_TOKEN no está configurado.")
-    return ApifyClient(token)
+APIFY_BASE = "https://api.apify.com/v2"
 
 
 def normalizar_url_instagram(url: str) -> str:
-    """
-    Normaliza una URL de Instagram para que sea válida para Apify.
-    - Asegura https://www.instagram.com/
-    - Elimina parámetros (?hl=es, etc.)
-    - Elimina trailing slashes extras
-    """
     from urllib.parse import urlparse
 
     parsed = urlparse(url)
-    # Extraer solo el path limpio
     path = parsed.path.rstrip("/")
-    # Reconstruir URL limpia
     return f"https://www.instagram.com{path}/"
 
 
 def scrapear_perfil_apify(url: str, limite: int = 5) -> list[dict]:
-    """
-    Scrapea un perfil de Instagram usando Apify.
-    Retorna lista de dicts compatible con el formato de instagram.py.
-    """
-    print(f"  [Apify] Scrapeando: {url}")
-    client = get_client()
+    token = os.environ.get("APIFY_API_TOKEN")
+    if not token:
+        raise ValueError("APIFY_API_TOKEN no está configurado.")
+
     url_limpia = normalizar_url_instagram(url)
     print(f"  [Apify] Scrapeando: {url_limpia}")
-    run_input = {
-    "directUrls": [url_limpia],
-        
-        "resultsType": "posts",
-        "resultsLimit": limite,
-    }
+
+    headers = {"Authorization": f"Bearer {token}"}
 
     try:
-        run = client.actor("apify/instagram-scraper").call(run_input=run_input)
+        # Iniciar el run
+        run_input = {
+            "directUrls": [url_limpia],
+            "resultsType": "posts",
+            "resultsLimit": limite,
+        }
+        resp = httpx.post(
+            f"{APIFY_BASE}/acts/apify~instagram-scraper/runs",
+            json=run_input,
+            headers=headers,
+            timeout=30,
+        )
+        resp.raise_for_status()
+        run_id = resp.json()["data"]["id"]
+        dataset_id = resp.json()["data"]["defaultDatasetId"]
 
-        if run["status"] != "SUCCEEDED":
-            print(f"  [Apify] ERROR: run status = {run['status']}")
-            return []
+        # Esperar que termine
+        import time
 
-        items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+        for _ in range(60):  # máximo 5 minutos
+            time.sleep(5)
+            status_resp = httpx.get(
+                f"{APIFY_BASE}/actor-runs/{run_id}",
+                headers=headers,
+                timeout=15,
+            )
+            status = status_resp.json()["data"]["status"]
+            if status == "SUCCEEDED":
+                break
+            elif status in ("FAILED", "ABORTED", "TIMED-OUT"):
+                print(f"  [Apify] Run terminó con estado: {status}")
+                return []
+
+        # Obtener resultados
+        items_resp = httpx.get(
+            f"{APIFY_BASE}/datasets/{dataset_id}/items",
+            params={"format": "json", "limit": limite},
+            headers=headers,
+            timeout=30,
+        )
+        items_resp.raise_for_status()
+        items = items_resp.json()
+
         print(f"  [Apify] {len(items)} posts obtenidos")
 
         resultados = []
         for item in items:
-            # Parsear timestamp
             ts_str = item.get("timestamp", "")
             try:
                 fecha = datetime.fromisoformat(
