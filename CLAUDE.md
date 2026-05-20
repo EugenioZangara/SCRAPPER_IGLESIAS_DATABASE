@@ -189,7 +189,7 @@ El JSON que devuelve la IA tiene estos campos:
 - `/redes/<pk>/verificar/` → POST — verifica red social
 - `/redes/<pk>/eliminar/` → POST — elimina red social
 - `/parroquias/<pk>/scrapear/` → POST (staff only) — lanza scraping Instagram de esa parroquia y devuelve partial HTMX con resultado
-- `/scraper/ejecutar/` → POST (staff only) — ejecuta el scraper completo sobre todas las cuentas de Instagram verificadas; redirige con `messages` de resultado
+- `/scraper/ejecutar/` → POST (staff only) — lanza el scraper completo en un thread de background y redirige inmediatamente con `messages.success`; los resultados aparecen en moderación al refrescar
 - `/eventos/moderacion/` → GET (staff only) — lista de moderación de eventos con tabs y acciones HTMX inline (solo futuros o sin fecha)
 - `/eventos/moderacion/pasados/` → GET (staff only) — lista de eventos pasados (fecha < hoy); acciones Editar, Rechazar/Restaurar
 
@@ -464,6 +464,6 @@ Las siguientes se generan o setean automáticamente via `render.yaml`:
   por ahora corre solo si la sesión está activa en el entorno.
 - `staticfiles/` está en `.gitignore` — se genera en cada build.
 - Para deploy manual: push a la rama conectada en Render o usar `render deploy`.
-- **Timeout de gunicorn**: el startCommand usa `--timeout 120` para tolerar el scraper
-  completo desde la UI (puede tardar 10–15 min para 34 cuentas). Para volúmenes mayores,
-  usar el cron job en lugar del botón web.
+- **Timeout de gunicorn**: el startCommand usa `--timeout 120`. El botón "Ejecutar scraper"
+  lanza el proceso en un thread de background y responde inmediatamente, por lo que no
+  genera timeout en Gunicorn. El `--timeout 120` se mantiene como margen general.

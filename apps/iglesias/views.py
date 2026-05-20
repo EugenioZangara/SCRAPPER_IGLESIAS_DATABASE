@@ -351,86 +351,68 @@ def moderacion_eventos_pasados(request):
 @require_POST
 def ejecutar_scraper_completo(request):
     if not request.user.is_staff:
-        return HttpResponseForbidden("No autorizado")
+        return HttpResponse("Forbidden", status=403)
 
-    from scraper_redes.run import scrapear_con_backend
-    from scraper_redes.procesador import procesar_post
+    import threading
 
-    redes = RedSocial.objects.filter(
-        tipo="instagram", activo=True, verificado=True
-    ).select_related("parroquia")
+    def correr_scraper():
+        from scraper_redes.run import scrapear_con_backend
+        from scraper_redes.procesador import procesar_post
+        from apps.iglesias.models import PostParroquia, Evento
+        import time, random
 
-    total_parroquias = redes.count()
-    total_posts_nuevos = 0
-    total_eventos_nuevos = 0
-    total_errores = 0
-    parroquias_con_eventos = []
+        redes = RedSocial.objects.filter(
+            tipo="instagram", activo=True, verificado=True
+        ).select_related("parroquia")
 
-    for red in redes:
-        try:
-            posts = scrapear_con_backend(red.url)
+        for red in redes:
+            try:
+                posts = scrapear_con_backend(red.url)
+                for post in posts:
+                    _, creado = PostParroquia.objects.get_or_create(
+                        post_id=post["post_id"],
+                        defaults={
+                            "parroquia": red.parroquia,
+                            "red_social": "instagram",
+                            "imagen_url": post["imagen_url"],
+                            "fecha_publicacion": post["fecha"],
+                            "raw_data": post["raw_data"],
+                        }
+                    )
 
-            for post in posts:
-                _, creado = PostParroquia.objects.get_or_create(
-                    post_id=post["post_id"],
-                    defaults={
-                        "parroquia": red.parroquia,
-                        "red_social": "instagram",
-                        "imagen_url": post["imagen_url"],
-                        "fecha_publicacion": post["fecha"],
-                        "raw_data": post["raw_data"],
+                pendientes = PostParroquia.objects.filter(
+                    parroquia=red.parroquia, procesado=False
+                )
+                for post_obj in pendientes:
+                    post_dict = {
+                        "post_id": post_obj.post_id,
+                        "imagen_url": post_obj.imagen_url,
+                        "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
                     }
-                )
-                if creado:
-                    total_posts_nuevos += 1
+                    resultado = procesar_post(post_dict)
+                    post_obj.es_evento = resultado.get("es_evento")
+                    post_obj.procesado = resultado.get("es_evento") is not None
+                    post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}
+                    post_obj.save()
 
-            pendientes = PostParroquia.objects.filter(
-                parroquia=red.parroquia, procesado=False
-            )
+                    if resultado.get("es_evento") and not resultado.get("es_pasado"):
+                        if not hasattr(post_obj, "evento"):
+                            from scraper_redes.run import crear_evento_desde_post
+                            crear_evento_desde_post(post_obj, resultado)
 
-            eventos_parroquia = 0
-            for post_obj in pendientes:
-                post_dict = {
-                    "post_id": post_obj.post_id,
-                    "imagen_url": post_obj.imagen_url,
-                    "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
-                }
-                resultado = procesar_post(post_dict)
-                post_obj.es_evento = resultado.get("es_evento")
-                post_obj.procesado = resultado.get("es_evento") is not None
-                post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}
-                post_obj.save()
+                time.sleep(random.uniform(2, 4))
 
-                if resultado.get("es_evento") and not resultado.get("es_pasado"):
-                    if not hasattr(post_obj, "evento"):
-                        _crear_evento_desde_post(post_obj, resultado)
-                        eventos_parroquia += 1
-                        total_eventos_nuevos += 1
+            except Exception as e:
+                print(f"ERROR scrapeando {red.parroquia.nombre}: {e}")
 
-            if eventos_parroquia > 0:
-                parroquias_con_eventos.append(
-                    f"{red.parroquia.nombre} ({eventos_parroquia})"
-                )
+    thread = threading.Thread(target=correr_scraper, daemon=True)
+    thread.start()
 
-        except Exception as e:
-            total_errores += 1
-            print(f"ERROR scrapeando {red.parroquia.nombre}: {e}")
-
-    resumen = (
-        f"Scraping completado: {total_parroquias} parroquias procesadas · "
-        f"{total_posts_nuevos} posts nuevos · "
-        f"{total_eventos_nuevos} eventos detectados · "
-        f"{total_errores} errores"
+    messages.success(
+        request,
+        "Scraping iniciado en background. Los nuevos eventos aparecerán "
+        "en moderación en los próximos minutos. Refrescá la página para ver los resultados."
     )
-    if parroquias_con_eventos:
-        resumen += f" · Parroquias con eventos: {', '.join(parroquias_con_eventos[:5])}"
-        if len(parroquias_con_eventos) > 5:
-            resumen += f" y {len(parroquias_con_eventos) - 5} más"
-
-    if total_errores > 0:
-        messages.warning(request, resumen)
-    else:
-        messages.success(request, resumen)
 
     next_url = request.POST.get("next", "").strip()
     if next_url and next_url.startswith("/"):
