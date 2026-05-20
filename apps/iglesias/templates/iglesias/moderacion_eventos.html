@@ -27,6 +27,7 @@
       onsubmit="
         this.querySelector('button').disabled = true;
         this.querySelector('button').textContent = 'Scrapeando... puede tardar varios minutos';
+        setTimeout(window.iniciarScraperPolling, 1000);
       ">
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.path }}">

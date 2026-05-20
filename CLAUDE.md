@@ -97,6 +97,17 @@ Eventos detectados por IA y validados manualmente. Campos clave:
 - `verificado`: bool — True si fue aprobado manualmente
 - Ordering: `["fecha", "hora"]`
 
+### ScraperJob
+Registro de cada ejecución del scraper, usado por la tarjeta flotante de progreso.
+- `estado`: "corriendo" / "completado" / "error"
+- `total`, `procesados`: contadores de parroquias
+- `posts_nuevos`, `eventos_nuevos`, `errores`: resultados acumulados
+- `parroquia_actual`: nombre de la parroquia en proceso (vacío al terminar)
+- `mensaje_final`: resumen legible al completar
+- `iniciado_en`, `actualizado_en`: timestamps automáticos
+- Ordering: `["-iniciado_en"]`
+- El endpoint `/scraper/estado/` devuelve el job más reciente en JSON para polling JS
+
 ---
 
 ## Variables de entorno (.env)
@@ -188,8 +199,9 @@ El JSON que devuelve la IA tiene estos campos:
 - `/eventos/<pk>/aprobar-extendido/` → GET/POST (staff only) — formulario extendido de aprobación con campos de categoría, audiencia, ubicación, logística y datos del scraper en panel lateral
 - `/redes/<pk>/verificar/` → POST — verifica red social
 - `/redes/<pk>/eliminar/` → POST — elimina red social
-- `/parroquias/<pk>/scrapear/` → POST (staff only) — lanza scraping Instagram de esa parroquia y devuelve partial HTMX con resultado
+- `/parroquias/<pk>/scrapear/` → POST (staff only) — lanza scraping en background thread, redirige inmediatamente con `messages.success` al detalle de la parroquia
 - `/scraper/ejecutar/` → POST (staff only) — lanza el scraper completo en un thread de background y redirige inmediatamente con `messages.success`; los resultados aparecen en moderación al refrescar
+- `/scraper/estado/` → GET — devuelve JSON con estado del ScraperJob más reciente (polling desde la tarjeta flotante)
 - `/eventos/moderacion/` → GET (staff only) — lista de moderación de eventos con tabs y acciones HTMX inline (solo futuros o sin fecha)
 - `/eventos/moderacion/pasados/` → GET (staff only) — lista de eventos pasados (fecha < hoy); acciones Editar, Rechazar/Restaurar
 
@@ -209,14 +221,9 @@ Calculado en `_estado_eventos()` en `views.py`:
 ### Scraping Instagram desde el panel (botón por parroquia)
 - Visible en el aside del detalle solo si `request.user.is_staff` y la parroquia tiene
   una red de Instagram `activo=True, verificado=True` (`ig_verificada` en el contexto)
-- HTMX POST a `/parroquias/<pk>/scrapear/` con indicador de carga (`#scraping-loader`)
-- La vista `scrapear_parroquia` en `views.py`: obtiene la red verificada, llama a
-  `scraper_redes.instagram.scrapear_perfil` y `scraper_redes.procesador.procesar_post`
-- Guarda posts nuevos con `get_or_create` por `post_id`, crea `Evento` para los nuevos
-- Retorna el partial `iglesias/partials/scraping_resultado.html` con stats o error
-- **No importar `scraper_redes.run`** — tiene código de nivel módulo (`argparse`) que
-  ejecuta `main()` al importar. La lógica de `_crear_evento_desde_post` está replicada
-  inline en `views.py`
+- POST a `/parroquias/<pk>/scrapear/` — lanza background thread y redirige inmediatamente
+- Crea un `ScraperJob` con `total=1` para que la tarjeta flotante muestre el progreso
+- El form tiene `onsubmit="setTimeout(window.iniciarScraperPolling, 1000)"` para activar el polling
 
 ### Vista aprobar_extendido (solo staff)
 - URL: `/eventos/<pk>/aprobar-extendido/` → vista `aprobar_extendido`

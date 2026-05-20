@@ -213,3 +213,29 @@ class HorarioMisa(models.Model):
 
     def __str__(self):
         return f"{self.dias}: {self.horarios} — {self.parroquia.nombre}"
+
+
+class ScraperJob(models.Model):
+    ESTADO_CHOICES = [
+        ("corriendo", "Corriendo"),
+        ("completado", "Completado"),
+        ("error", "Error"),
+    ]
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES,
+                              default="corriendo")
+    total = models.IntegerField(default=0)
+    procesados = models.IntegerField(default=0)
+    posts_nuevos = models.IntegerField(default=0)
+    eventos_nuevos = models.IntegerField(default=0)
+    errores = models.IntegerField(default=0)
+    parroquia_actual = models.CharField(max_length=255, blank=True)
+    iniciado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+    mensaje_final = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-iniciado_en"]
+        verbose_name = "Scraper Job"
+
+    def __str__(self):
+        return f"ScraperJob {self.pk} — {self.estado}"

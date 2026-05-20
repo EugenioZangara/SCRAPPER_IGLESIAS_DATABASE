@@ -1,11 +1,11 @@
 from datetime import date
 
 from django.db.models import Count, Q
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa
+from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob
 
 from django.views.decorators.http import require_POST
 from django.urls import reverse
@@ -348,6 +348,27 @@ def moderacion_eventos_pasados(request):
     })
 
 
+def scraper_estado(request):
+    job = ScraperJob.objects.filter(estado="corriendo").first()
+    if not job:
+        job = ScraperJob.objects.first()
+    if not job:
+        return JsonResponse({"activo": False})
+
+    return JsonResponse({
+        "activo": job.estado == "corriendo",
+        "estado": job.estado,
+        "total": job.total,
+        "procesados": job.procesados,
+        "posts_nuevos": job.posts_nuevos,
+        "eventos_nuevos": job.eventos_nuevos,
+        "errores": job.errores,
+        "parroquia_actual": job.parroquia_actual,
+        "mensaje_final": job.mensaje_final,
+        "pk": job.pk,
+    })
+
+
 @require_POST
 def ejecutar_scraper_completo(request):
     if not request.user.is_staff:
@@ -356,18 +377,27 @@ def ejecutar_scraper_completo(request):
     import threading
 
     def correr_scraper():
-        from scraper_redes.run import scrapear_con_backend
+        from scraper_redes.run import scrapear_con_backend, crear_evento_desde_post
         from scraper_redes.procesador import procesar_post
-        from apps.iglesias.models import PostParroquia, Evento
+        from apps.iglesias.models import PostParroquia, ScraperJob
         import time, random
 
-        redes = RedSocial.objects.filter(
+        redes = list(RedSocial.objects.filter(
             tipo="instagram", activo=True, verificado=True
-        ).select_related("parroquia")
+        ).select_related("parroquia"))
 
-        for red in redes:
+        job = ScraperJob.objects.create(
+            total=len(redes),
+            procesados=0,
+        )
+
+        for i, red in enumerate(redes):
+            job.parroquia_actual = red.parroquia.nombre
+            job.procesados = i
+            job.save(update_fields=["parroquia_actual", "procesados", "actualizado_en"])
             try:
                 posts = scrapear_con_backend(red.url)
+                guardados_parroquia = 0
                 for post in posts:
                     _, creado = PostParroquia.objects.get_or_create(
                         post_id=post["post_id"],
@@ -379,7 +409,10 @@ def ejecutar_scraper_completo(request):
                             "raw_data": post["raw_data"],
                         }
                     )
+                    if creado:
+                        guardados_parroquia += 1
 
+                eventos_parroquia = 0
                 pendientes = PostParroquia.objects.filter(
                     parroquia=red.parroquia, procesado=False
                 )
@@ -397,13 +430,30 @@ def ejecutar_scraper_completo(request):
 
                     if resultado.get("es_evento") and not resultado.get("es_pasado"):
                         if not hasattr(post_obj, "evento"):
-                            from scraper_redes.run import crear_evento_desde_post
                             crear_evento_desde_post(post_obj, resultado)
+                            eventos_parroquia += 1
+
+                job.posts_nuevos += guardados_parroquia
+                job.eventos_nuevos += eventos_parroquia
+                job.save(update_fields=["posts_nuevos", "eventos_nuevos", "actualizado_en"])
 
                 time.sleep(random.uniform(2, 4))
 
             except Exception as e:
+                job.errores += 1
+                job.save(update_fields=["errores", "actualizado_en"])
                 print(f"ERROR scrapeando {red.parroquia.nombre}: {e}")
+
+        job.procesados = len(redes)
+        job.parroquia_actual = ""
+        job.estado = "completado"
+        job.mensaje_final = (
+            f"{job.total} parroquias · "
+            f"{job.posts_nuevos} posts nuevos · "
+            f"{job.eventos_nuevos} eventos detectados · "
+            f"{job.errores} errores"
+        )
+        job.save()
 
     thread = threading.Thread(target=correr_scraper, daemon=True)
     thread.start()
@@ -721,11 +771,15 @@ def scrapear_parroquia(request, pk):
     import threading
 
     def correr_scraper_parroquia():
-        from scraper_redes.run import scrapear_con_backend
+        from scraper_redes.run import scrapear_con_backend, crear_evento_desde_post
         from scraper_redes.procesador import procesar_post
-        from apps.iglesias.models import PostParroquia
-        from scraper_redes.run import crear_evento_desde_post
+        from apps.iglesias.models import PostParroquia, ScraperJob
 
+        job = ScraperJob.objects.create(
+            total=1,
+            procesados=0,
+            parroquia_actual=parroquia.nombre,
+        )
         try:
             posts = scrapear_con_backend(red.url)
             guardados = 0
@@ -766,9 +820,21 @@ def scrapear_parroquia(request, pk):
                         crear_evento_desde_post(post_obj, resultado)
                         eventos_nuevos += 1
 
-            print(f"Scraper {parroquia.nombre}: {guardados} guardados, {eventos_nuevos} eventos")
+            job.posts_nuevos = guardados
+            job.eventos_nuevos = eventos_nuevos
+            job.procesados = 1
+            job.estado = "completado"
+            job.parroquia_actual = ""
+            job.mensaje_final = (
+                f"{guardados} posts nuevos · "
+                f"{eventos_nuevos} eventos detectados"
+            )
+            job.save()
 
         except Exception as e:
+            job.estado = "error"
+            job.mensaje_final = str(e)[:200]
+            job.save()
             print(f"ERROR scraper {parroquia.nombre}: {e}")
 
     thread = threading.Thread(target=correr_scraper_parroquia, daemon=True)
