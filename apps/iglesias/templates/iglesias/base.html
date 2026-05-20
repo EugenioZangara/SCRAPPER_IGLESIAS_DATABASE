@@ -585,12 +585,12 @@
     }
 
     .messages-container {
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 12px 20px 0;
-        overflow: hidden;
-        box-sizing: border-box;
-    }
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 12px 20px 0;
+    overflow: hidden;
+    box-sizing: border-box;
+}
     .message {
         display: flex;
         justify-content: space-between;
@@ -605,6 +605,8 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         box-sizing: border-box;
+        white-space: nowrap;
+        
     }
     .message-success {
         background: var(--brand-soft, #dff3e9);
@@ -654,15 +656,21 @@
 
     <main class="wrap" style="padding-bottom: 48px;">
         {% if messages %}
-            <div class="messages-container">
-                {% for message in messages %}
-                    <div class="message message-{{ message.tags }}">
-                        {{ message }}
-                        <button class="message-close" onclick="this.parentElement.remove()">×</button>
-                    </div>
-                {% endfor %}
+    <div class="messages-container" style="position:fixed; top:16px; left:50%;
+         transform:translateX(-50%); z-index:999; width:auto; max-width:480px;">
+        {% for message in messages %}
+            <div class="message message-{{ message.tags }}"
+                 style="margin-bottom:8px; border-radius:8px; padding:10px 16px;
+                        display:flex; align-items:center; gap:12px;
+                        box-shadow:0 2px 12px rgba(0,0,0,0.1);"
+                 onclick="this.remove()">
+                {{ message }}
+                <button class="message-close" onclick="this.parentElement.remove()"
+                        style="margin-left:auto;">×</button>
             </div>
-        {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
         {% block content %}{% endblock %}
     </main>
 
@@ -718,7 +726,15 @@
                     color:var(--brand, #276749);">
         </div>
     </div>
-
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.message').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transition = 'opacity 0.5s';
+            setTimeout(() => el.remove(), 500);
+        });
+    }, 4000);
+</script>
     <script>
     (function() {
         let pollingInterval = null;
