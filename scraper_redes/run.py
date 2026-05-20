@@ -22,7 +22,7 @@ if os.path.exists(env_path):
                 key, value = line.split('=', 1)
                 os.environ.setdefault(key.strip(), value.strip())
 
-from apps.iglesias.models import Parroquia, PostParroquia, Evento, RedSocial
+from apps.iglesias.models import Parroquia, PostParroquia, Evento, RedSocial, TipoEvento
 from scraper_redes.instagram import scrapear_perfil
 from scraper_redes.procesador import procesar_post
 from scraper_redes.config import INSTAGRAM_TEST_URL
@@ -198,6 +198,27 @@ def main_produccion():
     print(f"Errores               : {resumen['errores']}")
 
 
+_SLUG_MAP = {
+    "misa": "Misa",
+    "retiro": "Retiro",
+    "charla": "Charla",
+    "bautismo": "Bautismo",
+    "confirmacion": "Confirmación",
+    "peregrinacion": "Peregrinación",
+    "juventud": "Juventud",
+    "otro": "Otro",
+}
+
+
+def _resolver_tipo_evento(slug):
+    nombre = _SLUG_MAP.get(slug or "otro", "Otro")
+    tipo, _ = TipoEvento.objects.get_or_create(
+        nombre__iexact=nombre,
+        defaults={"nombre": nombre, "activo": True},
+    )
+    return tipo
+
+
 def crear_evento_desde_post(post_obj, resultado: dict):
     """Crea un Evento a partir de un PostParroquia clasificado como evento futuro."""
 
@@ -229,7 +250,7 @@ def crear_evento_desde_post(post_obj, resultado: dict):
         parroquia=post_obj.parroquia,
         post=post_obj,
         titulo=resultado.get("titulo") or "Sin título",
-        tipo=resultado.get("tipo_evento") or "otro",
+        tipo=_resolver_tipo_evento(resultado.get("tipo_evento")),
         fecha=fecha,
         hora=hora,
         lugar=resultado.get("lugar"),
