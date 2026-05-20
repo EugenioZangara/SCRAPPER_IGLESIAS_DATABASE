@@ -458,11 +458,7 @@ def ejecutar_scraper_completo(request):
     thread = threading.Thread(target=correr_scraper, daemon=True)
     thread.start()
 
-    messages.success(
-        request,
-        "Scraping iniciado en background. Los nuevos eventos aparecerán "
-        "en moderación en los próximos minutos. Refrescá la página para ver los resultados."
-    )
+    messages.success(request, f"Scraping iniciado — {total_cuentas} cuentas.")
 
     next_url = request.POST.get("next", "").strip()
     if next_url and next_url.startswith("/"):
@@ -840,11 +836,7 @@ def scrapear_parroquia(request, pk):
     thread = threading.Thread(target=correr_scraper_parroquia, daemon=True)
     thread.start()
 
-    messages.success(
-        request,
-        f'Scraping de {parroquia.nombre} iniciado. '
-        f'Los nuevos eventos aparecerán en moderación en unos minutos.'
-    )
+    messages.success(request, f"Scraping de {parroquia.nombre[:30]} iniciado.")
     return redirect("iglesias:detalle_parroquia", pk=pk)
 
 
