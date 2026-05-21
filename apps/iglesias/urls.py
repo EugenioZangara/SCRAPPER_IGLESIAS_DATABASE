@@ -26,4 +26,5 @@ urlpatterns = [
     path("eventos/categorias/crear/", views.crear_categoria_evento, name="crear_categoria_evento"),
     path("scraper/ejecutar/", views.ejecutar_scraper_completo, name="ejecutar_scraper_completo"),
     path("scraper/estado/", views.scraper_estado, name="scraper_estado"),
+    path("scraper/resultado/", views.scraper_estado_resultado, name="scraper_resultado"),
 ]

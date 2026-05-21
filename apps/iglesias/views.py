@@ -349,14 +349,20 @@ def moderacion_eventos_pasados(request):
 
 
 def scraper_estado(request):
-    job = ScraperJob.objects.filter(estado="corriendo").first()
-    if not job:
-        job = ScraperJob.objects.first()
+    from datetime import timedelta
+    from django.utils import timezone as tz
+
+    hace_30min = tz.now() - timedelta(minutes=30)
+
+    job = ScraperJob.objects.filter(
+        estado="corriendo"
+    ).order_by("-iniciado_en").first()
+
     if not job:
         return JsonResponse({"activo": False})
 
     return JsonResponse({
-        "activo": job.estado == "corriendo",
+        "activo": True,
         "estado": job.estado,
         "total": job.total,
         "procesados": job.procesados,
@@ -366,6 +372,30 @@ def scraper_estado(request):
         "parroquia_actual": job.parroquia_actual,
         "mensaje_final": job.mensaje_final,
         "pk": job.pk,
+    })
+
+
+def scraper_estado_resultado(request):
+    """Endpoint separado para obtener el resultado del último job."""
+    from datetime import timedelta
+    from django.utils import timezone as tz
+
+    hace_10min = tz.now() - timedelta(minutes=10)
+
+    job = ScraperJob.objects.filter(
+        estado="completado",
+        actualizado_en__gte=hace_10min
+    ).order_by("-actualizado_en").first()
+
+    if not job:
+        return JsonResponse({"hay_resultado": False})
+
+    return JsonResponse({
+        "hay_resultado": True,
+        "mensaje_final": job.mensaje_final,
+        "posts_nuevos": job.posts_nuevos,
+        "eventos_nuevos": job.eventos_nuevos,
+        "errores": job.errores,
     })
 
 

@@ -688,7 +688,7 @@
             <span style="font-size:12px; font-weight:700; font-family:var(--mono);
                          letter-spacing:0.06em; text-transform:uppercase;
                          color:var(--ink, #333);">
-                Scraper Instagram
+                Scraper Redes
             </span>
             <span id="scraper-status-badge"
                   style="font-size:10px; font-family:var(--mono);
@@ -726,20 +726,12 @@
     <script>
     (function() {
         let pollingInterval = null;
-        let lastJobPk = null;
 
         function actualizarTarjeta(data) {
             const card = document.getElementById('scraper-card');
             if (!card) return;
-
-            if (!data.activo && !data.pk) {
-                card.style.display = 'none';
-                return;
-            }
-
             card.style.display = 'block';
 
-            const badge = document.getElementById('scraper-status-badge');
             const fill = document.getElementById('scraper-progress-fill');
             const parroquiaEl = document.getElementById('scraper-parroquia');
             const statsEl = document.getElementById('scraper-stats');
@@ -753,40 +745,60 @@
                 data.procesados + ' / ' + data.total + ' parroquias · ' +
                 data.posts_nuevos + ' posts · ' +
                 data.eventos_nuevos + ' eventos';
+            parroquiaEl.textContent = data.parroquia_actual || 'Procesando...';
+            resultadoEl.style.display = 'none';
+        }
 
-            if (data.activo) {
-                badge.textContent = 'Corriendo';
-                badge.style.background = 'var(--amber-soft, #fff0cf)';
-                badge.style.color = 'var(--amber, #936316)';
-                parroquiaEl.textContent = data.parroquia_actual || 'Procesando...';
-                resultadoEl.style.display = 'none';
-            } else {
-                badge.textContent = data.estado === 'completado' ? 'Listo' : 'Error';
-                badge.style.background = data.estado === 'completado'
-                    ? 'var(--brand-soft, #dff3e9)'
-                    : 'var(--red-soft, #fde7e7)';
-                badge.style.color = data.estado === 'completado'
-                    ? 'var(--brand, #276749)'
-                    : 'var(--red, #9f3a38)';
-                parroquiaEl.textContent = 'Completado';
-                if (data.mensaje_final) {
-                    resultadoEl.textContent = data.mensaje_final;
-                    resultadoEl.style.display = 'block';
-                }
-                setTimeout(() => { card.style.display = 'none'; }, 5000);
-                detenerPolling();
+        function mostrarResultado(data) {
+            const card = document.getElementById('scraper-card');
+            if (!card) return;
+            card.style.display = 'block';
+
+            const badge = document.getElementById('scraper-status-badge');
+            const fill = document.getElementById('scraper-progress-fill');
+            const parroquiaEl = document.getElementById('scraper-parroquia');
+            const statsEl = document.getElementById('scraper-stats');
+            const resultadoEl = document.getElementById('scraper-resultado');
+
+            fill.style.width = '100%';
+            badge.textContent = 'Listo';
+            badge.style.background = 'var(--brand-soft, #dff3e9)';
+            badge.style.color = 'var(--brand, #276749)';
+            parroquiaEl.textContent = 'Completado';
+            statsEl.textContent =
+                data.posts_nuevos + ' posts · ' +
+                data.eventos_nuevos + ' eventos · ' +
+                data.errores + ' errores';
+            if (data.mensaje_final) {
+                resultadoEl.textContent = data.mensaje_final;
+                resultadoEl.style.display = 'block';
             }
+            setTimeout(() => { card.style.display = 'none'; }, 5000);
         }
 
         function consultarEstado() {
             fetch('/scraper/estado/')
                 .then(r => r.json())
                 .then(data => {
-                    if (data.pk && data.pk !== lastJobPk) {
-                        lastJobPk = data.pk;
+                    if (data.activo) {
+                        actualizarTarjeta(data);
+                    } else {
+                        detenerPolling();
+                        fetch('/scraper/resultado/')
+                            .then(r => r.json())
+                            .then(resultado => {
+                                if (resultado.hay_resultado) {
+                                    mostrarResultado(resultado);
+                                } else {
+                                    const card = document.getElementById('scraper-card');
+                                    if (card) card.style.display = 'none';
+                                }
+                            })
+                            .catch(() => {
+                                const card = document.getElementById('scraper-card');
+                                if (card) card.style.display = 'none';
+                            });
                     }
-                    actualizarTarjeta(data);
-                    if (!data.activo) detenerPolling();
                 })
                 .catch(() => {});
         }
@@ -804,7 +816,7 @@
             }
         }
 
-        // Solo mostrar tarjeta si el job está ACTIVO (corriendo ahora mismo)
+        // Al cargar: verificar si hay job activo
         fetch('/scraper/estado/')
             .then(r => r.json())
             .then(data => {
@@ -812,9 +824,9 @@
                     actualizarTarjeta(data);
                     iniciarPolling();
                 }
-                // Si no está activo, NO mostrar nada al cargar la página
             })
             .catch(() => {});
+
         window.iniciarScraperPolling = iniciarPolling;
     })();
     </script>
