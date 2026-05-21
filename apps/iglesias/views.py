@@ -377,7 +377,7 @@ def ejecutar_scraper_completo(request):
     import threading
 
     def correr_scraper():
-        from scraper_redes.run import scrapear_con_backend, crear_evento_desde_post
+        from scraper_redes.run import scrapear_con_backend, scrapear_facebook_con_backend, crear_evento_desde_post
         from scraper_redes.procesador import procesar_post
         from apps.iglesias.models import PostParroquia, ScraperJob
         import time, random
@@ -445,6 +445,71 @@ def ejecutar_scraper_completo(request):
                 print(f"ERROR scrapeando {red.parroquia.nombre}: {e}")
 
         job.procesados = len(redes)
+        job.save(update_fields=["procesados", "actualizado_en"])
+
+        # Procesar Facebook
+        redes_fb = list(RedSocial.objects.filter(
+            tipo="facebook", activo=True, verificado=True
+        ).select_related("parroquia"))
+
+        job.total += len(redes_fb)
+        job.save(update_fields=["total", "actualizado_en"])
+
+        for red in redes_fb:
+            job.parroquia_actual = f"[FB] {red.parroquia.nombre}"
+            job.procesados += 1
+            job.save(update_fields=["parroquia_actual", "procesados", "actualizado_en"])
+            try:
+                posts = scrapear_facebook_con_backend(red.url)
+                guardados_fb = 0
+                for post in posts:
+                    _, creado = PostParroquia.objects.get_or_create(
+                        post_id=post["post_id"],
+                        defaults={
+                            "parroquia": red.parroquia,
+                            "red_social": "facebook",
+                            "imagen_url": post["imagen_url"],
+                            "fecha_publicacion": post["fecha"],
+                            "raw_data": post["raw_data"],
+                        }
+                    )
+                    if creado:
+                        guardados_fb += 1
+
+                eventos_fb = 0
+                pendientes_fb = PostParroquia.objects.filter(
+                    parroquia=red.parroquia,
+                    procesado=False,
+                    red_social="facebook"
+                )
+                for post_obj in pendientes_fb:
+                    post_dict = {
+                        "post_id": post_obj.post_id,
+                        "imagen_url": post_obj.imagen_url,
+                        "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
+                    }
+                    resultado = procesar_post(post_dict)
+                    post_obj.es_evento = resultado.get("es_evento")
+                    post_obj.procesado = resultado.get("es_evento") is not None
+                    post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}
+                    post_obj.save()
+
+                    if resultado.get("es_evento") and not resultado.get("es_pasado"):
+                        if not hasattr(post_obj, "evento"):
+                            crear_evento_desde_post(post_obj, resultado)
+                            eventos_fb += 1
+
+                job.posts_nuevos += guardados_fb
+                job.eventos_nuevos += eventos_fb
+                job.save(update_fields=["posts_nuevos", "eventos_nuevos", "actualizado_en"])
+
+                time.sleep(random.uniform(2, 4))
+
+            except Exception as e:
+                job.errores += 1
+                job.save(update_fields=["errores", "actualizado_en"])
+                print(f"ERROR scrapeando Facebook {red.parroquia.nombre}: {e}")
+
         job.parroquia_actual = ""
         job.estado = "completado"
         job.mensaje_final = (
@@ -458,13 +523,12 @@ def ejecutar_scraper_completo(request):
     thread = threading.Thread(target=correr_scraper, daemon=True)
     thread.start()
 
-    total_cuentas = RedSocial.objects.filter(
-                tipo="instagram", activo=True, verificado=True
-            ).count()
+    total_ig = RedSocial.objects.filter(tipo="instagram", activo=True, verificado=True).count()
+    total_fb = RedSocial.objects.filter(tipo="facebook", activo=True, verificado=True).count()
     messages.success(
-                request,
-                f"Scraping iniciado — {total_cuentas} cuentas."
-            )
+        request,
+        f"Scraping iniciado — {total_ig} cuentas de Instagram · {total_fb} páginas de Facebook."
+    )
 
     next_url = request.POST.get("next", "").strip()
     if next_url and next_url.startswith("/"):

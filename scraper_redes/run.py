@@ -118,6 +118,14 @@ def scrapear_con_backend(url: str) -> list[dict]:
         return scrapear_perfil(url)
 
 
+def scrapear_facebook_con_backend(url: str) -> list[dict]:
+    """Scrapea Facebook usando Apify."""
+    from scraper_redes.facebook_apify import scrapear_perfil_facebook
+    from scraper_redes.config import POSTS_A_REVISAR
+
+    return scrapear_perfil_facebook(url, limite=POSTS_A_REVISAR)
+
+
 def main():
     print(f"=== Scraper de redes sociales ===")
     print(f"URL de prueba: {INSTAGRAM_TEST_URL}\n")
@@ -198,6 +206,82 @@ def main_produccion():
     print(f"Errores               : {resumen['errores']}")
 
 
+def main_produccion_facebook():
+    """Scrapea todas las RedSocial de Facebook verificadas."""
+    redes = RedSocial.objects.filter(
+        tipo="facebook", activo=True, verificado=True
+    ).select_related("parroquia")
+
+    total = redes.count()
+    print(f"=== Scraper Facebook — {total} páginas verificadas ===\n")
+
+    guardados_total = 0
+    eventos_total = 0
+    errores = 0
+
+    for i, red in enumerate(redes, 1):
+        print(f"--- [{i}/{total}] {red.parroquia.nombre} ---")
+        print(f"URL: {red.url}")
+        try:
+            posts = scrapear_facebook_con_backend(red.url)
+            guardados = 0
+
+            for post in posts:
+                _, creado = PostParroquia.objects.get_or_create(
+                    post_id=post["post_id"],
+                    defaults={
+                        "parroquia": red.parroquia,
+                        "red_social": "facebook",
+                        "imagen_url": post["imagen_url"],
+                        "fecha_publicacion": post["fecha"],
+                        "raw_data": post["raw_data"],
+                    }
+                )
+                if creado:
+                    guardados += 1
+                    guardados_total += 1
+
+            pendientes = PostParroquia.objects.filter(
+                parroquia=red.parroquia,
+                procesado=False,
+                red_social="facebook"
+            )
+
+            for post_obj in pendientes:
+                post_dict = {
+                    "post_id": post_obj.post_id,
+                    "imagen_url": post_obj.imagen_url,
+                    "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
+                }
+                resultado = procesar_post(post_dict)
+                post_obj.es_evento = resultado.get("es_evento")
+                post_obj.procesado = resultado.get("es_evento") is not None
+                post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}
+                post_obj.save()
+
+                if resultado.get("es_evento") and not resultado.get("es_pasado"):
+                    if not hasattr(post_obj, "evento"):
+                        crear_evento_desde_post(post_obj, resultado)
+                        eventos_total += 1
+
+            print(f"  {guardados} guardados")
+
+        except Exception as e:
+            errores += 1
+            print(f"  ERROR: {e}")
+
+        if i < total:
+            espera = random.randint(5, 10)
+            print(f"  Esperando {espera}s...")
+            time.sleep(espera)
+
+    print(f"\n=== RESUMEN FACEBOOK ===")
+    print(f"Páginas procesadas : {total}")
+    print(f"Posts nuevos       : {guardados_total}")
+    print(f"Eventos detectados : {eventos_total}")
+    print(f"Errores            : {errores}")
+
+
 _SLUG_MAP = {
     "misa": "Misa",
     "retiro": "Retiro",
@@ -264,10 +348,13 @@ def crear_evento_desde_post(post_obj, resultado: dict):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Scraper de redes sociales")
-    parser.add_argument("--produccion", action="store_true", help="Procesar todas las parroquias verificadas")
+    parser.add_argument("--produccion", action="store_true", help="Procesar todas las parroquias de Instagram verificadas")
+    parser.add_argument("--facebook", action="store_true", help="Procesar todas las páginas de Facebook verificadas")
     args = parser.parse_args()
 
-    if args.produccion:
+    if args.facebook:
+        main_produccion_facebook()
+    elif args.produccion:
         main_produccion()
     else:
         main()
