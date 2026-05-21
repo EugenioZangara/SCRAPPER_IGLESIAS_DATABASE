@@ -458,7 +458,13 @@ def ejecutar_scraper_completo(request):
     thread = threading.Thread(target=correr_scraper, daemon=True)
     thread.start()
 
-    messages.success(request, f"Scraping iniciado — {total_cuentas} cuentas.")
+    total_cuentas = RedSocial.objects.filter(
+                tipo="instagram", activo=True, verificado=True
+            ).count()
+    messages.success(
+                request,
+                f"Scraping iniciado — {total_cuentas} cuentas."
+            )
 
     next_url = request.POST.get("next", "").strip()
     if next_url and next_url.startswith("/"):
