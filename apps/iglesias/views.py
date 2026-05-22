@@ -327,6 +327,9 @@ def moderacion_eventos(request):
         "total_cuentas_ig": RedSocial.objects.filter(
             tipo="instagram", activo=True, verificado=True
         ).count(),
+        "total_cuentas_fb": RedSocial.objects.filter(
+            tipo="facebook", activo=True, verificado=True
+        ).count(),
     })
 
 
