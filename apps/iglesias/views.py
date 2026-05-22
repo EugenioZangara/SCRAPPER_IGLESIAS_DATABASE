@@ -352,14 +352,17 @@ def scraper_estado(request):
     from datetime import timedelta
     from django.utils import timezone as tz
 
-    hace_30min = tz.now() - timedelta(minutes=30)
+    # Marcar como completados jobs que llevan más de 60 min corriendo
+    hace_60min = tz.now() - timedelta(minutes=60)
+    ScraperJob.objects.filter(
+        estado="corriendo",
+        iniciado_en__lt=hace_60min
+    ).update(estado="completado", mensaje_final="Tiempo límite alcanzado")
 
-    job = ScraperJob.objects.filter(
-        estado="corriendo"
-    ).order_by("-iniciado_en").first()
-
+    job = ScraperJob.objects.filter(estado="corriendo").first()
     if not job:
         return JsonResponse({"activo": False})
+    ...
 
     return JsonResponse({
         "activo": True,
