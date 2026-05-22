@@ -409,22 +409,26 @@ def ejecutar_scraper_completo(request):
 
     import threading
 
+    redes_ig = list(RedSocial.objects.filter(
+        tipo="instagram", activo=True, verificado=True
+    ).select_related("parroquia"))
+
+    redes_fb = list(RedSocial.objects.filter(
+        tipo="facebook", activo=True, verificado=True
+    ).select_related("parroquia"))
+
+    job = ScraperJob.objects.create(
+        total=len(redes_ig) + len(redes_fb),
+        procesados=0,
+    )
+
     def correr_scraper():
         from scraper_redes.run import scrapear_con_backend, scrapear_facebook_con_backend, crear_evento_desde_post
         from scraper_redes.procesador import procesar_post
-        from apps.iglesias.models import PostParroquia, ScraperJob
+        from apps.iglesias.models import PostParroquia
         import time, random
 
-        redes = list(RedSocial.objects.filter(
-            tipo="instagram", activo=True, verificado=True
-        ).select_related("parroquia"))
-
-        job = ScraperJob.objects.create(
-            total=len(redes),
-            procesados=0,
-        )
-
-        for i, red in enumerate(redes):
+        for i, red in enumerate(redes_ig):
             job.parroquia_actual = red.parroquia.nombre
             job.procesados = i
             job.save(update_fields=["parroquia_actual", "procesados", "actualizado_en"])
@@ -477,16 +481,8 @@ def ejecutar_scraper_completo(request):
                 job.save(update_fields=["errores", "actualizado_en"])
                 print(f"ERROR scrapeando {red.parroquia.nombre}: {e}")
 
-        job.procesados = len(redes)
+        job.procesados = len(redes_ig)
         job.save(update_fields=["procesados", "actualizado_en"])
-
-        # Procesar Facebook
-        redes_fb = list(RedSocial.objects.filter(
-            tipo="facebook", activo=True, verificado=True
-        ).select_related("parroquia"))
-
-        job.total += len(redes_fb)
-        job.save(update_fields=["total", "actualizado_en"])
 
         for red in redes_fb:
             job.parroquia_actual = f"[FB] {red.parroquia.nombre}"
@@ -556,13 +552,27 @@ def ejecutar_scraper_completo(request):
     thread = threading.Thread(target=correr_scraper, daemon=True)
     thread.start()
 
-    total_ig = RedSocial.objects.filter(tipo="instagram", activo=True, verificado=True).count()
-    total_fb = RedSocial.objects.filter(tipo="facebook", activo=True, verificado=True).count()
     messages.success(
         request,
-        f"Scraping iniciado — {total_ig} cuentas de Instagram · {total_fb} páginas de Facebook."
+        f"Scraping iniciado — {len(redes_ig)} Instagram + {len(redes_fb)} Facebook."
     )
 
+    next_url = request.POST.get("next", "").strip()
+    if next_url and next_url.startswith("/"):
+        return redirect(next_url)
+    return redirect("iglesias:moderacion_eventos")
+
+
+@require_POST
+def detener_scraper(request):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
+    jobs = ScraperJob.objects.filter(estado="corriendo")
+    count = jobs.update(
+        estado="completado",
+        mensaje_final="Detenido manualmente por el usuario"
+    )
+    messages.warning(request, f"Scraper detenido ({count} job/s cancelado/s).")
     next_url = request.POST.get("next", "").strip()
     if next_url and next_url.startswith("/"):
         return redirect(next_url)

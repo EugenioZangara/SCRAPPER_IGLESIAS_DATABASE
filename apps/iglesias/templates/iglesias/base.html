@@ -722,6 +722,19 @@
                     background:var(--brand-soft, #dff3e9);
                     color:var(--brand, #276749);">
         </div>
+        <form method="post" action="/scraper/detener/" id="scraper-stop-form"
+              style="display:none; margin-top:10px;">
+            <input type="hidden" name="csrfmiddlewaretoken" id="scraper-csrf">
+            <input type="hidden" name="next" value="">
+            <button type="submit"
+                    style="width:100%; padding:6px 0; font-family:var(--mono);
+                           font-size:10px; letter-spacing:0.06em; cursor:pointer;
+                           background:none; border:1px solid var(--rule, #ccc);
+                           border-radius:6px; color:var(--muted, #666);
+                           text-transform:uppercase;">
+                ✕ Detener scraper
+            </button>
+        </form>
     </div>
     <script>
     (function() {
@@ -747,6 +760,7 @@
                 data.eventos_nuevos + ' eventos';
             parroquiaEl.textContent = data.parroquia_actual || 'Procesando...';
             resultadoEl.style.display = 'none';
+            document.getElementById('scraper-stop-form').style.display = 'block';
         }
 
         function mostrarResultado(data) {
@@ -773,6 +787,7 @@
                 resultadoEl.textContent = data.mensaje_final;
                 resultadoEl.style.display = 'block';
             }
+            document.getElementById('scraper-stop-form').style.display = 'none';
             setTimeout(() => { card.style.display = 'none'; }, 5000);
         }
 
@@ -826,6 +841,19 @@
                 }
             })
             .catch(() => {});
+
+        function getCsrf() {
+            const name = 'csrftoken';
+            const cookies = document.cookie.split(';');
+            for (let c of cookies) {
+                c = c.trim();
+                if (c.startsWith(name + '=')) {
+                    return decodeURIComponent(c.slice(name.length + 1));
+                }
+            }
+            return '';
+        }
+        document.getElementById('scraper-csrf').value = getCsrf();
 
         window.iniciarScraperPolling = iniciarPolling;
     })();

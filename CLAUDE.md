@@ -200,7 +200,8 @@ El JSON que devuelve la IA tiene estos campos:
 - `/redes/<pk>/verificar/` → POST — verifica red social
 - `/redes/<pk>/eliminar/` → POST — elimina red social
 - `/parroquias/<pk>/scrapear/` → POST (staff only) — lanza scraping en background thread, redirige inmediatamente con `messages.success` al detalle de la parroquia
-- `/scraper/ejecutar/` → POST (staff only) — lanza el scraper completo en un thread de background y redirige inmediatamente con `messages.success`; los resultados aparecen en moderación al refrescar
+- `/scraper/ejecutar/` → POST (staff only) — lanza el scraper completo en un thread de background y redirige inmediatamente con `messages.success`; crea el `ScraperJob` con `total = len(redes_ig) + len(redes_fb)` antes de iniciar el thread; mensaje: `"{N} Instagram + {N} Facebook"`
+- `/scraper/detener/` → POST (staff only) — marca todos los jobs "corriendo" como "completado" con mensaje "Detenido manualmente por el usuario"; devuelve `messages.warning`; redirige a `next` si comienza con `/`, si no a moderación
 - `/scraper/estado/` → GET — devuelve JSON con estado del ScraperJob más reciente (polling desde la tarjeta flotante)
 - `/eventos/moderacion/` → GET (staff only) — lista de moderación de eventos con tabs y acciones HTMX inline (solo futuros o sin fecha)
 - `/eventos/moderacion/pasados/` → GET (staff only) — lista de eventos pasados (fecha < hoy); acciones Editar, Rechazar/Restaurar
@@ -224,6 +225,7 @@ Calculado en `_estado_eventos()` en `views.py`:
 - POST a `/parroquias/<pk>/scrapear/` — lanza background thread y redirige inmediatamente
 - Crea un `ScraperJob` con `total=1` para que la tarjeta flotante muestre el progreso
 - El form tiene `onsubmit="setTimeout(window.iniciarScraperPolling, 1000)"` para activar el polling
+- La tarjeta flotante (`#scraper-card`) en `base.html` incluye un botón "✕ Detener scraper" (`#scraper-stop-form`): visible solo cuando el job está activo (`actualizarTarjeta` lo muestra, `mostrarResultado` lo oculta); CSRF inicializado con `getCsrf()` que lee el cookie `csrftoken`; título de la tarjeta: "Scraper Redes"
 
 ### Vista aprobar_extendido (solo staff)
 - URL: `/eventos/<pk>/aprobar-extendido/` → vista `aprobar_extendido`
