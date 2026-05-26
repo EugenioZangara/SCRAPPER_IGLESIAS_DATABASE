@@ -37,14 +37,13 @@
     <div class="mod-cell mod-actions">
         {% if evento.activo and not evento.verificado %}
             <a href="{% url 'iglesias:aprobar_extendido' evento.pk %}?next={% url 'iglesias:moderacion_eventos' %}%3Festado={{ estado|default:'' }}"
-               class="verify-button"
-               style="display:inline-flex; align-items:center; min-height:22px; padding:0 8px; font-size:11px; font-weight:700; border-radius:999px; border:1px solid var(--brand); color:var(--brand); text-decoration:none;">
-                ✓ Aprobar
-            </a>
-            <a href="{% url 'iglesias:editar_evento' evento.pk %}?next={% url 'iglesias:moderacion_eventos' %}%3Festado={{ estado|default:'' }}" class="verify-button"
-               style="display:inline-flex;align-items:center;min-height:22px;padding:0 8px;font-size:11px;font-weight:700;border-radius:999px;border:1px solid var(--brand);color:var(--brand);text-decoration:none;">
-                ✎ Editar
-            </a>
+   class="verify-button">
+    ✓ Aprobar
+</a>
+<a href="{% url 'iglesias:editar_evento' evento.pk %}?next={% url 'iglesias:moderacion_eventos' %}%3Festado={{ estado|default:'' }}"
+   class="verify-button">
+    ✎ Editar
+</a>
             <form hx-post="{% url 'iglesias:rechazar_evento' evento.pk %}"
                   hx-target="#evento-{{ evento.pk }}"
                   hx-swap="outerHTML">
