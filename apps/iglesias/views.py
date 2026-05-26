@@ -1015,6 +1015,104 @@ def crear_tipo_evento(request):
     return JsonResponse({"pk": tipo.pk, "nombre": tipo.nombre, "tipos": tipos})
 
 
+def publico_inicio(request):
+    total = Parroquia.objects.count()
+    con_eventos = Parroquia.objects.filter(
+        eventos__activo=True,
+        eventos__verificado=True,
+        eventos__fecha__gte=date.today(),
+    ).distinct().count()
+    return render(request, "iglesias/publico/inicio.html", {
+        "total": total,
+        "con_eventos": con_eventos,
+    })
+
+
+def publico_buscar(request):
+    q = request.GET.get("q", "").strip()
+    barrio = request.GET.get("barrio", "").strip()
+    filtro = request.GET.get("filtro", "todas").strip()
+
+    parroquias = Parroquia.objects.all()
+
+    if q:
+        parroquias = parroquias.filter(
+            Q(nombre__icontains=q)
+            | Q(barrio__icontains=q)
+            | Q(parroco__icontains=q)
+            | Q(direccion__icontains=q)
+        )
+
+    if barrio:
+        parroquias = parroquias.filter(barrio__icontains=barrio)
+
+    if filtro == "eventos":
+        parroquias = parroquias.filter(
+            eventos__activo=True,
+            eventos__verificado=True,
+            eventos__fecha__gte=date.today(),
+        ).distinct()
+    elif filtro == "horarios":
+        parroquias = parroquias.filter(horarios_misa__isnull=False).distinct()
+    elif filtro == "redes":
+        parroquias = parroquias.filter(
+            redes__activo=True,
+            redes__verificado=True,
+        ).distinct()
+
+    parroquias = parroquias.prefetch_related(
+        "redes", "eventos", "horarios_misa"
+    ).order_by("nombre")[:40]
+
+    hoy = date.today()
+
+    resultados = []
+    for p in parroquias:
+        redes_verificadas = [r for r in p.redes.all() if r.activo and r.verificado]
+        eventos_proximos = [
+            e for e in p.eventos.all()
+            if e.activo and e.verificado and e.fecha and e.fecha >= hoy
+        ]
+        tiene_horarios = p.horarios_misa.exists()
+        resultados.append({
+            "parroquia": p,
+            "redes": redes_verificadas,
+            "eventos_count": len(eventos_proximos),
+            "tiene_horarios": tiene_horarios,
+            "tiene_ig": any(r.tipo == "instagram" for r in redes_verificadas),
+            "tiene_fb": any(r.tipo == "facebook" for r in redes_verificadas),
+        })
+
+    return render(request, "iglesias/publico/partials/resultados.html", {
+        "resultados": resultados,
+        "total": len(resultados),
+        "query": q,
+    })
+
+
+def publico_detalle(request, pk):
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+    hoy = date.today()
+
+    redes_verificadas = parroquia.redes.filter(
+        activo=True, verificado=True
+    ).order_by("tipo")
+
+    eventos_proximos = parroquia.eventos.filter(
+        activo=True, verificado=True,
+        fecha__gte=hoy,
+    ).order_by("fecha")[:5]
+
+    horarios = parroquia.horarios_misa.all()
+
+    return render(request, "iglesias/publico/detalle.html", {
+        "parroquia": parroquia,
+        "redes": redes_verificadas,
+        "eventos": eventos_proximos,
+        "horarios": horarios,
+    })
+
+
 @require_POST
 def crear_categoria_evento(request):
     if not request.user.is_staff:

@@ -1,0 +1,256 @@
+{% extends "iglesias/publico/base_publica.html" %}
+
+{% block content %}
+<a href="{% url 'iglesias:publico_inicio' %}" class="pub-back">← Volver al buscador</a>
+
+<div style="margin-bottom:24px;">
+  <h1 style="font-size:28px; font-weight:600; color:var(--ink); letter-spacing:-0.02em; margin-bottom:6px; line-height:1.2;">
+    {{ parroquia.nombre }}
+  </h1>
+  <p style="font-size:14px; color:var(--muted);">
+    {% if parroquia.barrio %}{{ parroquia.barrio }}{% endif %}
+    {% if parroquia.barrio and parroquia.vicaria %} · {% endif %}
+    {% if parroquia.vicaria %}{{ parroquia.vicaria }}{% endif %}
+    {% if parroquia.parroco %}
+      {% if parroquia.barrio or parroquia.vicaria %} · {% endif %}
+      {{ parroquia.parroco }}
+    {% endif %}
+  </p>
+</div>
+
+<div class="pub-grid">
+  <!-- Columna izquierda -->
+  <div>
+    <div class="pub-section">
+      <p class="pub-section-title">Contacto y ubicación</p>
+
+      {% if parroquia.direccion or parroquia.barrio %}
+      <div class="pub-field">
+        <span class="pub-field-lbl">Dirección</span>
+        <span class="pub-field-val">
+          {{ parroquia.direccion|default:"" }}{% if parroquia.direccion and parroquia.barrio %}, {% endif %}{{ parroquia.barrio|default:"" }}
+        </span>
+      </div>
+      {% endif %}
+
+      {% if parroquia.telefonos %}
+      <div class="pub-field">
+        <span class="pub-field-lbl">Teléfono</span>
+        <span class="pub-field-val">{{ parroquia.telefonos }}</span>
+      </div>
+      {% endif %}
+
+      {% if parroquia.mail_1 or parroquia.mail_2 %}
+      <div class="pub-field">
+        <span class="pub-field-lbl">Email</span>
+        <span class="pub-field-val">
+          {% if parroquia.mail_1 %}<a href="mailto:{{ parroquia.mail_1 }}">{{ parroquia.mail_1 }}</a>{% endif %}
+          {% if parroquia.mail_1 and parroquia.mail_2 %} / {% endif %}
+          {% if parroquia.mail_2 %}<a href="mailto:{{ parroquia.mail_2 }}">{{ parroquia.mail_2 }}</a>{% endif %}
+        </span>
+      </div>
+      {% endif %}
+
+      {% if parroquia.sitio_web %}
+      <div class="pub-field">
+        <span class="pub-field-lbl">Web</span>
+        <span class="pub-field-val">
+          <a href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener">{{ parroquia.sitio_web }}</a>
+        </span>
+      </div>
+      {% endif %}
+
+      {% if not parroquia.direccion and not parroquia.telefonos and not parroquia.mail_1 and not parroquia.sitio_web %}
+        <p class="pub-empty">Sin datos de contacto disponibles.</p>
+      {% endif %}
+    </div>
+
+    <div style="background:white; border:1px solid var(--rule);
+                border-radius:12px; padding:16px;">
+      <div style="font-size:11px; font-weight:500; text-transform:uppercase;
+                  letter-spacing:0.06em; color:var(--muted); margin-bottom:14px;
+                  display:flex; align-items:center; gap:8px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        Horarios de misas
+      </div>
+
+      {% if horarios %}
+        {% for h in horarios %}
+        <div style="display:flex; justify-content:space-between;
+                    align-items:flex-start; padding:10px 0;
+                    border-bottom:1px solid var(--rule-2);">
+          <div style="font-size:13px; color:var(--muted); flex:1;">
+            {{ h.dias }}
+            {% if h.nota %}
+              <div style="font-size:12px; color:var(--muted);
+                          margin-top:2px; font-style:italic;">
+                {{ h.nota }}
+              </div>
+            {% endif %}
+          </div>
+          <div style="font-size:14px; font-weight:500; color:var(--ink);
+                      text-align:right; margin-left:16px;">
+            {{ h.horarios }}
+          </div>
+        </div>
+        {% endfor %}
+
+        {% with ultimo=horarios.last %}
+        <div style="font-size:11px; color:var(--muted); margin-top:12px;
+                    padding-top:10px; border-top:1px solid var(--rule-2);
+                    display:flex; align-items:center; gap:5px;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Actualizado
+          {% if ultimo.actualizado_en %}
+            {{ ultimo.actualizado_en|date:"d \d\e F \d\e Y" }}
+          {% elif ultimo.creado_en %}
+            {{ ultimo.creado_en|date:"d \d\e F \d\e Y" }}
+          {% else %}
+            recientemente
+          {% endif %}
+        </div>
+        {% endwith %}
+
+      {% else %}
+
+        <div style="text-align:center; padding:24px 0;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
+               stroke="#d1d5db" stroke-width="1.5" style="margin-bottom:10px;">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <div style="font-size:14px; font-weight:500; color:var(--ink);
+                       margin-bottom:6px;">
+            Horarios no disponibles
+          </div>
+          <div style="font-size:13px; color:var(--muted); max-width:220px;
+                       margin:0 auto; line-height:1.5;">
+            No tenemos los horarios de misas de esta parroquia todavía.
+            Te recomendamos contactarlos directamente.
+          </div>
+          {% if parroquia.telefonos %}
+          <div style="margin-top:14px;">
+            <a href="tel:{{ parroquia.telefonos }}"
+               style="display:inline-flex; align-items:center; gap:6px;
+                      font-size:13px; font-weight:500; color:#4f46e5;
+                      text-decoration:none; border:1px solid #4f46e5;
+                      border-radius:8px; padding:7px 14px;">
+              📞 {{ parroquia.telefonos }}
+            </a>
+          </div>
+          {% endif %}
+        </div>
+
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Columna derecha -->
+  <div>
+    <div class="pub-section">
+      <p class="pub-section-title">Redes sociales</p>
+      {% for red in redes %}
+      <div style="display:flex; align-items:center; gap:12px; padding:10px 0;
+                  border-bottom:1px solid var(--rule);">
+        {% if red.tipo == "instagram" %}
+          <div style="width:36px; height:36px; border-radius:8px;
+                      background:#fce7f3; display:flex; align-items:center;
+                      justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                 stroke="#9d174d" stroke-width="1.8" stroke-linecap="round">
+              <rect x="2" y="2" width="20" height="20" rx="5"/>
+              <circle cx="12" cy="12" r="4"/>
+              <circle cx="17.5" cy="6.5" r="0.5" fill="#9d174d"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:13px; font-weight:500; color:var(--ink);">Instagram</div>
+            <div style="font-size:12px; color:var(--muted);">{{ red.url }}</div>
+          </div>
+        {% elif red.tipo == "facebook" %}
+          <div style="width:36px; height:36px; border-radius:8px;
+                      background:#eff6ff; display:flex; align-items:center;
+                      justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                 stroke="#1e40af" stroke-width="1.8" stroke-linecap="round">
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:13px; font-weight:500; color:var(--ink);">Facebook</div>
+            <div style="font-size:12px; color:var(--muted);">{{ red.url }}</div>
+          </div>
+        {% elif red.tipo == "youtube" %}
+          <div style="width:36px; height:36px; border-radius:8px;
+                      background:#fef2f2; display:flex; align-items:center;
+                      justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                 stroke="#dc2626" stroke-width="1.8" stroke-linecap="round">
+              <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/>
+              <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#dc2626" stroke="none"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:13px; font-weight:500; color:var(--ink);">YouTube</div>
+            <div style="font-size:12px; color:var(--muted);">{{ red.url }}</div>
+          </div>
+        {% else %}
+          <div style="width:36px; height:36px; border-radius:8px;
+                      background:var(--rule-2); display:flex; align-items:center;
+                      justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                 stroke="#6b7280" stroke-width="1.8" stroke-linecap="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:13px; font-weight:500; color:var(--ink);">{{ red.get_tipo_display }}</div>
+            <div style="font-size:12px; color:var(--muted);">{{ red.url }}</div>
+          </div>
+        {% endif %}
+        <a href="{{ red.url }}" target="_blank" rel="noopener noreferrer"
+           style="font-size:12px; color:#4f46e5; text-decoration:none; white-space:nowrap;">
+          Ver perfil →
+        </a>
+      </div>
+      {% empty %}
+      <p class="pub-empty">Sin redes verificadas.</p>
+      {% endfor %}
+    </div>
+
+    <div style="background:white; border:1px solid var(--rule);
+                border-radius:12px; padding:16px; margin-top:12px;">
+      <div style="font-size:11px; font-weight:500; text-transform:uppercase;
+                  letter-spacing:0.06em; color:var(--muted); margin-bottom:12px;">
+        Eventos
+      </div>
+      {% if eventos %}
+        <div style="font-size:14px; color:var(--ink); margin-bottom:12px;">
+          {{ eventos.count }} evento{{ eventos.count|pluralize }}
+          próximo{{ eventos.count|pluralize }} cargado{{ eventos.count|pluralize }}
+        </div>
+      {% else %}
+        <div style="font-size:14px; color:var(--muted); margin-bottom:12px;">
+          Sin eventos próximos cargados
+        </div>
+      {% endif %}
+      <a href="#"
+         style="display:inline-flex; align-items:center; gap:6px;
+                font-size:13px; font-weight:500; color:white;
+                background:#4f46e5; border-radius:8px;
+                padding:8px 16px; text-decoration:none;">
+        Ver eventos de la parroquia →
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

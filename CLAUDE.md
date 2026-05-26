@@ -185,6 +185,12 @@ El JSON que devuelve la IA tiene estos campos:
 
 ## Panel web
 
+### URLs públicas (sin login)
+- `/publico/` → inicio con buscador HTMX de parroquias
+- `/publico/buscar/` → endpoint HTMX de búsqueda (partial `resultados.html`)
+- `/publico/<pk>/` → detalle de parroquia pública
+Templates en `apps/iglesias/templates/iglesias/publico/`, extienden `base_publica.html` (no requieren `base.html` del admin).
+
 ### URLs principales
 - `/` → redirige a lista de parroquias
 - `/parroquias/` → lista con filtros y stats

@@ -205,6 +205,8 @@ class HorarioMisa(models.Model):
     dias = models.CharField(max_length=100)
     horarios = models.CharField(max_length=100)
     nota = models.TextField(blank=True, null=True)
+    creado_en = models.DateTimeField(auto_now_add=True, null=True)
+    actualizado_en = models.DateTimeField(auto_now=True, null=True)
 
     class Meta:
         verbose_name = "Horario de Misa"

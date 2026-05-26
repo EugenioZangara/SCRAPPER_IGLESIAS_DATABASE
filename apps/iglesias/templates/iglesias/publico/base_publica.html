@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parroquias BA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #4f46e5;
+      --primary-soft: #eeedfe;
+      --primary-dark: #3730a3;
+      --ink: #1e1b4b;
+      --muted: #6b7280;
+      --rule: #e5e7eb;
+      --rule-2: #f3f4f6;
+      --paper: #ffffff;
+      --sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--rule-2);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Nav */
+    .pub-nav {
+      background: var(--paper);
+      border-bottom: 1px solid var(--rule);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .pub-nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pub-nav-logo {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+      letter-spacing: -0.01em;
+    }
+    .pub-nav-sep {
+      color: var(--rule);
+      font-size: 18px;
+    }
+    .pub-nav-sub {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* Main content */
+    .pub-main {
+      flex: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 32px 24px;
+    }
+
+    /* Sections */
+    .pub-section {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .pub-section-title {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    /* Two-column grid */
+    .pub-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 768px) {
+      .pub-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Back link */
+    .pub-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: var(--primary);
+      text-decoration: none;
+      margin-bottom: 20px;
+      font-weight: 500;
+    }
+    .pub-back:hover { color: var(--primary-dark); }
+
+    /* Field rows */
+    .pub-field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--rule-2);
+    }
+    .pub-field:last-child { border-bottom: none; }
+    .pub-field-lbl {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .pub-field-val {
+      font-size: 14px;
+      color: var(--ink);
+    }
+    .pub-field-val a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .pub-field-val a:hover { text-decoration: underline; }
+
+    /* Red social card */
+    .pub-red {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--rule-2);
+    }
+    .pub-red:last-child { border-bottom: none; }
+    .pub-red-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .pub-red-icon.ig { background: #fce7f3; }
+    .pub-red-icon.fb { background: #eff6ff; }
+    .pub-red-icon.yt { background: #fef2f2; }
+    .pub-red-icon.tk { background: #f0fdf4; }
+    .pub-red-icon.otro { background: var(--rule-2); }
+    .pub-red-info { flex: 1; min-width: 0; }
+    .pub-red-handle {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pub-red-link {
+      font-size: 12px;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .pub-red-link:hover { text-decoration: underline; }
+
+    /* Evento card */
+    .pub-evento {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--rule-2);
+    }
+    .pub-evento:last-child { border-bottom: none; }
+    .pub-evento-titulo {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .pub-evento-meta {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pub-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+    }
+
+    /* Horario row */
+    .pub-horario {
+      padding: 8px 0;
+      border-bottom: 1px solid var(--rule-2);
+    }
+    .pub-horario:last-child { border-bottom: none; }
+    .pub-horario-dias { font-size: 13px; font-weight: 500; color: var(--ink); }
+    .pub-horario-horas { font-size: 13px; color: var(--muted); }
+    .pub-horario-nota { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* Empty state */
+    .pub-empty {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 8px 0;
+    }
+
+    /* Footer */
+    .pub-footer {
+      background: var(--paper);
+      border-top: 1px solid var(--rule);
+      text-align: center;
+      padding: 16px 24px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav class="pub-nav">
+    <div class="pub-nav-inner">
+      <a href="{% url 'iglesias:publico_inicio' %}" class="pub-nav-logo">✦ Parroquias BA</a>
+      <span class="pub-nav-sep">·</span>
+      <span class="pub-nav-sub">Arquidiócesis de Buenos Aires</span>
+    </div>
+  </nav>
+
+  <main class="pub-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="pub-footer">
+    Parroquias BA · Arquidiócesis de Buenos Aires · ✦ Integrado con Gaudium
+  </footer>
+
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+</body>
+</html>

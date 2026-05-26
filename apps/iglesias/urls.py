@@ -6,6 +6,9 @@ from . import views
 app_name = "iglesias"
 
 urlpatterns = [
+    path("publico/", views.publico_inicio, name="publico_inicio"),
+    path("publico/buscar/", views.publico_buscar, name="publico_buscar"),
+    path("publico/<int:pk>/", views.publico_detalle, name="publico_detalle"),
     path("", RedirectView.as_view(pattern_name="iglesias:lista_parroquias", permanent=False), name="inicio"),
     path("parroquias/", views.lista_parroquias, name="lista_parroquias"),
     path("parroquias/<int:pk>/", views.detalle_parroquia, name="detalle_parroquia"),

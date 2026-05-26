@@ -1,0 +1,62 @@
+{% if query %}
+  <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">
+    {{ total }} parroquia{{ total|pluralize }} encontrada{{ total|pluralize }}
+    para "{{ query }}"
+  </p>
+{% endif %}
+
+{% if resultados %}
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px;">
+  {% for item in resultados %}
+  <a href="{% url 'iglesias:publico_detalle' item.parroquia.pk %}"
+     style="text-decoration:none;">
+    <div style="background:white; border:1px solid var(--rule);
+                border-radius:12px; padding:16px; cursor:pointer;
+                transition:border-color .15s, box-shadow .15s;"
+         onmouseenter="this.style.borderColor='var(--primary)';this.style.boxShadow='0 2px 8px rgba(79,70,229,.08)'"
+         onmouseleave="this.style.borderColor='var(--rule)';this.style.boxShadow='none'">
+      <div style="font-size:14px; font-weight:500; color:var(--ink);
+                   margin-bottom:4px; line-height:1.3;">
+        {{ item.parroquia.nombre }}
+      </div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;
+                   display:flex; align-items:center; gap:4px;">
+        📍 {{ item.parroquia.barrio|default:"—" }}
+      </div>
+      <div style="display:flex; gap:5px; flex-wrap:wrap;">
+        {% if item.eventos_count > 0 %}
+          <span style="font-size:11px; font-weight:500; padding:2px 8px;
+                       border-radius:999px; background:#eeedfe; color:#534ab7;">
+            {{ item.eventos_count }} evento{{ item.eventos_count|pluralize }}
+          </span>
+        {% endif %}
+        {% if item.tiene_ig %}
+          <span style="font-size:11px; font-weight:500; padding:2px 8px;
+                       border-radius:999px; background:#fce7f3; color:#9d174d;">
+            Instagram
+          </span>
+        {% endif %}
+        {% if item.tiene_fb %}
+          <span style="font-size:11px; font-weight:500; padding:2px 8px;
+                       border-radius:999px; background:#eff6ff; color:#1e40af;">
+            Facebook
+          </span>
+        {% endif %}
+        {% if item.tiene_horarios %}
+          <span style="font-size:11px; font-weight:500; padding:2px 8px;
+                       border-radius:999px; background:#f0fdf4; color:#166534;">
+            Horarios
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center; padding:48px 0; color:var(--muted);">
+  <div style="font-size:32px; margin-bottom:12px;">🔍</div>
+  <div style="font-size:15px;">No se encontraron parroquias</div>
+  <div style="font-size:13px; margin-top:6px;">Intentá con otro término</div>
+</div>
+{% endif %}
