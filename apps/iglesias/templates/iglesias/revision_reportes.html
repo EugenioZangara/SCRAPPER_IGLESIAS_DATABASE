@@ -1,0 +1,97 @@
+{% extends "iglesias/base.html" %}
+
+{% block content %}
+<div class="head">
+  <div>
+    <p class="eyebrow">Revisión de horarios</p>
+    <h1 class="title">Reportes de <em>horarios</em></h1>
+    <p class="lede">Reportes enviados por usuarios pendientes de revisión.</p>
+  </div>
+  <div class="head-meta">
+    <strong>Estado</strong>
+    {{ total_pendientes }} pendiente{{ total_pendientes|pluralize }}
+  </div>
+</div>
+
+<div class="stats-dir" style="margin-bottom:32px;">
+  <div class="stat lead">
+    <span class="stat-label">Pendientes</span>
+    <span class="stat-num">{{ total_pendientes }}</span>
+  </div>
+  <div class="stat">
+    <span class="stat-label">Revisados</span>
+    <span class="stat-num">{{ revisados.count }}</span>
+  </div>
+</div>
+
+{% if pendientes %}
+<section style="margin-bottom:40px;">
+  <div style="font-size:11px; font-weight:500; text-transform:uppercase;
+              letter-spacing:0.08em; color:var(--muted); margin-bottom:16px;
+              padding-bottom:10px; border-bottom:1px solid var(--ink);">
+    Pendientes de revisión
+  </div>
+
+  {% for reporte in pendientes %}
+      {% include "iglesias/partials/reporte_card.html" %}
+  {% empty %}
+      <div style="text-align:center; padding:40px; color:#6b7280;">
+          No hay reportes pendientes.
+      </div>
+  {% endfor %}
+</section>
+{% else %}
+<div style="text-align:center; padding:64px 0; color:var(--muted);">
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+       stroke="#d1d5db" stroke-width="1.5" style="margin-bottom:14px;">
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="12 6 12 12 16 14"/>
+  </svg>
+  <div style="font-size:16px; font-weight:500; color:var(--ink); margin-bottom:6px;">
+    Sin reportes pendientes
+  </div>
+  <div style="font-size:14px;">No hay reportes de horarios esperando revisión.</div>
+</div>
+{% endif %}
+
+{% if revisados %}
+<section>
+  <div style="font-size:11px; font-weight:500; text-transform:uppercase;
+              letter-spacing:0.08em; color:var(--muted); margin-bottom:12px;
+              padding-bottom:10px; border-bottom:1px solid var(--rule);">
+    Últimos revisados
+  </div>
+  {% for reporte in revisados %}
+  <div style="display:flex; align-items:center; gap:12px; padding:10px 0;
+              border-bottom:1px solid var(--rule-2); font-size:13px;">
+    <span style="flex:1; font-weight:500; color:var(--ink);">
+      {{ reporte.parroquia.nombre }}
+    </span>
+    {% if reporte.estado == "aplicado" %}
+      <span style="font-size:11px; font-weight:500; padding:2px 8px;
+                   border-radius:999px; background:#dcfce7; color:#166534;">
+        Aplicado
+      </span>
+    {% else %}
+      <span style="font-size:11px; font-weight:500; padding:2px 8px;
+                   border-radius:999px; background:#fee2e2; color:#dc2626;">
+        Descartado
+      </span>
+    {% endif %}
+    <span style="color:var(--muted); font-size:12px; white-space:nowrap;">
+      {{ reporte.revisado_en|date:"d/m/Y" }}
+    </span>
+    {% if reporte.revisado_por %}
+    <span style="color:var(--muted); font-size:12px;">
+      {{ reporte.revisado_por.get_short_name|default:reporte.revisado_por.username }}
+    </span>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}

@@ -97,6 +97,37 @@ Eventos detectados por IA y validados manualmente. Campos clave:
 - `verificado`: bool — True si fue aprobado manualmente
 - Ordering: `["fecha", "hora"]`
 
+### HorarioMisa
+Horarios de misa por día de la semana. Un registro por día.
+- `parroquia`: FK a Parroquia
+- `dia_semana`: IntegerField 0=Lunes … 6=Domingo (choices DIA_CHOICES)
+- `horarios`: CharField(200), ej: "8:00 · 19:00"
+- `nota`: texto libre opcional
+- `fuente`: "baiglesias" / "web_propia" / "usuario"
+- `unique_together`: (parroquia, dia_semana)
+- Ordering: `["dia_semana"]`
+
+### ValidacionHorario
+Registro de cada vez que un usuario confirma que los horarios de una parroquia son correctos.
+- `parroquia`: FK a Parroquia, related_name="validaciones_horario"
+- `creado_en`: auto_now_add
+- Ordering: `["-creado_en"]`
+- Se resetea (delete all) cuando se aplica un ReporteHorario
+- URL pública: `POST /publico/<pk>/validar-horario/` → `validar_horario` → JsonResponse `{ok, total}`
+
+### ReporteHorario
+Reporte enviado por usuario desde la vista pública para corregir horarios de misas.
+- `parroquia`: FK a Parroquia
+- `texto_usuario`: texto libre ingresado por el usuario
+- `propuesta_ia`: JSON con lista de dicts `{dia: int, horario: str}` — null hasta que la IA procesa
+- `resumen_cambios`: descripción de los cambios detectados por la IA
+- `estado`: "pendiente" / "aplicado" / "descartado"
+- `revisado_en`, `revisado_por`: FK auth.User
+- Ordering: `["-creado_en"]`
+- Procesado con Gemini en background thread via `apps/iglesias/ia_horarios.py`
+- Panel de revisión en `/horarios/reportes/` (solo staff)
+- Al aplicar: usa `update_or_create`/`delete` por día; resetea ValidacionHorario
+
 ### ScraperJob
 Registro de cada ejecución del scraper, usado por la tarjeta flotante de progreso.
 - `estado`: "corriendo" / "completado" / "error"
@@ -189,7 +220,16 @@ El JSON que devuelve la IA tiene estos campos:
 - `/publico/` → inicio con buscador HTMX de parroquias
 - `/publico/buscar/` → endpoint HTMX de búsqueda (partial `resultados.html`)
 - `/publico/<pk>/` → detalle de parroquia pública
+- `/publico/<pk>/reportar-horario/` → POST — crea ReporteHorario y procesa con IA en background
+- `/publico/<pk>/validar-horario/` → POST — crea ValidacionHorario; devuelve `{ok, total}`
 Templates en `apps/iglesias/templates/iglesias/publico/`, extienden `base_publica.html` (no requieren `base.html` del admin).
+
+### URLs de reportes de horarios (staff)
+- `/horarios/reportes/` → panel de revisión de reportes
+- `/horarios/reportes/<pk>/aplicar/` → POST — aplica propuesta IA, reemplaza HorarioMisa
+- `/horarios/reportes/<pk>/descartar/` → POST — descarta reporte
+- `/horarios/reportes/count/` → GET JSON — conteo de pendientes (badge en nav)
+Badge en nav de `base.html` con fetch al cargar para mostrar conteo de pendientes.
 
 ### URLs principales
 - `/` → redirige a lista de parroquias

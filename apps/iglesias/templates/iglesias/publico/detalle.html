@@ -78,24 +78,32 @@
         Horarios de misas
       </div>
 
+      {% with total_validaciones=parroquia.validaciones_horario.count %}
       {% if horarios %}
+        {% if total_validaciones > 0 %}
+        <div style="display:flex; align-items:center; gap:6px;
+                    font-size:12px; color:#16a34a; margin-bottom:12px;
+                    padding:8px 12px; background:#f0fdf4; border-radius:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          {{ total_validaciones }} usuario{{ total_validaciones|pluralize }}
+          ha{{ total_validaciones|pluralize:"n" }} confirmado que
+          esta información es correcta
+        </div>
+        {% endif %}
+
         {% for h in horarios %}
-        <div style="display:flex; justify-content:space-between;
-                    align-items:flex-start; padding:10px 0;
+        <div style="display:flex; justify-content:space-between; padding:8px 0;
                     border-bottom:1px solid var(--rule-2);">
-          <div style="font-size:13px; color:var(--muted); flex:1;">
-            {{ h.dias }}
-            {% if h.nota %}
-              <div style="font-size:12px; color:var(--muted);
-                          margin-top:2px; font-style:italic;">
-                {{ h.nota }}
-              </div>
-            {% endif %}
-          </div>
-          <div style="font-size:14px; font-weight:500; color:var(--ink);
-                      text-align:right; margin-left:16px;">
+          <span style="color:var(--muted); font-size:13px;">
+            {{ h.get_dia_semana_display }}
+          </span>
+          <span style="font-weight:500; font-size:13px; color:var(--ink);">
             {{ h.horarios }}
-          </div>
+          </span>
         </div>
         {% endfor %}
 
@@ -150,6 +158,71 @@
         </div>
 
       {% endif %}
+      {% endwith %}
+    </div>
+
+    <div style="background:white; border:1px solid var(--rule);
+                border-radius:12px; padding:16px; margin-top:12px;"
+         id="reporte-section">
+      <div style="font-size:13px; font-weight:500; color:var(--ink);
+                  margin-bottom:12px;">
+        ¿Estos horarios son correctos?
+      </div>
+      <div style="display:flex; gap:8px;" id="reporte-btns">
+        <button id="btn-correcto"
+                onclick="confirmarHorarios({{ parroquia.pk }})"
+                style="display:inline-flex; align-items:center; gap:6px;
+                       padding:7px 14px; border-radius:8px; font-size:13px;
+                       border:1px solid #86efac; background:white;
+                       color:#16a34a; cursor:pointer;">
+          ✓ Sí, están bien
+        </button>
+        <button onclick="document.getElementById('reporte-form').style.display='block';
+                         document.getElementById('reporte-btns').style.display='none';"
+                style="display:inline-flex; align-items:center; gap:6px;
+                       padding:7px 14px; border-radius:8px; font-size:13px;
+                       border:1px solid #fca5a5; background:white;
+                       color:#dc2626; cursor:pointer;">
+          ✕ No, están mal
+        </button>
+      </div>
+
+      <div id="reporte-confirmado" style="display:none; margin-top:10px;
+           padding:10px; border-radius:8px; background:#f0fdf4;
+           color:#16a34a; font-size:13px; align-items:center; gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        ¡Gracias por tu confirmación!
+      </div>
+
+      <div id="reporte-form" style="display:none; margin-top:12px;">
+        <textarea id="reporte-texto"
+                  placeholder="Ej: Los domingos hay misa a las 9, 11 y 20."
+                  style="width:100%; border:1px solid #4f46e5; border-radius:8px;
+                         padding:10px; font-size:13px; resize:none;
+                         min-height:80px; font-family:inherit;
+                         color:var(--ink);"></textarea>
+        <div style="margin-top:8px; display:flex; justify-content:space-between;
+                    align-items:center;">
+          <span style="font-size:12px; color:var(--muted);">
+            Tu reporte ayuda a mantener la información actualizada
+          </span>
+          <button onclick="enviarReporte({{ parroquia.pk }})"
+                  style="display:inline-flex; align-items:center; gap:6px;
+                         padding:8px 16px; border-radius:8px; font-size:13px;
+                         font-weight:500; background:#4f46e5; color:white;
+                         border:none; cursor:pointer;">
+            Enviar reporte
+          </button>
+        </div>
+        <div id="reporte-ok" style="display:none; margin-top:10px; padding:10px;
+             border-radius:8px; background:#dcfce7; color:#166534; font-size:13px;">
+          ¡Gracias! Tu reporte fue enviado y será revisado por el equipo.
+        </div>
+      </div>
     </div>
   </div>
 
@@ -253,4 +326,51 @@
     </div>
   </div>
 </div>
+
+<script>
+function confirmarHorarios(pk) {
+    const csrf = document.cookie.split(';')
+        .find(c => c.trim().startsWith('csrftoken='))
+        ?.split('=')[1] || '';
+    fetch('/publico/' + pk + '/validar-horario/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            document.getElementById('reporte-btns').style.display = 'none';
+            document.getElementById('reporte-confirmado').style.display = 'flex';
+        }
+    })
+    .catch(() => {});
+}
+
+function enviarReporte(pk) {
+    const texto = document.getElementById('reporte-texto').value.trim();
+    if (!texto || texto.length < 10) {
+        alert('Por favor escribí los horarios correctos antes de enviar.');
+        return;
+    }
+    const csrf = document.cookie.split(';')
+        .find(c => c.trim().startsWith('csrftoken='))
+        ?.split('=')[1] || '';
+    fetch('/publico/' + pk + '/reportar-horario/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrf
+        },
+        body: 'texto=' + encodeURIComponent(texto)
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            document.getElementById('reporte-form').style.display = 'none';
+            document.getElementById('reporte-ok').style.display = 'block';
+        }
+    })
+    .catch(() => alert('Error al enviar el reporte. Intentá de nuevo.'));
+}
+</script>
 {% endblock %}

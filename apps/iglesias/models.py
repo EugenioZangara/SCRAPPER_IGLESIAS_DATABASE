@@ -199,22 +199,97 @@ class InfoBaiglesias(models.Model):
 
 
 class HorarioMisa(models.Model):
+    DIA_CHOICES = [
+        (0, "Lunes"),
+        (1, "Martes"),
+        (2, "Miércoles"),
+        (3, "Jueves"),
+        (4, "Viernes"),
+        (5, "Sábado"),
+        (6, "Domingo"),
+    ]
     parroquia = models.ForeignKey(
         "Parroquia", on_delete=models.CASCADE, related_name="horarios_misa"
     )
-    dias = models.CharField(max_length=100)
-    horarios = models.CharField(max_length=100)
+    dia_semana = models.IntegerField(choices=DIA_CHOICES)
+    horarios = models.CharField(
+        max_length=200,
+        help_text="Ej: 8:00 · 19:00"
+    )
     nota = models.TextField(blank=True, null=True)
+    fuente = models.CharField(
+        max_length=20,
+        choices=[("baiglesias", "BAIglesias"), ("web_propia", "Web propia"),
+                 ("usuario", "Reporte de usuario")],
+        default="baiglesias"
+    )
     creado_en = models.DateTimeField(auto_now_add=True, null=True)
     actualizado_en = models.DateTimeField(auto_now=True, null=True)
 
     class Meta:
         verbose_name = "Horario de Misa"
         verbose_name_plural = "Horarios de Misa"
-        ordering = ["id"]
+        ordering = ["dia_semana"]
+        unique_together = ("parroquia", "dia_semana")
 
     def __str__(self):
-        return f"{self.dias}: {self.horarios} — {self.parroquia.nombre}"
+        return f"{self.get_dia_semana_display()}: {self.horarios} — {self.parroquia.nombre}"
+
+
+class ValidacionHorario(models.Model):
+    parroquia = models.ForeignKey(
+        "Parroquia", on_delete=models.CASCADE,
+        related_name="validaciones_horario"
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-creado_en"]
+        verbose_name = "Validación de Horario"
+        verbose_name_plural = "Validaciones de Horario"
+
+    def __str__(self):
+        return f"Validación {self.pk} — {self.parroquia.nombre}"
+
+
+class ReporteHorario(models.Model):
+    ESTADO_CHOICES = [
+        ("pendiente", "Pendiente"),
+        ("aplicado", "Aplicado"),
+        ("descartado", "Descartado"),
+    ]
+    parroquia = models.ForeignKey(
+        "Parroquia", on_delete=models.CASCADE,
+        related_name="reportes_horario"
+    )
+    texto_usuario = models.TextField(
+        help_text="Texto libre ingresado por el usuario"
+    )
+    propuesta_ia = models.JSONField(
+        null=True, blank=True,
+        help_text="Lista de dicts con dias/horarios propuestos por la IA"
+    )
+    resumen_cambios = models.TextField(
+        blank=True, null=True,
+        help_text="Descripción de los cambios detectados por la IA"
+    )
+    estado = models.CharField(
+        max_length=20, choices=ESTADO_CHOICES, default="pendiente"
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+    revisado_en = models.DateTimeField(null=True, blank=True)
+    revisado_por = models.ForeignKey(
+        "auth.User", on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+
+    class Meta:
+        ordering = ["-creado_en"]
+        verbose_name = "Reporte de Horario"
+        verbose_name_plural = "Reportes de Horario"
+
+    def __str__(self):
+        return f"Reporte {self.pk} — {self.parroquia.nombre} ({self.estado})"
 
 
 class ScraperJob(models.Model):

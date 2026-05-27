@@ -34,60 +34,28 @@
 
             <div style="margin-top:14px;">
                 <div class="field-label" style="margin-bottom:8px;">Horarios de misas</div>
-                <div class="redes-list" id="horarios-existentes">
-                    {% for horario in parroquia.horarios_misa.all %}
-                        <div class="red-item" id="horario-row-{{ horario.pk }}">
-                            <div class="fields">
-                                <div class="field-label">Días</div>
-                                <div class="field-value">
-                                    <input type="text" name="dias_{{ horario.pk }}" value="{{ horario.dias }}" style="width:100%;">
-                                </div>
-                                <div class="field-label">Horarios</div>
-                                <div class="field-value">
-                                    <input type="text" name="horarios_{{ horario.pk }}" value="{{ horario.horarios }}" style="width:100%;">
-                                </div>
-                                <div class="field-label">Nota</div>
-                                <div class="field-value">
-                                    <input type="text" name="nota_{{ horario.pk }}" value="{{ horario.nota|default:'' }}" style="width:100%;">
-                                </div>
-                            </div>
-                            <button type="button" class="reject-button"
-                                    style="margin-top:8px;"
-                                    onclick="(function(btn){
-                                        var row = document.getElementById('horario-row-{{ horario.pk }}');
-                                        row.innerHTML = '<input type=\'hidden\' name=\'delete_{{ horario.pk }}\' value=\'1\'><em class=\'muted\'>Horario marcado para eliminar</em>';
-                                    })(this)">✕ Eliminar</button>
-                        </div>
+                <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+                    Dejá el campo vacío si no hay misa ese día.
+                </div>
+                <div style="display:grid; gap:6px;">
+                    {% for dia in horarios_form %}
+                    <div style="display:grid; grid-template-columns:120px 1fr 1fr; gap:8px; align-items:center;">
+                        <span style="font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-2);">
+                            {{ dia.nombre }}
+                        </span>
+                        <input type="text"
+                               name="horarios_{{ dia.num }}"
+                               value="{{ dia.horarios }}"
+                               placeholder="ej: 8:00 · 19:00"
+                               style="border:1px solid var(--line); border-radius:6px; padding:6px 8px; font:inherit; font-size:13px;">
+                        <input type="text"
+                               name="nota_{{ dia.num }}"
+                               value="{{ dia.nota }}"
+                               placeholder="nota opcional"
+                               style="border:1px solid var(--line); border-radius:6px; padding:6px 8px; font:inherit; font-size:13px; color:var(--muted);">
+                    </div>
                     {% endfor %}
                 </div>
-
-                <div id="nuevos-horarios" style="margin-top:10px; display:grid; gap:10px;"></div>
-
-                <template id="horario-template">
-                    <div class="red-item new-horario-row">
-                        <div class="fields">
-                            <div class="field-label">Días</div>
-                            <div class="field-value">
-                                <input type="text" name="new_dias" placeholder="ej: Lunes a Viernes" style="width:100%;">
-                            </div>
-                            <div class="field-label">Horarios</div>
-                            <div class="field-value">
-                                <input type="text" name="new_horarios" placeholder="ej: 19:00" style="width:100%;">
-                            </div>
-                            <div class="field-label">Nota</div>
-                            <div class="field-value">
-                                <input type="text" name="new_nota" placeholder="opcional" style="width:100%;">
-                            </div>
-                        </div>
-                        <button type="button" class="reject-button"
-                                style="margin-top:8px;"
-                                onclick="this.closest('.new-horario-row').remove()">✕ Quitar</button>
-                    </div>
-                </template>
-
-                <button type="button" class="verify-button"
-                        style="margin-top:10px;"
-                        onclick="document.getElementById('nuevos-horarios').appendChild(document.getElementById('horario-template').content.cloneNode(true))">+ Agregar horario</button>
             </div>
 
             <div style="display:flex; gap:8px; margin-top:16px;">
@@ -115,17 +83,56 @@
         {% if parroquia.horarios_misa.exists %}
             <div style="margin-top:14px;">
                 <div class="field-label" style="margin-bottom:8px;">Horarios de misas</div>
-                <div class="redes-list">
-                    {% for horario in parroquia.horarios_misa.all %}
-                        <div class="red-item">
-                            <div style="font-weight:700; font-size:13px;">{{ horario.dias }}</div>
-                            <div style="margin-top:4px;">{{ horario.horarios }}</div>
-                            {% if horario.nota %}
-                                <div class="muted" style="font-size:12px; margin-top:4px;">{{ horario.nota }}</div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
+
+                {% with validaciones=parroquia.validaciones_horario.count %}
+                {% if validaciones > 0 %}
+                <div style="display:flex; align-items:center; gap:6px; font-size:12px;
+                            color:#16a34a; padding:8px 10px; background:#f0fdf4;
+                            border-radius:8px; margin-bottom:10px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    {{ validaciones }} usuario{{ validaciones|pluralize }}
+                    ha{{ validaciones|pluralize:"n" }} confirmado que esta información es correcta
                 </div>
+                {% endif %}
+                {% endwith %}
+
+                <table style="width:100%; border-collapse:collapse;">
+                    {% for horario in parroquia.horarios_misa.all %}
+                    <tr style="border-bottom:1px solid var(--rule-2);">
+                        <td style="padding:7px 0; font-size:13px; color:var(--muted); width:140px;">
+                            {{ horario.get_dia_semana_display }}
+                        </td>
+                        <td style="padding:7px 0; font-size:13px; font-weight:500; color:var(--ink);">
+                            {{ horario.horarios }}
+                            {% if horario.nota %}
+                                <div style="font-size:11px; color:var(--muted); font-weight:400;
+                                             margin-top:2px; font-style:italic;">
+                                    {{ horario.nota }}
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+
+                {% with ultimo=parroquia.horarios_misa.last %}
+                {% if ultimo %}
+                <div style="font-size:11px; color:var(--muted); margin-top:10px;
+                             display:flex; align-items:center; gap:4px;">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    Actualizado {{ ultimo.actualizado_en|date:"d/m/Y" }}
+                    · Fuente: {{ ultimo.get_fuente_display }}
+                </div>
+                {% endif %}
+                {% endwith %}
             </div>
         {% endif %}
     {% endif %}

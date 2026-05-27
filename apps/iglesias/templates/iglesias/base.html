@@ -639,12 +639,25 @@
                        {% if 'moderacion' in request.resolver_match.url_name %}class="active"{% endif %}>
                         Moderación
                     </a>
+                    <a href="{% url 'iglesias:revision_reportes' %}"
+                       id="nav-reportes"
+                       {% if 'revision_reportes' == request.resolver_match.url_name %}class="active"{% endif %}
+                       style="position:relative;">
+                        Horarios
+                        <span id="badge-reportes"
+                              style="display:none; background:#ef4444; color:white;
+                                     border-radius:999px; font-size:10px; font-weight:600;
+                                     padding:1px 6px; margin-left:4px; min-width:18px;
+                                     text-align:center; vertical-align:middle;">
+                        </span>
+                    </a>
                     {% endif %}
                     {% if request.user.is_authenticated %}
                     <a href="{% url 'admin:index' %}"
                        {% if 'admin' in request.path %}class="active"{% endif %}>
                         Admin
                     </a>
+                    
                     {% endif %}
                 </nav>
             </div>
@@ -871,5 +884,22 @@
         window.iniciarScraperPolling = iniciarPolling;
     })();
     </script>
+
+    {% if request.user.is_staff %}
+    <script>
+    fetch('/horarios/reportes/count/')
+        .then(r => r.json())
+        .then(data => {
+            if (data.count > 0) {
+                const badge = document.getElementById('badge-reportes');
+                if (badge) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'inline';
+                }
+            }
+        })
+        .catch(() => {});
+    </script>
+    {% endif %}
 </body>
 </html>

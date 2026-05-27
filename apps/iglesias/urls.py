@@ -31,4 +31,11 @@ urlpatterns = [
     path("scraper/estado/", views.scraper_estado, name="scraper_estado"),
     path("scraper/resultado/", views.scraper_estado_resultado, name="scraper_resultado"),
     path("scraper/detener/", views.detener_scraper, name="detener_scraper"),
+    path("publico/<int:pk>/reportar-horario/", views.reportar_horario, name="reportar_horario"),
+    path("horarios/reportes/", views.revision_reportes, name="revision_reportes"),
+    path("horarios/reportes/<int:pk>/aplicar/", views.aplicar_reporte, name="aplicar_reporte"),
+    path("horarios/reportes/<int:pk>/descartar/", views.descartar_reporte, name="descartar_reporte"),
+    path("horarios/reportes/count/", views.reportes_count, name="reportes_count"),
+    path("horarios/reportes/<int:pk>/card/", views.reporte_card, name="reporte_card"),
+    path("publico/<int:pk>/validar-horario/", views.validar_horario, name="validar_horario"),
 ]

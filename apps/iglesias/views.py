@@ -5,12 +5,13 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob
+from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario
 
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils import timezone
 
 # --- Eliminar RedSocial ---
 @require_POST
@@ -1103,7 +1104,9 @@ def publico_detalle(request, pk):
         fecha__gte=hoy,
     ).order_by("fecha")[:5]
 
-    horarios = parroquia.horarios_misa.all()
+    horarios = parroquia.horarios_misa.filter(
+        horarios__gt=""
+    ).order_by("dia_semana")
 
     return render(request, "iglesias/publico/detalle.html", {
         "parroquia": parroquia,
@@ -1144,33 +1147,17 @@ def editar_seccion_bai(request, pk):
             info_bai.como_llegar = request.POST.get("como_llegar", "").strip() or None
             info_bai.save(update_fields=["direccion_completa", "como_llegar"])
 
-        for horario in list(parroquia.horarios_misa.all()):
-            if request.POST.get(f"delete_{horario.pk}"):
-                horario.delete()
-            else:
-                dias = request.POST.get(f"dias_{horario.pk}", "").strip()
-                horarios_val = request.POST.get(f"horarios_{horario.pk}", "").strip()
-                nota = request.POST.get(f"nota_{horario.pk}", "").strip() or None
-                if dias and horarios_val:
-                    horario.dias = dias
-                    horario.horarios = horarios_val
-                    horario.nota = nota
-                    horario.save(update_fields=["dias", "horarios", "nota"])
-
-        new_dias_list = request.POST.getlist("new_dias")
-        new_horarios_list = request.POST.getlist("new_horarios")
-        new_nota_list = request.POST.getlist("new_nota")
-        for dias, horarios_val, nota in zip(new_dias_list, new_horarios_list, new_nota_list):
-            dias = dias.strip()
-            horarios_val = horarios_val.strip()
-            nota = nota.strip() or None
-            if dias and horarios_val:
-                HorarioMisa.objects.create(
+        for num, _ in HorarioMisa.DIA_CHOICES:
+            horarios_val = request.POST.get(f"horarios_{num}", "").strip()
+            nota = request.POST.get(f"nota_{num}", "").strip() or None
+            if horarios_val:
+                HorarioMisa.objects.update_or_create(
                     parroquia=parroquia,
-                    dias=dias,
-                    horarios=horarios_val,
-                    nota=nota,
+                    dia_semana=num,
+                    defaults={"horarios": horarios_val, "nota": nota, "fuente": "web_propia"},
                 )
+            else:
+                HorarioMisa.objects.filter(parroquia=parroquia, dia_semana=num).delete()
 
         parroquia = get_object_or_404(
             Parroquia.objects.prefetch_related("horarios_misa").select_related("info_bai"),
@@ -1180,7 +1167,155 @@ def editar_seccion_bai(request, pk):
     else:
         editing = request.GET.get("cancelar") != "1"
 
+    horarios_por_dia = {h.dia_semana: h for h in parroquia.horarios_misa.all()}
+    horarios_form = [
+        {
+            "num": num,
+            "nombre": nombre,
+            "horarios": horarios_por_dia[num].horarios if num in horarios_por_dia else "",
+            "nota": horarios_por_dia[num].nota or "" if num in horarios_por_dia else "",
+        }
+        for num, nombre in HorarioMisa.DIA_CHOICES
+    ]
+
     return render(request, "iglesias/partials/seccion_bai.html", {
         "parroquia": parroquia,
         "editing": editing,
+        "horarios_form": horarios_form,
+    })
+
+
+def reportar_horario(request, pk):
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+
+    if request.method != "POST":
+        from django.http import HttpResponseNotAllowed
+        return HttpResponseNotAllowed(["POST"])
+
+    texto = request.POST.get("texto", "").strip()
+    if not texto or len(texto) < 10:
+        from django.http import JsonResponse
+        return JsonResponse({"ok": False, "error": "Texto muy corto"})
+
+    reporte = ReporteHorario.objects.create(
+        parroquia=parroquia,
+        texto_usuario=texto,
+    )
+
+    import threading
+    def procesar():
+        from apps.iglesias.ia_horarios import procesar_reporte_horario
+        resultado = procesar_reporte_horario(parroquia, texto)
+        reporte.propuesta_ia = resultado["propuesta_ia"]
+        reporte.resumen_cambios = resultado["resumen_cambios"]
+        reporte.save(update_fields=["propuesta_ia", "resumen_cambios"])
+
+    threading.Thread(target=procesar, daemon=True).start()
+
+    from django.http import JsonResponse
+    return JsonResponse({"ok": True})
+
+
+def revision_reportes(request):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
+
+    pendientes = ReporteHorario.objects.filter(
+        estado="pendiente"
+    ).select_related("parroquia").prefetch_related("parroquia__horarios_misa")
+
+    revisados = ReporteHorario.objects.exclude(
+        estado="pendiente"
+    ).select_related("parroquia", "revisado_por")[:20]
+
+    return render(request, "iglesias/revision_reportes.html", {
+        "pendientes": pendientes,
+        "revisados": revisados,
+        "total_pendientes": pendientes.count(),
+    })
+
+
+@require_POST
+def aplicar_reporte(request, pk):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
+
+    reporte = get_object_or_404(ReporteHorario, pk=pk)
+    parroquia = reporte.parroquia
+
+    propuesta = reporte.propuesta_ia or []
+    cambios = propuesta.get("horarios", []) if isinstance(propuesta, dict) else propuesta
+
+    for cambio in cambios:
+        dia = cambio.get("dia")
+        horario = (cambio.get("horario") or "").strip()
+        if dia is None:
+            continue
+        if horario:
+            HorarioMisa.objects.update_or_create(
+                parroquia=parroquia,
+                dia_semana=dia,
+                defaults={"horarios": horario, "fuente": "usuario"},
+            )
+        else:
+            HorarioMisa.objects.filter(parroquia=parroquia, dia_semana=dia).delete()
+
+    from .models import ValidacionHorario
+    ValidacionHorario.objects.filter(parroquia=parroquia).delete()
+
+    reporte.estado = "aplicado"
+    reporte.revisado_en = timezone.now()
+    reporte.revisado_por = request.user
+    reporte.save()
+
+    messages.success(
+        request,
+        f"Horarios de {parroquia.nombre} actualizados correctamente."
+    )
+    return redirect("iglesias:revision_reportes")
+
+
+@require_POST
+def descartar_reporte(request, pk):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
+
+    reporte = get_object_or_404(ReporteHorario, pk=pk)
+    reporte.estado = "descartado"
+    reporte.revisado_en = timezone.now()
+    reporte.revisado_por = request.user
+    reporte.save()
+
+    messages.warning(
+        request,
+        f"Reporte de {reporte.parroquia.nombre} descartado."
+    )
+    return redirect("iglesias:revision_reportes")
+
+
+def reportes_count(request):
+    if not request.user.is_staff:
+        from django.http import JsonResponse
+        return JsonResponse({"count": 0})
+    count = ReporteHorario.objects.filter(estado="pendiente").count()
+    from django.http import JsonResponse
+    return JsonResponse({"count": count})
+
+
+def validar_horario(request, pk):
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+    if request.method != "POST":
+        return JsonResponse({"ok": False, "error": "Método no permitido"})
+    from .models import ValidacionHorario
+    ValidacionHorario.objects.create(parroquia=parroquia)
+    total = ValidacionHorario.objects.filter(parroquia=parroquia).count()
+    return JsonResponse({"ok": True, "total": total})
+
+
+def reporte_card(request, pk):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
+    reporte = get_object_or_404(ReporteHorario, pk=pk)
+    return render(request, "iglesias/partials/reporte_card.html", {
+        "reporte": reporte,
     })

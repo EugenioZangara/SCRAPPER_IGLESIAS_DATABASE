@@ -9,12 +9,14 @@ from .models import (
     Evento,
     InfoBaiglesias,
     HorarioMisa,
+    ReporteHorario,
 )
 
 
 class HorarioMisaInline(admin.TabularInline):
     model = HorarioMisa
     extra = 0
+    fields = ("dia_semana", "horarios", "nota", "fuente")
 
 
 @admin.register(Parroquia)
@@ -72,8 +74,18 @@ class EventoAdmin(admin.ModelAdmin):
 
 @admin.register(HorarioMisa)
 class HorarioMisaAdmin(admin.ModelAdmin):
-    list_display = ("parroquia", "dias", "horarios")
+    list_display = ("parroquia", "dia_semana", "horarios", "fuente")
     search_fields = ("parroquia__nombre",)
+    list_filter = ("dia_semana", "fuente")
+
+
+@admin.register(ReporteHorario)
+class ReporteHorarioAdmin(admin.ModelAdmin):
+    list_display = ("parroquia", "estado", "creado_en", "revisado_por")
+    list_filter = ("estado",)
+    search_fields = ("parroquia__nombre",)
+    readonly_fields = ("creado_en", "revisado_en", "revisado_por",
+                       "propuesta_ia", "resumen_cambios")
 
 
 @admin.register(InfoBaiglesias)

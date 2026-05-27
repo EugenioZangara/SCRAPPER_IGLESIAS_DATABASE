@@ -1,0 +1,246 @@
+{% if reporte.propuesta_ia %}
+<div id="reporte-card-{{ reporte.pk }}"
+     style="background:white; border:1px solid #e5e7eb; border-radius:12px;
+            padding:20px; margin-bottom:16px;">
+    <div style="display:flex; justify-content:space-between;
+                align-items:flex-start; margin-bottom:14px;">
+        <div>
+            <div style="font-size:15px; font-weight:600; color:#1e1b4b;
+                         display:flex; align-items:center; gap:8px;">
+                {{ reporte.parroquia.nombre }}
+                {% with v=reporte.parroquia.validaciones_horario.count %}
+                {% if v > 0 %}
+                <span style="font-size:11px; color:#16a34a; background:#f0fdf4;
+                              border-radius:999px; padding:2px 8px; font-weight:500;">
+                    ✓ {{ v }} validación{{ v|pluralize:"es" }}
+                </span>
+                {% endif %}
+                {% endwith %}
+            </div>
+            <div style="font-size:12px; color:#6b7280; margin-top:2px;">
+                {{ reporte.parroquia.barrio }} ·
+                {{ reporte.creado_en|date:"d/m/Y H:i" }}
+            </div>
+        </div>
+        <span style="background:#fef3c7; color:#92400e; font-size:11px;
+                      font-weight:500; padding:3px 10px; border-radius:999px;">
+            Pendiente
+        </span>
+    </div>
+
+    <div style="background:#f9fafb; border-radius:8px; padding:12px;
+                margin-bottom:14px;">
+        <div style="font-size:10px; font-weight:600; text-transform:uppercase;
+                     letter-spacing:0.06em; color:#6b7280; margin-bottom:6px;">
+            Usuario reportó
+        </div>
+        <div style="font-size:13px; color:#1e1b4b; font-style:italic;">
+            "{{ reporte.texto_usuario }}"
+        </div>
+    </div>
+
+    <div class="reporte-comparacion" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;
+                margin-bottom:14px;">
+
+        <!-- Columna izquierda: horarios actuales -->
+        <div style="background:#f9fafb; border-radius:8px; padding:14px;">
+            <div style="font-size:10px; font-weight:600; text-transform:uppercase;
+                         letter-spacing:0.06em; color:#6b7280; margin-bottom:10px;">
+                Horarios actuales
+            </div>
+            {% with horarios=reporte.parroquia.horarios_misa.all %}
+            {% if horarios %}
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr>
+                            <th style="font-size:11px; text-transform:uppercase;
+                                       letter-spacing:0.05em; color:#6b7280;
+                                       text-align:left; padding:4px 6px;
+                                       border-bottom:1px solid #e5e7eb;">Día</th>
+                            <th style="font-size:11px; text-transform:uppercase;
+                                       letter-spacing:0.05em; color:#6b7280;
+                                       text-align:left; padding:4px 6px;
+                                       border-bottom:1px solid #e5e7eb;">Horarios</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in horarios %}
+                        <tr>
+                            <td style="font-size:13px; color:#374151; padding:5px 6px;
+                                       border-bottom:1px solid #f3f4f6;">
+                                {{ h.get_dia_semana_display }}
+                            </td>
+                            <td style="font-size:13px; color:#374151; padding:5px 6px;
+                                       border-bottom:1px solid #f3f4f6;">
+                                {{ h.horarios }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div style="font-size:13px; color:#9ca3af; font-style:italic;">
+                    Sin horarios cargados
+                </div>
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Columna derecha: propuesta de la IA -->
+        <div style="background:#eeedfe; border-radius:8px; padding:14px;">
+            <div style="font-size:10px; font-weight:600; text-transform:uppercase;
+                         letter-spacing:0.06em; color:#534ab7; margin-bottom:10px;
+                         display:flex; align-items:center; gap:5px;">
+                ✦ Propuesta de la IA
+            </div>
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr>
+                        <th style="font-size:11px; text-transform:uppercase;
+                                   letter-spacing:0.05em; color:#534ab7;
+                                   text-align:left; padding:4px 6px;
+                                   border-bottom:1px solid #afa9ec;">Día</th>
+                        <th style="font-size:11px; text-transform:uppercase;
+                                   letter-spacing:0.05em; color:#534ab7;
+                                   text-align:left; padding:4px 6px;
+                                   border-bottom:1px solid #afa9ec;">Horarios</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cambio in reporte.propuesta_ia %}
+                    <tr>
+                        <td style="font-size:13px; color:#3730a3; padding:5px 6px;
+                                   border-bottom:1px solid #ede9fe;">
+                            {% if cambio.dia == 0 %}Lunes
+                            {% elif cambio.dia == 1 %}Martes
+                            {% elif cambio.dia == 2 %}Miércoles
+                            {% elif cambio.dia == 3 %}Jueves
+                            {% elif cambio.dia == 4 %}Viernes
+                            {% elif cambio.dia == 5 %}Sábado
+                            {% elif cambio.dia == 6 %}Domingo
+                            {% endif %}
+                        </td>
+                        <td style="font-size:13px; font-weight:500; color:#1e1b4b;
+                                   padding:5px 6px; border-bottom:1px solid #ede9fe;">
+                            {% if cambio.horario %}
+                                {{ cambio.horario }}
+                            {% else %}
+                                <span style="color:#dc2626; font-style:italic;">Sin misa</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if reporte.resumen_cambios %}
+            <div style="font-size:12px; color:#534ab7; margin-top:10px;
+                         padding-top:8px; border-top:1px solid #afa9ec;">
+                {{ reporte.resumen_cambios }}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+    <style>
+    @media (max-width:640px) {
+        .reporte-comparacion { grid-template-columns: 1fr !important; }
+    }
+    </style>
+
+    <div style="display:flex; gap:10px;">
+        <form method="post"
+              action="{% url 'iglesias:aplicar_reporte' reporte.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                    style="background:#4f46e5; color:white; border:none;
+                           border-radius:8px; padding:9px 18px; font-size:13px;
+                           font-weight:500; cursor:pointer;">
+                ✓ Aplicar cambios
+            </button>
+        </form>
+        <form method="post"
+              action="{% url 'iglesias:descartar_reporte' reporte.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                    style="background:none; border:1px solid #fca5a5;
+                           color:#dc2626; border-radius:8px; padding:9px 18px;
+                           font-size:13px; font-weight:500; cursor:pointer;">
+                ✕ Descartar
+            </button>
+        </form>
+    </div>
+</div>
+
+{% else %}
+<div id="reporte-card-{{ reporte.pk }}"
+     hx-get="{% url 'iglesias:reporte_card' reporte.pk %}"
+     hx-trigger="every 8s"
+     hx-swap="outerHTML"
+     style="background:white; border:1px solid #e5e7eb; border-radius:12px;
+            padding:20px; margin-bottom:16px;">
+    <div style="display:flex; justify-content:space-between;
+                align-items:flex-start; margin-bottom:14px;">
+        <div>
+            <div style="font-size:15px; font-weight:600; color:#1e1b4b;
+                         display:flex; align-items:center; gap:8px;">
+                {{ reporte.parroquia.nombre }}
+                {% with v=reporte.parroquia.validaciones_horario.count %}
+                {% if v > 0 %}
+                <span style="font-size:11px; color:#16a34a; background:#f0fdf4;
+                              border-radius:999px; padding:2px 8px; font-weight:500;">
+                    ✓ {{ v }} validación{{ v|pluralize:"es" }}
+                </span>
+                {% endif %}
+                {% endwith %}
+            </div>
+            <div style="font-size:12px; color:#6b7280; margin-top:2px;">
+                {{ reporte.parroquia.barrio }} ·
+                {{ reporte.creado_en|date:"d/m/Y H:i" }}
+            </div>
+        </div>
+        <span style="background:#fef3c7; color:#92400e; font-size:11px;
+                      font-weight:500; padding:3px 10px; border-radius:999px;">
+            Pendiente
+        </span>
+    </div>
+
+    <div style="background:#f9fafb; border-radius:8px; padding:12px;
+                margin-bottom:14px;">
+        <div style="font-size:10px; font-weight:600; text-transform:uppercase;
+                     letter-spacing:0.06em; color:#6b7280; margin-bottom:6px;">
+            Usuario reportó
+        </div>
+        <div style="font-size:13px; color:#1e1b4b; font-style:italic;">
+            "{{ reporte.texto_usuario }}"
+        </div>
+    </div>
+
+    <div style="background:#f9fafb; border-radius:8px; padding:14px;
+                display:flex; align-items:center; gap:10px;">
+        <div style="width:16px; height:16px; border:2px solid #4f46e5;
+                     border-top-color:transparent; border-radius:50%;
+                     animation:spin 1s linear infinite; flex-shrink:0;">
+        </div>
+        <span style="font-size:13px; color:#6b7280;">
+            La IA está procesando el reporte...
+        </span>
+    </div>
+
+    <div style="margin-top:12px;">
+        <form method="post"
+              action="{% url 'iglesias:descartar_reporte' reporte.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                    style="background:none; border:1px solid #fca5a5;
+                           color:#dc2626; border-radius:8px; padding:7px 14px;
+                           font-size:12px; font-weight:500; cursor:pointer;">
+                ✕ Descartar
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endif %}
