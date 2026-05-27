@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Parroquias BA</title>
+  <link rel="icon" type="image/png" href="/static/iglesias/img/parroguia_logo.png">
+  <link rel="apple-touch-icon" href="/static/iglesias/img/parroguia_logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -54,6 +56,9 @@
       color: var(--primary);
       text-decoration: none;
       letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     .pub-nav-sep {
       color: var(--rule);
@@ -237,13 +242,28 @@
       color: var(--muted);
     }
   </style>
+  <meta name="robots" content="index, follow">
+  <meta property="og:site_name" content="ParroGuía">
+  <meta name="theme-color" content="#4f46e5">
+  {% block meta_extra %}{% endblock %}
 </head>
 <body>
   <nav class="pub-nav">
     <div class="pub-nav-inner">
-      <a href="{% url 'iglesias:publico_inicio' %}" class="pub-nav-logo">✦ Parroquias BA</a>
-      <span class="pub-nav-sep">·</span>
-      <span class="pub-nav-sub">Arquidiócesis de Buenos Aires</span>
+      <a href="{% url 'iglesias:publico_inicio' %}"
+         style="display:flex; align-items:center; gap:10px; text-decoration:none;">
+        <img src="/static/iglesias/img/parroguia_logo.png"
+             alt="ParroGuía"
+             style="width:44px; height:44px; border-radius:10px;
+                    object-fit:cover;">
+        <div>
+          <div style="font-size:16px; font-weight:600; color:#1e1b4b;
+                       line-height:1.1;">ParroGuía</div>
+          <div style="font-size:11px; color:#6b7280; line-height:1.1;">
+            Arquidiócesis de Buenos Aires
+          </div>
+        </div>
+      </a>
     </div>
   </nav>
 
@@ -252,7 +272,7 @@
   </main>
 
   <footer class="pub-footer">
-    Parroquias BA · Arquidiócesis de Buenos Aires · ✦ Integrado con Gaudium
+    ParroGuía · Arquidiócesis de Buenos Aires
   </footer>
 
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>

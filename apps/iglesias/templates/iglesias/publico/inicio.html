@@ -1,5 +1,14 @@
 {% extends "iglesias/publico/base_publica.html" %}
 
+{% block meta_extra %}
+<title>ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires</title>
+<meta name="description" content="Encontrá tu parroquia en Buenos Aires. Horarios de misas, eventos, contacto y ubicación de las {{ total }} parroquias de la Arquidiócesis de Buenos Aires.">
+<meta property="og:title" content="ParroGuía — Parroquias de Buenos Aires">
+<meta property="og:description" content="Directorio de parroquias católicas de la Arquidiócesis de Buenos Aires con horarios de misas y eventos.">
+<meta property="og:url" content="https://scrapper-iglesias-database.onrender.com/publico/">
+<link rel="canonical" href="https://scrapper-iglesias-database.onrender.com/publico/">
+{% endblock %}
+
 {% block content %}
 <style>
   .hero {
@@ -98,9 +107,22 @@
   .htmx-request .htmx-indicator { display: inline; }
 </style>
 
-<div class="hero">
-  <h1>Encontrá tu parroquia</h1>
-  <p class="hero-sub">{{ total }} parroquias de la Arquidiócesis de Buenos Aires</p>
+<div style="text-align:center; padding:48px 24px 32px;">
+  <div style="display:flex; justify-content:center; margin-bottom:20px;">
+    <img src="/static/iglesias/img/parroguia_logo.png"
+         alt="ParroGuía"
+         style="width:96px; height:96px; border-radius:22px;
+                object-fit:cover;
+                box-shadow:0 4px 24px rgba(79,70,229,0.18);">
+  </div>
+  <h1 style="font-size:clamp(28px,5vw,42px); font-weight:700;
+              color:#1e1b4b; margin-bottom:8px; letter-spacing:-0.02em;">
+    Encontrá tu parroquia
+  </h1>
+  <p style="font-size:15px; color:#6b7280; margin-bottom:28px;">
+    {{ total }} parroquias de la Arquidiócesis de Buenos Aires
+  </p>
+  <!-- buscador existente sin cambios -->
 
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
@@ -169,4 +191,38 @@
   hx-target="#resultados"
   style="display:none;"
 ></div>
+
+<noscript>
+<div style="padding:0 24px 32px;">
+    <h2 style="font-size:16px; font-weight:500; color:#1e1b4b;
+               margin-bottom:16px;">Todas las parroquias</h2>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,
+                minmax(200px,1fr)); gap:8px;">
+        {% for p in todas_parroquias %}
+        <a href="{% url 'iglesias:publico_detalle' p.pk %}"
+           style="display:block; padding:12px; border:1px solid #e5e7eb;
+                  border-radius:8px; text-decoration:none; color:#1e1b4b;
+                  font-size:13px; font-weight:500;">
+            {{ p.nombre }}
+            {% if p.barrio %}
+            <span style="display:block; font-size:11px; color:#6b7280;
+                          font-weight:400;">{{ p.barrio }}</span>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+</noscript>
+
+<!-- Lista indexable para bots (oculta visualmente pero legible por Google) -->
+<div style="position:absolute; width:1px; height:1px; overflow:hidden;
+            clip:rect(0,0,0,0); white-space:nowrap;" aria-hidden="true">
+    <ul>
+        {% for p in todas_parroquias %}
+        <li><a href="{% url 'iglesias:publico_detalle' p.pk %}">
+            {{ p.nombre }}{% if p.barrio %}, {{ p.barrio }}{% endif %}
+        </a></li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}

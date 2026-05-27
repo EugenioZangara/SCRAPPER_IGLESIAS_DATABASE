@@ -1,5 +1,43 @@
 {% extends "iglesias/publico/base_publica.html" %}
 
+{% block meta_extra %}
+<title>{{ parroquia.nombre }} — Horarios de misas y eventos | ParroGuía</title>
+<meta name="description" content="Horarios de misas, eventos y contacto de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}, Buenos Aires{% endif %}. Parroquia de la Arquidiócesis de Buenos Aires.">
+<meta property="og:title" content="{{ parroquia.nombre }} | ParroGuía">
+<meta property="og:description" content="Horarios de misas y eventos de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% endif %}.">
+<meta property="og:url" content="https://scrapper-iglesias-database.onrender.com/publico/{{ parroquia.pk }}/">
+<link rel="canonical" href="https://scrapper-iglesias-database.onrender.com/publico/{{ parroquia.pk }}/">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Church",
+  "name": "{{ parroquia.nombre }}",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "{{ parroquia.direccion|default:'' }}",
+    "addressLocality": "{{ parroquia.barrio|default:'Buenos Aires' }}",
+    "addressRegion": "Buenos Aires",
+    "addressCountry": "AR"
+  }
+  {% if parroquia.telefonos %}
+  ,"telephone": "{{ parroquia.telefonos }}"
+  {% endif %}
+  {% if parroquia.sitio_web %}
+  ,"url": "{{ parroquia.sitio_web }}"
+  {% endif %}
+  {% if parroquia.horarios_misa.exists %}
+  ,"openingHours": [
+    {% for h in parroquia.horarios_misa.all %}
+    "{{ h.get_dia_semana_display|slice:':2'|upper }} {{ h.horarios }}"
+    {% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+  {% endif %}
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <a href="{% url 'iglesias:publico_inicio' %}" class="pub-back">← Volver al buscador</a>
 
@@ -164,65 +202,90 @@
     <div style="background:white; border:1px solid var(--rule);
                 border-radius:12px; padding:16px; margin-top:12px;"
          id="reporte-section">
-      <div style="font-size:13px; font-weight:500; color:var(--ink);
-                  margin-bottom:12px;">
-        ¿Estos horarios son correctos?
-      </div>
-      <div style="display:flex; gap:8px;" id="reporte-btns">
-        <button id="btn-correcto"
-                onclick="confirmarHorarios({{ parroquia.pk }})"
-                style="display:inline-flex; align-items:center; gap:6px;
-                       padding:7px 14px; border-radius:8px; font-size:13px;
-                       border:1px solid #86efac; background:white;
-                       color:#16a34a; cursor:pointer;">
-          ✓ Sí, están bien
-        </button>
-        <button onclick="document.getElementById('reporte-form').style.display='block';
-                         document.getElementById('reporte-btns').style.display='none';"
-                style="display:inline-flex; align-items:center; gap:6px;
-                       padding:7px 14px; border-radius:8px; font-size:13px;
-                       border:1px solid #fca5a5; background:white;
-                       color:#dc2626; cursor:pointer;">
-          ✕ No, están mal
-        </button>
-      </div>
-
-      <div id="reporte-confirmado" style="display:none; margin-top:10px;
-           padding:10px; border-radius:8px; background:#f0fdf4;
-           color:#16a34a; font-size:13px; align-items:center; gap:8px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-          <polyline points="22 4 12 14.01 9 11.01"/>
-        </svg>
-        ¡Gracias por tu confirmación!
-      </div>
-
-      <div id="reporte-form" style="display:none; margin-top:12px;">
-        <textarea id="reporte-texto"
-                  placeholder="Ej: Los domingos hay misa a las 9, 11 y 20."
-                  style="width:100%; border:1px solid #4f46e5; border-radius:8px;
-                         padding:10px; font-size:13px; resize:none;
-                         min-height:80px; font-family:inherit;
-                         color:var(--ink);"></textarea>
-        <div style="margin-top:8px; display:flex; justify-content:space-between;
-                    align-items:center;">
-          <span style="font-size:12px; color:var(--muted);">
-            Tu reporte ayuda a mantener la información actualizada
-          </span>
-          <button onclick="enviarReporte({{ parroquia.pk }})"
+      {% if ya_valido %}
+        <div style="display:flex; align-items:center; gap:8px; padding:12px 14px;
+                    background:#f0fdf4; border-radius:10px; margin-top:12px;
+                    font-size:13px; color:#16a34a;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          Ya confirmaste que esta información es correcta. ¡Gracias!
+        </div>
+      {% elif ya_reporto %}
+        <div style="display:flex; align-items:center; gap:8px; padding:12px 14px;
+                    background:#fef3c7; border-radius:10px; margin-top:12px;
+                    font-size:13px; color:#92400e;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          Ya enviaste un reporte para esta parroquia. Será revisado pronto.
+        </div>
+      {% else %}
+        <div style="font-size:13px; font-weight:500; color:var(--ink);
+                    margin-bottom:12px;">
+          ¿Estos horarios son correctos?
+        </div>
+        <div style="display:flex; gap:8px;" id="reporte-btns">
+          <button id="btn-correcto"
+                  onclick="confirmarHorarios({{ parroquia.pk }})"
                   style="display:inline-flex; align-items:center; gap:6px;
-                         padding:8px 16px; border-radius:8px; font-size:13px;
-                         font-weight:500; background:#4f46e5; color:white;
-                         border:none; cursor:pointer;">
-            Enviar reporte
+                         padding:7px 14px; border-radius:8px; font-size:13px;
+                         border:1px solid #86efac; background:white;
+                         color:#16a34a; cursor:pointer;">
+            ✓ Sí, están bien
+          </button>
+          <button onclick="document.getElementById('reporte-form').style.display='block';
+                           document.getElementById('reporte-btns').style.display='none';"
+                  style="display:inline-flex; align-items:center; gap:6px;
+                         padding:7px 14px; border-radius:8px; font-size:13px;
+                         border:1px solid #fca5a5; background:white;
+                         color:#dc2626; cursor:pointer;">
+            ✕ No, están mal
           </button>
         </div>
-        <div id="reporte-ok" style="display:none; margin-top:10px; padding:10px;
-             border-radius:8px; background:#dcfce7; color:#166534; font-size:13px;">
-          ¡Gracias! Tu reporte fue enviado y será revisado por el equipo.
+
+        <div id="reporte-confirmado" style="display:none; margin-top:10px;
+             padding:10px; border-radius:8px; background:#f0fdf4;
+             color:#16a34a; font-size:13px; align-items:center; gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          ¡Gracias por tu confirmación!
         </div>
-      </div>
+
+        <div id="reporte-form" style="display:none; margin-top:12px;">
+          <textarea id="reporte-texto"
+                    placeholder="Ej: Los domingos hay misa a las 9, 11 y 20."
+                    style="width:100%; border:1px solid #4f46e5; border-radius:8px;
+                           padding:10px; font-size:13px; resize:none;
+                           min-height:80px; font-family:inherit;
+                           color:var(--ink);"></textarea>
+          <div style="margin-top:8px; display:flex; justify-content:space-between;
+                      align-items:center;">
+            <span style="font-size:12px; color:var(--muted);">
+              Tu reporte ayuda a mantener la información actualizada
+            </span>
+            <button onclick="enviarReporte({{ parroquia.pk }})"
+                    style="display:inline-flex; align-items:center; gap:6px;
+                           padding:8px 16px; border-radius:8px; font-size:13px;
+                           font-weight:500; background:#4f46e5; color:white;
+                           border:none; cursor:pointer;">
+              Enviar reporte
+            </button>
+          </div>
+          <div id="reporte-ok" style="display:none; margin-top:10px; padding:10px;
+               border-radius:8px; background:#dcfce7; color:#166534; font-size:13px;">
+            ¡Gracias! Tu reporte fue enviado y será revisado por el equipo.
+          </div>
+        </div>
+      {% endif %}
     </div>
   </div>
 

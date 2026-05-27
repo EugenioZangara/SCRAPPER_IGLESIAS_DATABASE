@@ -16,8 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from apps.iglesias import views as iglesias_views
 
 urlpatterns = [
     path('', include('apps.iglesias.urls')),
     path('admin/', admin.site.urls),
+    path('sitemap.xml', iglesias_views.sitemap, name='sitemap'),
+    path('robots.txt', iglesias_views.robots_txt, name='robots_txt'),
 ]

@@ -1,5 +1,32 @@
 # CLAUDE.md — Scrapper Iglesias Database
 
+## Prioridades de desarrollo
+
+### SEO y visibilidad — PRIORIDAD MÁXIMA en vistas públicas
+Toda funcionalidad que afecte las vistas públicas (/publico/)
+debe considerar SEO como requisito primario, no opcional.
+
+Reglas obligatorias para vistas públicas:
+- Cada parroquia debe tener su propia URL canónica (/publico/<pk>/)
+- El HTML inicial debe contener todo el contenido visible
+  (no depender de JS/HTMX para renderizar contenido indexable)
+- Usar <title> descriptivo con nombre de parroquia y ciudad
+- Usar meta description con información relevante
+- Usar meta og:title, og:description, og:url para redes sociales
+- Usar datos estructurados JSON-LD (schema.org/Church o
+  schema.org/LocalBusiness) en páginas de detalle
+- URLs limpias y descriptivas
+- Heading hierarchy correcta (un solo H1 por página)
+- Alt text en todas las imágenes
+- Sitemap XML accesible en /sitemap.xml
+- robots.txt en /robots.txt
+- Canonical tags en todas las páginas públicas
+- Core Web Vitals: evitar layout shifts, optimizar LCP
+- El buscador dinámico NO debe ser la única forma de
+  descubrir parroquias — debe haber enlaces HTML estáticos
+
+---
+
 ## Descripción del proyecto
 
 Sistema Django para centralizar, gestionar y enriquecer información sobre parroquias
@@ -222,6 +249,8 @@ El JSON que devuelve la IA tiene estos campos:
 - `/publico/<pk>/` → detalle de parroquia pública
 - `/publico/<pk>/reportar-horario/` → POST — crea ReporteHorario y procesa con IA en background
 - `/publico/<pk>/validar-horario/` → POST — crea ValidacionHorario; devuelve `{ok, total}`
+- `/sitemap.xml` → GET — sitemap XML de todas las parroquias (indexado por bots)
+- `/robots.txt` → GET — directivas para crawlers
 Templates en `apps/iglesias/templates/iglesias/publico/`, extienden `base_publica.html` (no requieren `base.html` del admin).
 
 ### URLs de reportes de horarios (staff)

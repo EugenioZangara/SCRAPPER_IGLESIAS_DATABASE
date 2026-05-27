@@ -1026,6 +1026,7 @@ def publico_inicio(request):
     return render(request, "iglesias/publico/inicio.html", {
         "total": total,
         "con_eventos": con_eventos,
+        "todas_parroquias": Parroquia.objects.all().order_by("nombre"),
     })
 
 
@@ -1108,11 +1109,16 @@ def publico_detalle(request, pk):
         horarios__gt=""
     ).order_by("dia_semana")
 
+    ya_valido = bool(request.COOKIES.get(f"validado_{pk}"))
+    ya_reporto = bool(request.COOKIES.get(f"reportado_{pk}"))
+
     return render(request, "iglesias/publico/detalle.html", {
         "parroquia": parroquia,
         "redes": redes_verificadas,
         "eventos": eventos_proximos,
         "horarios": horarios,
+        "ya_valido": ya_valido,
+        "ya_reporto": ya_reporto,
     })
 
 
@@ -1186,15 +1192,18 @@ def editar_seccion_bai(request, pk):
 
 
 def reportar_horario(request, pk):
+    from django.http import JsonResponse
     parroquia = get_object_or_404(Parroquia, pk=pk)
 
     if request.method != "POST":
-        from django.http import HttpResponseNotAllowed
-        return HttpResponseNotAllowed(["POST"])
+        return JsonResponse({"ok": False, "error": "Método no permitido"})
+
+    cookie_key = f"reportado_{pk}"
+    if request.COOKIES.get(cookie_key):
+        return JsonResponse({"ok": False, "error": "Ya enviaste un reporte para esta parroquia recientemente."})
 
     texto = request.POST.get("texto", "").strip()
     if not texto or len(texto) < 10:
-        from django.http import JsonResponse
         return JsonResponse({"ok": False, "error": "Texto muy corto"})
 
     reporte = ReporteHorario.objects.create(
@@ -1212,8 +1221,15 @@ def reportar_horario(request, pk):
 
     threading.Thread(target=procesar, daemon=True).start()
 
-    from django.http import JsonResponse
-    return JsonResponse({"ok": True})
+    response = JsonResponse({"ok": True})
+    response.set_cookie(
+        cookie_key,
+        "1",
+        max_age=60 * 60 * 24 * 30,
+        httponly=True,
+        samesite="Lax",
+    )
+    return response
 
 
 def revision_reportes(request):
@@ -1303,13 +1319,30 @@ def reportes_count(request):
 
 
 def validar_horario(request, pk):
+    from django.http import JsonResponse
     parroquia = get_object_or_404(Parroquia, pk=pk)
+
     if request.method != "POST":
         return JsonResponse({"ok": False, "error": "Método no permitido"})
+
+    cookie_key = f"validado_{pk}"
+    if request.COOKIES.get(cookie_key):
+        total = parroquia.validaciones_horario.count()
+        return JsonResponse({"ok": True, "total": total, "ya_validado": True})
+
     from .models import ValidacionHorario
     ValidacionHorario.objects.create(parroquia=parroquia)
     total = ValidacionHorario.objects.filter(parroquia=parroquia).count()
-    return JsonResponse({"ok": True, "total": total})
+
+    response = JsonResponse({"ok": True, "total": total, "ya_validado": False})
+    response.set_cookie(
+        cookie_key,
+        "1",
+        max_age=60 * 60 * 24 * 30,
+        httponly=True,
+        samesite="Lax",
+    )
+    return response
 
 
 def reporte_card(request, pk):
@@ -1319,3 +1352,25 @@ def reporte_card(request, pk):
     return render(request, "iglesias/partials/reporte_card.html", {
         "reporte": reporte,
     })
+
+
+def sitemap(request):
+    parroquias = Parroquia.objects.all().order_by("id")
+    return render(request, "iglesias/publico/sitemap.xml",
+                  {"parroquias": parroquias},
+                  content_type="application/xml")
+
+
+def robots_txt(request):
+    content = (
+        "User-agent: *\n"
+        "Allow: /publico/\n"
+        "Disallow: /admin/\n"
+        "Disallow: /eventos/\n"
+        "Disallow: /parroquias/\n"
+        "Disallow: /scraper/\n"
+        "Disallow: /horarios/\n"
+        "Sitemap: https://scrapper-iglesias-database.onrender.com/sitemap.xml\n"
+    )
+    from django.http import HttpResponse
+    return HttpResponse(content, content_type="text/plain")
