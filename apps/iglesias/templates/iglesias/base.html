@@ -662,6 +662,12 @@
                        {% if 'admin' in request.path %}class="active"{% endif %}>
                         Admin
                     </a>
+                    <a href="{% url 'iglesias:publico_inicio' %}"
+                       style="font-size:13px; color:var(--muted); text-decoration:none;
+                              padding:7px 14px; border-radius:8px;"
+                       target="_blank">
+                        Vista pública ↗
+                    </a>
                     <form method="post" action="{% url 'account_logout' %}"
                           style="display:inline;">
                         {% csrf_token %}

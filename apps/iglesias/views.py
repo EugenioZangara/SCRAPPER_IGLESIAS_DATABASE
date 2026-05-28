@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.contrib.auth import authenticate, login as auth_login
 from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1405,4 +1406,30 @@ def publico_ranking(request):
     return render(request, "iglesias/publico/ranking.html", {
         "perfiles": perfiles,
         "mi_perfil": mi_perfil,
+    })
+
+
+def admin_login(request):
+    if request.user.is_authenticated and request.user.is_staff:
+        return redirect("iglesias:lista_parroquias")
+
+    error = None
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+        user = authenticate(request, username=username, password=password)
+        if user and user.is_staff:
+            auth_login(request, user)
+            next_url = request.POST.get("next", "").strip()
+            if next_url and next_url.startswith("/"):
+                return redirect(next_url)
+            return redirect("iglesias:lista_parroquias")
+        elif user and not user.is_staff:
+            error = "Esta cuenta no tiene acceso al panel de administración."
+        else:
+            error = "Usuario o contraseña incorrectos."
+
+    return render(request, "iglesias/admin_login.html", {
+        "error": error,
+        "next": request.GET.get("next", ""),
     })

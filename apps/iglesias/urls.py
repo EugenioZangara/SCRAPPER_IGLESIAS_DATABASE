@@ -9,7 +9,7 @@ urlpatterns = [
     path("publico/", views.publico_inicio, name="publico_inicio"),
     path("publico/buscar/", views.publico_buscar, name="publico_buscar"),
     path("publico/<int:pk>/", views.publico_detalle, name="publico_detalle"),
-    path("", RedirectView.as_view(pattern_name="iglesias:lista_parroquias", permanent=False), name="inicio"),
+    path("", RedirectView.as_view(pattern_name="iglesias:publico_inicio", permanent=False), name="inicio"),
     path("parroquias/", views.lista_parroquias, name="lista_parroquias"),
     path("parroquias/<int:pk>/", views.detalle_parroquia, name="detalle_parroquia"),
     path("parroquias/<int:pk>/editar/contacto/", views.editar_seccion_contacto, name="editar_seccion_contacto"),
@@ -39,4 +39,5 @@ urlpatterns = [
     path("horarios/reportes/<int:pk>/card/", views.reporte_card, name="reporte_card"),
     path("publico/<int:pk>/validar-horario/", views.validar_horario, name="validar_horario"),
     path("publico/ranking/", views.publico_ranking, name="publico_ranking"),
+    path("admin-login/", views.admin_login, name="admin_login"),
 ]

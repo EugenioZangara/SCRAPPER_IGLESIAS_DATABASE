@@ -72,6 +72,7 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 LOGIN_REDIRECT_URL = "/publico/"
 LOGOUT_REDIRECT_URL = "/publico/"
+LOGIN_URL = "/accounts/login/"
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
