@@ -430,6 +430,7 @@
             </button>
         {% else %}
             <a href="{% url 'account_login' %}?next={{ request.path }}"
+               onclick="sessionStorage.setItem('pendingFavorita', '{{ parroquia.pk }}')"
                style="width:100%; display:flex; align-items:center;
                       justify-content:center; gap:8px; padding:10px 16px;
                       border-radius:8px; font-size:13px; font-weight:500;
@@ -455,8 +456,8 @@
             .then(r => r.json())
             .then(data => {
                 if (data.login_required) {
-                    window.location.href = '/accounts/login/?next=' +
-                        window.location.pathname;
+                    sessionStorage.setItem('pendingFavorita', '{{ parroquia.pk }}');
+                    window.location.href = '/accounts/login/?next={{ request.path }}';
                     return;
                 }
                 const btn = document.getElementById('btn-favorita');

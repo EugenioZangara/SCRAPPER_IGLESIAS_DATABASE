@@ -349,5 +349,51 @@
   </footer>
 
   <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+      const pendingPk = sessionStorage.getItem('pendingFavorita');
+      if (!pendingPk) return;
+
+      {% if request.user.is_authenticated %}
+      sessionStorage.removeItem('pendingFavorita');
+      const csrf = document.cookie.split(';')
+          .find(c => c.trim().startsWith('csrftoken='))
+          ?.split('=')[1] || '';
+      fetch('/publico/' + pendingPk + '/favorita/', {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrf },
+      })
+      .then(r => r.json())
+      .then(data => {
+          if (data.ok && data.favorita) {
+              const toast = document.createElement('div');
+              toast.textContent = '❤️ Parroquia marcada como favorita';
+              toast.style.cssText = 'position:fixed; bottom:24px; left:50%;' +
+                  'transform:translateX(-50%); background:#4f46e5; color:white;' +
+                  'padding:10px 20px; border-radius:8px; font-size:13px;' +
+                  'font-weight:500; z-index:9999; white-space:nowrap;';
+              document.body.appendChild(toast);
+              setTimeout(() => toast.remove(), 3000);
+
+              const currentPath = window.location.pathname;
+              const targetPath = '/publico/' + pendingPk + '/';
+              if (currentPath !== targetPath) {
+                  window.location.href = targetPath;
+              } else {
+                  const btn = document.getElementById('btn-favorita');
+                  const txt = document.getElementById('btn-favorita-text');
+                  if (btn && txt) {
+                      btn.style.background = '#eeedfe';
+                      btn.style.color = '#4f46e5';
+                      btn.style.border = '1.5px solid #4f46e5';
+                      txt.textContent = 'Mi parroquia ✓';
+                  }
+              }
+          }
+      })
+      .catch(() => {});
+      {% endif %}
+  });
+  </script>
 </body>
 </html>
