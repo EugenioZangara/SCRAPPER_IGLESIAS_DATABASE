@@ -1,0 +1,3 @@
+[33m59d8f07[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Based on the staged changes, this is a bug fix for data serialization in the iglesias app views.
+[33mb18d7a6[m feat(ui): refactor geolocation button event handling and template formatting
+[33m9807b24[m feat: geolocalización — parroquias cerca mío con distancia Haversine

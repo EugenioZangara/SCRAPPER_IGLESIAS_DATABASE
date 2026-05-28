@@ -402,6 +402,87 @@
         Ver eventos de la parroquia →
       </a>
     </div>
+
+    <div style="background:white; border:1px solid var(--rule);
+                border-radius:12px; padding:16px; margin-top:12px;"
+         id="favorita-section">
+        {% if request.user.is_authenticated %}
+            {% with es_favorita=request.user.perfil.parroquia_favorita.pk == parroquia.pk %}
+            <button id="btn-favorita"
+                    style="width:100%; display:flex; align-items:center;
+                           justify-content:center; gap:8px; padding:10px 16px;
+                           border-radius:8px; font-size:13px; font-weight:500;
+                           cursor:pointer; transition:all .15s;
+                           {% if es_favorita %}
+                           background:#eeedfe; color:#4f46e5; border:1.5px solid #4f46e5;
+                           {% else %}
+                           background:white; color:#6b7280; border:1px solid #e5e7eb;
+                           {% endif %}">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                          {% if es_favorita %}fill="#4f46e5"{% endif %}/>
+                </svg>
+                <span id="btn-favorita-text">
+                    {% if es_favorita %}Mi parroquia ✓{% else %}Marcar como mi parroquia{% endif %}
+                </span>
+            </button>
+            {% endwith %}
+        {% else %}
+            <a href="{% url 'account_login' %}?next={{ request.path }}"
+               style="width:100%; display:flex; align-items:center;
+                      justify-content:center; gap:8px; padding:10px 16px;
+                      border-radius:8px; font-size:13px; font-weight:500;
+                      color:#6b7280; border:1px solid #e5e7eb; text-decoration:none;
+                      background:white;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                Iniciar sesión para marcar mi parroquia
+            </a>
+        {% endif %}
+
+        <script>
+        function toggleFavorita(pk) {
+            const csrf = document.cookie.split(';')
+                .find(c => c.trim().startsWith('csrftoken='))
+                ?.split('=')[1] || '';
+            fetch('/publico/' + pk + '/favorita/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrf },
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.login_required) {
+                    window.location.href = '/accounts/login/?next=' +
+                        window.location.pathname;
+                    return;
+                }
+                const btn = document.getElementById('btn-favorita');
+                const txt = document.getElementById('btn-favorita-text');
+                if (data.favorita) {
+                    btn.style.background = '#eeedfe';
+                    btn.style.color = '#4f46e5';
+                    btn.style.border = '1.5px solid #4f46e5';
+                    txt.textContent = 'Mi parroquia ✓';
+                } else {
+                    btn.style.background = 'white';
+                    btn.style.color = '#6b7280';
+                    btn.style.border = '1px solid #e5e7eb';
+                    txt.textContent = 'Marcar como mi parroquia';
+                }
+            })
+            .catch(() => {});
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('btn-favorita');
+            if (btn) btn.addEventListener('click', function() {
+                toggleFavorita({{ parroquia.pk }});
+            });
+        });
+        </script>
+    </div>
   </div>
 </div>
 

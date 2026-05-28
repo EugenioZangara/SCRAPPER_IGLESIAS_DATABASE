@@ -174,6 +174,7 @@ Perfil extendido de usuario para scoring de colaboradores. OneToOne con User.
 - `avatar_url`, `proveedor`: datos del proveedor OAuth (google/facebook)
 - `score`: puntos acumulados (aprobación +10, bonus ×5 aprobados +20, rechazo −2, validación +1, primer reporte +5)
 - `reportes_enviados`, `reportes_aprobados`, `reportes_rechazados`, `validaciones_enviadas`
+- `parroquia_favorita`: FK → Parroquia, SET_NULL — "Mi Parroquia" del usuario
 - Ordering: `["-score"]`
 - Niveles: Nuevo (0–10) / Confiable (11–50) / Experto (51–99) / Verificado (100+)
 - Se crea automáticamente via signal `post_save` en `User`
@@ -267,6 +268,8 @@ El JSON que devuelve la IA tiene estos campos:
 - `/publico/<pk>/reportar-horario/` → POST — crea ReporteHorario y procesa con IA en background
 - `/publico/<pk>/validar-horario/` → POST — crea ValidacionHorario; devuelve `{ok, total}`
 - `/publico/ranking/` → GET — ranking de colaboradores con score
+- `/publico/<pk>/favorita/` → POST — toggle parroquia favorita del usuario; devuelve `{ok, favorita}`
+- `/publico/geo/` → GET JSON — lista de parroquias con coordenadas para geolocalización JS
 - `/accounts/` → allauth — login Google/Facebook, logout (`account_logout`, `socialaccount_signup`)
 - `/sitemap.xml` → GET — sitemap XML de todas las parroquias (indexado por bots)
 - `/robots.txt` → GET — directivas para crawlers

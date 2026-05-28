@@ -1018,7 +1018,34 @@ def crear_tipo_evento(request):
 
 
 def publico_inicio(request):
+    from .models import PerfilUsuario
     hoy = date.today()
+
+    mi_parroquia = None
+    if request.user.is_authenticated:
+        try:
+            perfil = request.user.perfil
+            if perfil.parroquia_favorita:
+                p = perfil.parroquia_favorita
+                p_redes = list(p.redes.all())
+                p_eventos = list(p.eventos.all())
+                p_horarios = list(p.horarios_misa.all())
+                redes_v = [r for r in p_redes if r.activo and r.verificado]
+                eventos_p = [e for e in p_eventos
+                             if e.activo and e.verificado
+                             and e.fecha and e.fecha >= hoy]
+                mi_parroquia = {
+                    "pk": p.pk,
+                    "nombre": p.nombre,
+                    "barrio": p.barrio or "",
+                    "tiene_horarios": bool(p_horarios),
+                    "tiene_ig": any(r.tipo == "instagram" for r in redes_v),
+                    "tiene_fb": any(r.tipo == "facebook" for r in redes_v),
+                    "eventos_count": len(eventos_p),
+                }
+        except Exception:
+            pass
+
     return render(request, "iglesias/publico/inicio.html", {
         "total": Parroquia.objects.count(),
         "con_eventos": Parroquia.objects.filter(
@@ -1027,7 +1054,28 @@ def publico_inicio(request):
             eventos__fecha__gte=hoy
         ).distinct().count(),
         "todas_parroquias": Parroquia.objects.all().order_by("nombre"),
+        "mi_parroquia": mi_parroquia,
     })
+
+
+@require_POST
+def set_parroquia_favorita(request, pk):
+    from django.http import JsonResponse
+    from .models import PerfilUsuario
+    if not request.user.is_authenticated:
+        return JsonResponse({"ok": False, "login_required": True})
+
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+    perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
+
+    if perfil.parroquia_favorita == parroquia:
+        perfil.parroquia_favorita = None
+        perfil.save(update_fields=["parroquia_favorita"])
+        return JsonResponse({"ok": True, "favorita": False})
+    else:
+        perfil.parroquia_favorita = parroquia
+        perfil.save(update_fields=["parroquia_favorita"])
+        return JsonResponse({"ok": True, "favorita": True})
 
 
 def parroquias_geo_json(request):

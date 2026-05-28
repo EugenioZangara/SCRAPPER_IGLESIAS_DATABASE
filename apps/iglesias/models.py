@@ -275,6 +275,11 @@ class PerfilUsuario(models.Model):
     reportes_aprobados = models.IntegerField(default=0)
     reportes_rechazados = models.IntegerField(default=0)
     validaciones_enviadas = models.IntegerField(default=0)
+    parroquia_favorita = models.ForeignKey(
+        "Parroquia", on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="usuarios_favoritos"
+    )
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
 
