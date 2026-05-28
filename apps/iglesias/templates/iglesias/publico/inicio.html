@@ -184,7 +184,6 @@
 
   <div style="text-align:center; margin-top:12px;">
     <button id="btn-cerca"
-            onclick="buscarCercaMio()"
             style="display:inline-flex; align-items:center; gap:8px;
                    padding:9px 18px; border-radius:999px; font-size:13px;
                    font-weight:500; border:1.5px solid #4f46e5;
@@ -246,14 +245,15 @@
     </ul>
 </div>
 <script>
+  {% load l10n %}
 const parroquiasGeo = [
     {% for p in parroquias_geo %}
     {
         pk: {{ p.pk }},
         nombre: "{{ p.nombre|escapejs }}",
         barrio: "{{ p.barrio|default:''|escapejs }}",
-        lat: {{ p.latitud }},
-        lng: {{ p.longitud }},
+        lat: {{ p.latitud|unlocalize }},
+lng: {{ p.longitud|unlocalize }},
         tiene_horarios: {{ p.tiene_horarios|yesno:"true,false" }},
         tiene_ig: {{ p.tiene_ig|yesno:"true,false" }},
         tiene_fb: {{ p.tiene_fb|yesno:"true,false" }},
@@ -374,5 +374,10 @@ function buscarCercaMio() {
         { timeout: 10000, maximumAge: 60000 }
     );
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('btn-cerca');
+    if (btn) btn.addEventListener('click', buscarCercaMio);
+});
 </script>
 {% endblock %}

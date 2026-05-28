@@ -1029,17 +1029,19 @@ def publico_inicio(request):
         redes_v = [r for r in p.redes.all() if r.activo and r.verificado]
         eventos_p = [e for e in p.eventos.all()
                      if e.activo and e.verificado and e.fecha and e.fecha >= hoy]
-        parroquias_geo.append({
-            "pk": p.pk,
-            "nombre": p.nombre,
-            "barrio": p.barrio or "",
-            "latitud": p.latitud,
-            "longitud": p.longitud,
-            "tiene_horarios": p.horarios_misa.exists(),
-            "tiene_ig": any(r.tipo == "instagram" for r in redes_v),
-            "tiene_fb": any(r.tipo == "facebook" for r in redes_v),
-            "eventos_count": len(eventos_p),
-        })
+        parroquias_geo.append(
+            {
+                "pk": p.pk,
+                "nombre": p.nombre,
+                "barrio": p.barrio or "",
+                "latitud": p.latitud,
+                "longitud": p.longitud,
+                "tiene_horarios": p.horarios_misa.exists(),
+                "tiene_ig": any(r.tipo == "instagram" for r in redes_v),
+                "tiene_fb": any(r.tipo == "facebook" for r in redes_v),
+                "eventos_count": len(eventos_p),
+            }
+        )
 
     return render(request, "iglesias/publico/inicio.html", {
         "total": Parroquia.objects.count(),
