@@ -24,6 +24,37 @@
   </div>
 </div>
 
+<!-- Filter pills -->
+<div style="display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap;">
+  <a href="{% url 'iglesias:revision_reportes' %}"
+     style="display:inline-flex; align-items:center; gap:5px; padding:6px 14px;
+            border-radius:999px; font-size:12px; font-weight:500; text-decoration:none;
+            border:1px solid {% if not fuente_activa %}var(--ink){% else %}var(--rule){% endif %};
+            background:{% if not fuente_activa %}var(--ink){% else %}transparent{% endif %};
+            color:{% if not fuente_activa %}var(--paper){% else %}var(--ink-2){% endif %};">
+    Todos
+    <span style="font-size:11px; opacity:0.7;">{{ total_pendientes }}</span>
+  </a>
+  <a href="?fuente=usuario"
+     style="display:inline-flex; align-items:center; gap:5px; padding:6px 14px;
+            border-radius:999px; font-size:12px; font-weight:500; text-decoration:none;
+            border:1px solid {% if fuente_activa == 'usuario' %}var(--ink){% else %}var(--rule){% endif %};
+            background:{% if fuente_activa == 'usuario' %}var(--ink){% else %}transparent{% endif %};
+            color:{% if fuente_activa == 'usuario' %}var(--paper){% else %}var(--ink-2){% endif %};">
+    Usuarios
+    <span style="font-size:11px; opacity:0.7;">{{ total_usuario }}</span>
+  </a>
+  <a href="?fuente=scraper"
+     style="display:inline-flex; align-items:center; gap:5px; padding:6px 14px;
+            border-radius:999px; font-size:12px; font-weight:500; text-decoration:none;
+            border:1px solid {% if fuente_activa == 'scraper' %}#4f46e5{% else %}var(--rule){% endif %};
+            background:{% if fuente_activa == 'scraper' %}#4f46e5{% else %}transparent{% endif %};
+            color:{% if fuente_activa == 'scraper' %}white{% else %}var(--ink-2){% endif %};">
+    ✦ Scraper
+    <span style="font-size:11px; opacity:0.7;">{{ total_scraper }}</span>
+  </a>
+</div>
+
 {% if pendientes %}
 <section style="margin-bottom:40px;">
   <div style="font-size:11px; font-weight:500; text-transform:uppercase;
@@ -66,6 +97,11 @@
               border-bottom:1px solid var(--rule-2); font-size:13px;">
     <span style="flex:1; font-weight:500; color:var(--ink);">
       {{ reporte.parroquia.nombre }}
+      {% if reporte.fuente == "scraper" %}
+      <span style="font-size:10px; color:#4f46e5; background:#eeedfe;
+                   border-radius:999px; padding:1px 6px; font-weight:500;
+                   vertical-align:middle; margin-left:4px;">✦</span>
+      {% endif %}
     </span>
     {% if reporte.estado == "aplicado" %}
       <span style="font-size:11px; font-weight:500; padding:2px 8px;

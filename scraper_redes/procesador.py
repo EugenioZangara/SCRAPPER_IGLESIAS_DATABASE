@@ -25,8 +25,10 @@ def descargar_imagen(url: str) -> bytes:
 
 PROMPT_FLYER = """Analizá esta imagen y su pie de foto que provienen de la red social de una parroquia católica.
 
-Tu objetivo es detectar ÚNICAMENTE publicaciones que inviten a la comunidad a participar 
-de un evento FUTURO o PRÓXIMO.
+Tenés DOS tareas:
+
+TAREA 1 — Detectar si es un EVENTO
+Clasificá si la publicación invita a participar de un evento FUTURO o PRÓXIMO.
 
 CLASIFICAR COMO EVENTO (es_evento: true):
 - Flyers o anuncios con convocatoria explícita: misa especial, retiro, charla, peregrinación,
@@ -42,6 +44,24 @@ NO CLASIFICAR COMO EVENTO (es_evento: false):
 - Avisos institucionales sin actividad específica
 - Transmisiones en vivo ya finalizadas
 
+TAREA 2 — Detectar si hay HORARIOS DE MISA SEMANALES
+Detectá si la imagen o el pie de foto muestran el horario semanal regular de misas.
+
+CLASIFICAR COMO HORARIOS (tiene_horarios: true) SOLO SI:
+- Se ve un cuadro, tabla o lista con días y horarios de misa semanales regulares
+- El texto indica claramente los días y horas de celebración semanal
+- Ej: "Misas: Lunes 19hs, Miércoles 9hs, Domingo 10hs y 19hs"
+
+NO CLASIFICAR COMO HORARIOS (tiene_horarios: false) SI:
+- Solo hay una misa especial o fecha puntual (eso es evento, no horario regular)
+- No hay días o horas específicas visibles
+- Es solo el anuncio de un evento único
+
+Si tiene_horarios es true, extraé los horarios en horarios_detectados:
+- dia: número entero 0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, 4=Viernes, 5=Sábado, 6=Domingo
+- horario: string con los horarios del día separados por " · " (ej: "9:00 · 19:00")
+- Omití los días sin misa
+
 {caption_line}
 
 Respondé ÚNICAMENTE con un JSON válido, sin texto adicional, sin markdown, sin backticks.
@@ -54,7 +74,9 @@ El JSON debe tener exactamente estos campos:
   "hora": "HH:MM o null",
   "lugar": "lugar del evento o null",
   "descripcion": "descripción breve en 1-2 oraciones o null",
-  "tipo_evento": "misa/retiro/charla/bautismo/confirmacion/peregrinacion/juventud/otro o null"
+  "tipo_evento": "misa/retiro/charla/bautismo/confirmacion/peregrinacion/juventud/otro o null",
+  "tiene_horarios": true si hay horario semanal regular de misas visible, false en cualquier otro caso,
+  "horarios_detectados": lista de objetos con dia (int 0-6) y horario (string) si tiene_horarios es true, si no lista vacía []
 }}"""
 
 

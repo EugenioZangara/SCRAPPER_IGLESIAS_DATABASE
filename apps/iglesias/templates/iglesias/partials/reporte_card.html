@@ -8,6 +8,12 @@
             <div style="font-size:15px; font-weight:600; color:#1e1b4b;
                          display:flex; align-items:center; gap:8px;">
                 {{ reporte.parroquia.nombre }}
+                {% if reporte.fuente == "scraper" %}
+                <span style="font-size:11px; color:#4f46e5; background:#eeedfe;
+                              border-radius:999px; padding:2px 8px; font-weight:500;">
+                    ✦ Scraper
+                </span>
+                {% endif %}
                 {% with v=reporte.parroquia.validaciones_horario.count %}
                 {% if v > 0 %}
                 <span style="font-size:11px; color:#16a34a; background:#f0fdf4;
@@ -28,6 +34,24 @@
         </span>
     </div>
 
+    {% if reporte.fuente == "scraper" and reporte.imagen_url %}
+    <div style="background:#f9fafb; border-radius:8px; padding:12px;
+                margin-bottom:14px; display:flex; gap:12px; align-items:flex-start;">
+        <img src="{{ reporte.imagen_url }}"
+             alt="Post scrapeado"
+             style="width:72px; height:72px; object-fit:cover; border-radius:6px;
+                    flex-shrink:0; border:1px solid #e5e7eb;">
+        <div>
+            <div style="font-size:10px; font-weight:600; text-transform:uppercase;
+                         letter-spacing:0.06em; color:#4f46e5; margin-bottom:4px;">
+                ✦ Detectado por scraper
+            </div>
+            <div style="font-size:13px; color:#1e1b4b;">
+                {{ reporte.texto_usuario }}
+            </div>
+        </div>
+    </div>
+    {% else %}
     <div style="background:#f9fafb; border-radius:8px; padding:12px;
                 margin-bottom:14px;">
         <div style="font-size:10px; font-weight:600; text-transform:uppercase;
@@ -38,6 +62,7 @@
             "{{ reporte.texto_usuario }}"
         </div>
     </div>
+    {% endif %}
 
     <div class="reporte-comparacion" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;
                 margin-bottom:14px;">
@@ -184,6 +209,12 @@
             <div style="font-size:15px; font-weight:600; color:#1e1b4b;
                          display:flex; align-items:center; gap:8px;">
                 {{ reporte.parroquia.nombre }}
+                {% if reporte.fuente == "scraper" %}
+                <span style="font-size:11px; color:#4f46e5; background:#eeedfe;
+                              border-radius:999px; padding:2px 8px; font-weight:500;">
+                    ✦ Scraper
+                </span>
+                {% endif %}
                 {% with v=reporte.parroquia.validaciones_horario.count %}
                 {% if v > 0 %}
                 <span style="font-size:11px; color:#16a34a; background:#f0fdf4;
@@ -204,6 +235,24 @@
         </span>
     </div>
 
+    {% if reporte.fuente == "scraper" and reporte.imagen_url %}
+    <div style="background:#f9fafb; border-radius:8px; padding:12px;
+                margin-bottom:14px; display:flex; gap:12px; align-items:flex-start;">
+        <img src="{{ reporte.imagen_url }}"
+             alt="Post scrapeado"
+             style="width:72px; height:72px; object-fit:cover; border-radius:6px;
+                    flex-shrink:0; border:1px solid #e5e7eb;">
+        <div>
+            <div style="font-size:10px; font-weight:600; text-transform:uppercase;
+                         letter-spacing:0.06em; color:#4f46e5; margin-bottom:4px;">
+                ✦ Detectado por scraper
+            </div>
+            <div style="font-size:13px; color:#1e1b4b;">
+                {{ reporte.texto_usuario }}
+            </div>
+        </div>
+    </div>
+    {% else %}
     <div style="background:#f9fafb; border-radius:8px; padding:12px;
                 margin-bottom:14px;">
         <div style="font-size:10px; font-weight:600; text-transform:uppercase;
@@ -214,6 +263,7 @@
             "{{ reporte.texto_usuario }}"
         </div>
     </div>
+    {% endif %}
 
     <div style="background:#f9fafb; border-radius:8px; padding:14px;
                 display:flex; align-items:center; gap:10px;">

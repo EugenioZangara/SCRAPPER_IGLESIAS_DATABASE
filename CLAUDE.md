@@ -153,16 +153,21 @@ Registro de cada vez que un usuario confirma que los horarios de una parroquia s
 - URL pública: `POST /publico/<pk>/validar-horario/` → `validar_horario` → JsonResponse `{ok, total}`
 
 ### ReporteHorario
-Reporte enviado por usuario desde la vista pública para corregir horarios de misas.
+Reporte para corregir horarios de misas. Puede provenir de usuarios o del scraper.
 - `parroquia`: FK a Parroquia
-- `texto_usuario`: texto libre ingresado por el usuario
-- `propuesta_ia`: JSON con lista de dicts `{dia: int, horario: str}` — null hasta que la IA procesa
-- `resumen_cambios`: descripción de los cambios detectados por la IA
+- `usuario`: FK auth.User — null si viene del scraper
+- `texto_usuario`: texto libre (usuario) o descripción de lo detectado (scraper)
+- `propuesta_ia`: JSON con lista de dicts `{dia: int, horario: str}` — null hasta que la IA procesa (scraper lo llena directamente)
+- `resumen_cambios`: descripción de los cambios detectados
 - `estado`: "pendiente" / "aplicado" / "descartado"
+- `imagen_url`: URLField(1000) — URL de la imagen del post (solo scraper)
+- `fuente`: "usuario" (default) / "scraper"
 - `revisado_en`, `revisado_por`: FK auth.User
 - Ordering: `["-creado_en"]`
-- Procesado con Gemini en background thread via `apps/iglesias/ia_horarios.py`
-- Panel de revisión en `/horarios/reportes/` (solo staff)
+- Fuente usuario: procesado con Gemini en background thread via `apps/iglesias/ia_horarios.py`
+- Fuente scraper: `propuesta_ia` ya viene cargada desde `procesador.py`, no requiere IA adicional
+- Deduplicación scraper: no se crea si ya existe uno de fuente=scraper en los últimos 7 días para la misma parroquia
+- Panel de revisión en `/horarios/reportes/` (solo staff) — filtros por fuente: Todos / Usuarios / ✦ Scraper
 - Al aplicar: usa `update_or_create`/`delete` por día; resetea ValidacionHorario
 
 ### ScraperJob
@@ -232,6 +237,7 @@ python instagram_login.py
 4. Guarda posts nuevos en `PostParroquia` con deduplicación por `post_id`
 5. Procesa posts pendientes con Gemini → si falla usa OpenRouter como fallback
 6. Si detecta evento futuro (`es_evento=True` y `es_pasado=False`), crea un `Evento`
+7. Si detecta horarios semanales de misa (`tiene_horarios=True`), crea un `ReporteHorario` con `fuente="scraper"` (deduplicado a 7 días)
 
 ### Parámetros en config.py
 ```python
@@ -260,9 +266,15 @@ El JSON que devuelve la IA tiene estos campos:
   "hora": "HH:MM",
   "lugar": "...",
   "descripcion": "...",
-  "tipo_evento": "misa/retiro/charla/bautismo/confirmacion/peregrinacion/juventud/otro"
+  "tipo_evento": "misa/retiro/charla/bautismo/confirmacion/peregrinacion/juventud/otro",
+  "tiene_horarios": true/false,
+  "horarios_detectados": [{"dia": 0-6, "horario": "HH:MM · HH:MM"}, ...]
 }
 ```
+
+`tiene_horarios` es `true` solo cuando la imagen muestra un cuadro/tabla con el horario
+semanal regular de misas (no eventos puntuales). `horarios_detectados` usa 0=Lunes … 6=Domingo
+y el mismo formato de separación `·` que `HorarioMisa.horarios`.
 
 ---
 

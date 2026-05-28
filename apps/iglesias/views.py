@@ -475,6 +475,29 @@ def ejecutar_scraper_completo(request):
                             crear_evento_desde_post(post_obj, resultado)
                             eventos_parroquia += 1
 
+                    if resultado.get("tiene_horarios") and resultado.get("horarios_detectados"):
+                        from datetime import timedelta
+                        hace_7_dias = timezone.now() - timedelta(days=7)
+                        if not ReporteHorario.objects.filter(
+                            parroquia=post_obj.parroquia,
+                            fuente="scraper",
+                            creado_en__gte=hace_7_dias,
+                        ).exists():
+                            _dias = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"]
+                            lineas = [
+                                f"{_dias[h['dia']]}: {h['horario']}"
+                                for h in resultado["horarios_detectados"]
+                                if 0 <= h.get("dia", -1) <= 6
+                            ]
+                            ReporteHorario.objects.create(
+                                parroquia=post_obj.parroquia,
+                                fuente="scraper",
+                                texto_usuario="Horarios detectados desde imagen: " + ", ".join(lineas),
+                                imagen_url=post_obj.imagen_url,
+                                propuesta_ia=resultado["horarios_detectados"],
+                                resumen_cambios="Detectado automáticamente desde imagen de la red social.",
+                            )
+
                 job.posts_nuevos += guardados_parroquia
                 job.eventos_nuevos += eventos_parroquia
                 job.save(update_fields=["posts_nuevos", "eventos_nuevos", "actualizado_en"])
@@ -532,6 +555,29 @@ def ejecutar_scraper_completo(request):
                         if not hasattr(post_obj, "evento"):
                             crear_evento_desde_post(post_obj, resultado)
                             eventos_fb += 1
+
+                    if resultado.get("tiene_horarios") and resultado.get("horarios_detectados"):
+                        from datetime import timedelta
+                        hace_7_dias = timezone.now() - timedelta(days=7)
+                        if not ReporteHorario.objects.filter(
+                            parroquia=post_obj.parroquia,
+                            fuente="scraper",
+                            creado_en__gte=hace_7_dias,
+                        ).exists():
+                            _dias = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"]
+                            lineas = [
+                                f"{_dias[h['dia']]}: {h['horario']}"
+                                for h in resultado["horarios_detectados"]
+                                if 0 <= h.get("dia", -1) <= 6
+                            ]
+                            ReporteHorario.objects.create(
+                                parroquia=post_obj.parroquia,
+                                fuente="scraper",
+                                texto_usuario="Horarios detectados desde imagen: " + ", ".join(lineas),
+                                imagen_url=post_obj.imagen_url,
+                                propuesta_ia=resultado["horarios_detectados"],
+                                resumen_cambios="Detectado automáticamente desde imagen de la red social.",
+                            )
 
                 job.posts_nuevos += guardados_fb
                 job.eventos_nuevos += eventos_fb
@@ -934,6 +980,29 @@ def scrapear_parroquia(request, pk):
                         crear_evento_desde_post(post_obj, resultado)
                         eventos_nuevos += 1
 
+                if resultado.get("tiene_horarios") and resultado.get("horarios_detectados"):
+                    from datetime import timedelta
+                    hace_7_dias = timezone.now() - timedelta(days=7)
+                    if not ReporteHorario.objects.filter(
+                        parroquia=parroquia,
+                        fuente="scraper",
+                        creado_en__gte=hace_7_dias,
+                    ).exists():
+                        _dias = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"]
+                        lineas = [
+                            f"{_dias[h['dia']]}: {h['horario']}"
+                            for h in resultado["horarios_detectados"]
+                            if 0 <= h.get("dia", -1) <= 6
+                        ]
+                        ReporteHorario.objects.create(
+                            parroquia=parroquia,
+                            fuente="scraper",
+                            texto_usuario="Horarios detectados desde imagen: " + ", ".join(lineas),
+                            imagen_url=post_obj.imagen_url,
+                            propuesta_ia=resultado["horarios_detectados"],
+                            resumen_cambios="Detectado automáticamente desde imagen de la red social.",
+                        )
+
             job.posts_nuevos = guardados
             job.eventos_nuevos = eventos_nuevos
             job.procesados = 1
@@ -1327,18 +1396,28 @@ def revision_reportes(request):
     if not request.user.is_staff:
         return HttpResponse("Forbidden", status=403)
 
-    pendientes = ReporteHorario.objects.filter(
+    fuente = request.GET.get("fuente", "")
+
+    pendientes_qs = ReporteHorario.objects.filter(
         estado="pendiente"
     ).select_related("parroquia").prefetch_related("parroquia__horarios_misa")
+
+    if fuente in ("usuario", "scraper"):
+        pendientes_qs = pendientes_qs.filter(fuente=fuente)
 
     revisados = ReporteHorario.objects.exclude(
         estado="pendiente"
     ).select_related("parroquia", "revisado_por")[:20]
 
+    total_pendientes = ReporteHorario.objects.filter(estado="pendiente").count()
+
     return render(request, "iglesias/revision_reportes.html", {
-        "pendientes": pendientes,
+        "pendientes": pendientes_qs,
         "revisados": revisados,
-        "total_pendientes": pendientes.count(),
+        "total_pendientes": total_pendientes,
+        "fuente_activa": fuente,
+        "total_usuario": ReporteHorario.objects.filter(estado="pendiente", fuente="usuario").count(),
+        "total_scraper": ReporteHorario.objects.filter(estado="pendiente", fuente="scraper").count(),
     })
 
 

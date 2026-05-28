@@ -22,7 +22,8 @@ if os.path.exists(env_path):
                 key, value = line.split('=', 1)
                 os.environ.setdefault(key.strip(), value.strip())
 
-from apps.iglesias.models import Parroquia, PostParroquia, Evento, RedSocial, TipoEvento
+from apps.iglesias.models import Parroquia, PostParroquia, Evento, RedSocial, TipoEvento, ReporteHorario
+from django.utils import timezone
 from scraper_redes.instagram import scrapear_perfil
 from scraper_redes.procesador import procesar_post
 from scraper_redes.config import INSTAGRAM_TEST_URL
@@ -86,6 +87,32 @@ def procesar_posts_pendientes(parroquia):
         # Crear evento si fue clasificado como tal y NO es pasado
         if resultado.get("es_evento") and not resultado.get("es_pasado"):
             crear_evento_desde_post(post_obj, resultado)
+
+        # Crear ReporteHorario si se detectaron horarios semanales
+        if resultado.get("tiene_horarios") and resultado.get("horarios_detectados"):
+            from datetime import timedelta
+            hace_7_dias = timezone.now() - timedelta(days=7)
+            if not ReporteHorario.objects.filter(
+                parroquia=post_obj.parroquia,
+                fuente="scraper",
+                creado_en__gte=hace_7_dias,
+            ).exists():
+                _dias = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"]
+                lineas = [
+                    f"{_dias[h['dia']]}: {h['horario']}"
+                    for h in resultado["horarios_detectados"]
+                    if 0 <= h.get("dia", -1) <= 6
+                ]
+                ReporteHorario.objects.create(
+                    parroquia=post_obj.parroquia,
+                    fuente="scraper",
+                    texto_usuario="Horarios detectados desde imagen: " + ", ".join(lineas),
+                    imagen_url=post_obj.imagen_url,
+                    propuesta_ia=resultado["horarios_detectados"],
+                    resumen_cambios="Detectado automáticamente desde imagen de la red social.",
+                )
+                print(f"     ReporteHorario scraper creado para {post_obj.parroquia.nombre}")
+
         time.sleep(4)  # 4 segundos entre requests
 
         es_evento_str = "✅ ES EVENTO" if resultado.get("es_evento") else "❌ no es evento"
@@ -263,6 +290,29 @@ def main_produccion_facebook():
                     if not hasattr(post_obj, "evento"):
                         crear_evento_desde_post(post_obj, resultado)
                         eventos_total += 1
+
+                if resultado.get("tiene_horarios") and resultado.get("horarios_detectados"):
+                    from datetime import timedelta
+                    hace_7_dias = timezone.now() - timedelta(days=7)
+                    if not ReporteHorario.objects.filter(
+                        parroquia=post_obj.parroquia,
+                        fuente="scraper",
+                        creado_en__gte=hace_7_dias,
+                    ).exists():
+                        _dias = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"]
+                        lineas = [
+                            f"{_dias[h['dia']]}: {h['horario']}"
+                            for h in resultado["horarios_detectados"]
+                            if 0 <= h.get("dia", -1) <= 6
+                        ]
+                        ReporteHorario.objects.create(
+                            parroquia=post_obj.parroquia,
+                            fuente="scraper",
+                            texto_usuario="Horarios detectados desde imagen: " + ", ".join(lineas),
+                            imagen_url=post_obj.imagen_url,
+                            propuesta_ia=resultado["horarios_detectados"],
+                            resumen_cambios="Detectado automáticamente desde imagen de la red social.",
+                        )
 
             print(f"  {guardados} guardados")
 
