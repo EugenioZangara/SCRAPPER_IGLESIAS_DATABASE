@@ -188,3 +188,115 @@ def procesar_post(post: dict) -> dict:
         return {"es_evento": None, "error": "descarga_fallida"}
 
     return analizar_flyer(imagen_bytes, post.get("caption", ""))
+
+
+def analizar_con_gemini_url(imagen_url: str, caption: str = "") -> dict:
+    """Analiza imagen de Facebook usando URL directa (sin descargar)."""
+    from google import genai
+    from google.genai import types
+
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY no configurada")
+
+    client = genai.Client(api_key=api_key)
+    caption_line = f"El pie de foto dice: {caption}" if caption else ""
+    prompt = PROMPT_FLYER.format(caption_line=caption_line)
+
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=[
+            types.Part.from_uri(
+                file_uri=imagen_url,
+                mime_type="image/jpeg",
+            ),
+            types.Part.from_text(text=prompt),
+        ],
+    )
+    texto = response.text.strip().replace("```json", "").replace("```", "").strip()
+    return json.loads(texto)
+
+
+def analizar_solo_caption(caption: str) -> dict:
+    """Analiza solo el texto del caption sin imagen."""
+    prompt_texto = PROMPT_FLYER.format(
+        caption_line=f"El texto del post dice: {caption}"
+    )
+    response = httpx.post(
+        "https://api.mistral.ai/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {os.environ.get('MISTRAL_API_KEY')}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": "mistral-small-latest",
+            "messages": [{"role": "user", "content": prompt_texto}],
+            "max_tokens": 500,
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    texto = response.json()["choices"][0]["message"]["content"]
+    texto = texto.strip().replace("```json", "").replace("```", "").strip()
+    return json.loads(texto)
+
+
+def analizar_flyer_facebook(imagen_url: str, caption: str = "") -> dict:
+    """
+    Para Facebook: intenta analizar por URL directa con Gemini.
+    Si falla, usa solo el caption con Mistral.
+    """
+    # Intento 1: Gemini con URL directa
+    try:
+        print("  Usando Gemini con URL directa (Facebook)...")
+        return analizar_con_gemini_url(imagen_url, caption)
+    except Exception as e:
+        print(f"  Gemini URL falló: {str(e)[:80]}")
+
+    # Intento 2: Solo caption con Mistral (sin imagen)
+    if caption:
+        try:
+            print("  Usando Mistral con solo caption...")
+            return analizar_solo_caption(caption)
+        except Exception as e:
+            print(f"  Mistral caption falló: {str(e)[:80]}")
+
+    return {
+        "es_evento": None,
+        "tiene_horarios": False,
+        "horarios_detectados": [],
+        "error": "todos_fallaron",
+    }
+
+
+def procesar_post_facebook(post: dict) -> dict:
+    """
+    Procesa un post de Facebook usando la URL de imagen directamente.
+    No descarga la imagen al servidor.
+    """
+    cargar_env()
+    print(f"  Procesando FB: {post['post_id']}...")
+
+    imagen_url = post.get("imagen_url", "")
+    caption = post.get("caption", "")
+
+    if imagen_url:
+        return analizar_flyer_facebook(imagen_url, caption)
+    elif caption:
+        try:
+            return analizar_solo_caption(caption)
+        except Exception as e:
+            print(f"  ERROR caption: {e}")
+            return {
+                "es_evento": None,
+                "tiene_horarios": False,
+                "horarios_detectados": [],
+                "error": str(e),
+            }
+    else:
+        return {
+            "es_evento": None,
+            "tiene_horarios": False,
+            "horarios_detectados": [],
+            "error": "sin_imagen_ni_caption",
+        }

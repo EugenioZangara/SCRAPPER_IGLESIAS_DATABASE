@@ -87,7 +87,7 @@ scrapper_iglesias_database/
 │   ├── __init__.py
 │   ├── config.py                  ← URL hardcodeada y parámetros
 │   ├── instagram.py               ← scraping con instaloader
-│   ├── procesador.py              ← análisis de imágenes con Gemini/OpenRouter
+│   ├── procesador.py              ← análisis de imágenes con Gemini/OpenRouter/Mistral; procesar_post_facebook usa URL directa
 │   ├── run.py                     ← orquestador principal
 │   └── requirements.txt
 │
@@ -200,6 +200,7 @@ Perfil extendido de usuario para scoring de colaboradores. OneToOne con User.
 META_ACCESS_TOKEN=...           # Graph API de Facebook (opcional por ahora)
 GEMINI_API_KEY=...              # Google AI Studio — modelo principal
 OPENROUTER_API_KEY=...          # OpenRouter — fallback cuando Gemini falla
+MISTRAL_API_KEY=...             # Mistral — fallback caption-only para Facebook
 INSTAGRAM_SESSION_USER=pilotosprogramadores
 APIFY_API_TOKEN=...             # Apify — backend de scraping Instagram por defecto
 SCRAPER_BACKEND=apify           # "apify" (default) o "instaloader"
@@ -235,7 +236,9 @@ python instagram_login.py
 2. Carga sesión de Instagram desde archivo
 3. Obtiene los últimos `POSTS_A_REVISAR` posts del perfil
 4. Guarda posts nuevos en `PostParroquia` con deduplicación por `post_id`
-5. Procesa posts pendientes con Gemini → si falla usa OpenRouter como fallback
+5. Procesa posts pendientes:
+   - Instagram: descarga imagen → Gemini (bytes) → OpenRouter como fallback
+   - Facebook: `procesar_post_facebook` — Gemini con URL directa (sin descargar) → Mistral solo-caption como fallback
 6. Si detecta evento futuro (`es_evento=True` y `es_pasado=False`), crea un `Evento`
 7. Si detecta horarios semanales de misa (`tiene_horarios=True`), crea un `ReporteHorario` con `fuente="scraper"` (deduplicado a 7 días)
 

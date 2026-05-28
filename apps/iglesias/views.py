@@ -429,7 +429,7 @@ def ejecutar_scraper_completo(request):
 
     def correr_scraper():
         from scraper_redes.run import scrapear_con_backend, scrapear_facebook_con_backend, crear_evento_desde_post
-        from scraper_redes.procesador import procesar_post
+        from scraper_redes.procesador import procesar_post, procesar_post_facebook
         from apps.iglesias.models import PostParroquia
         import time, random
 
@@ -545,7 +545,7 @@ def ejecutar_scraper_completo(request):
                         "imagen_url": post_obj.imagen_url,
                         "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
                     }
-                    resultado = procesar_post(post_dict)
+                    resultado = procesar_post_facebook(post_dict)
                     post_obj.es_evento = resultado.get("es_evento")
                     post_obj.procesado = resultado.get("es_evento") is not None
                     post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}

@@ -38,8 +38,11 @@
     <div style="background:#f9fafb; border-radius:8px; padding:12px;
                 margin-bottom:14px; display:flex; gap:12px; align-items:flex-start;">
         <img src="{{ reporte.imagen_url }}"
-             alt="Post scrapeado"
-             style="width:72px; height:72px; object-fit:cover; border-radius:6px;
+             alt="Post de {{ reporte.parroquia.nombre }}"
+             referrerpolicy="no-referrer"
+             crossorigin="anonymous"
+             onerror="this.style.display='none'"
+             style="width:120px; height:120px; object-fit:cover; border-radius:8px;
                     flex-shrink:0; border:1px solid #e5e7eb;">
         <div>
             <div style="font-size:10px; font-weight:600; text-transform:uppercase;
@@ -239,8 +242,11 @@
     <div style="background:#f9fafb; border-radius:8px; padding:12px;
                 margin-bottom:14px; display:flex; gap:12px; align-items:flex-start;">
         <img src="{{ reporte.imagen_url }}"
-             alt="Post scrapeado"
-             style="width:72px; height:72px; object-fit:cover; border-radius:6px;
+             alt="Post de {{ reporte.parroquia.nombre }}"
+             referrerpolicy="no-referrer"
+             crossorigin="anonymous"
+             onerror="this.style.display='none'"
+             style="width:120px; height:120px; object-fit:cover; border-radius:8px;
                     flex-shrink:0; border:1px solid #e5e7eb;">
         <div>
             <div style="font-size:10px; font-weight:600; text-transform:uppercase;

@@ -25,7 +25,7 @@ if os.path.exists(env_path):
 from apps.iglesias.models import Parroquia, PostParroquia, Evento, RedSocial, TipoEvento, ReporteHorario
 from django.utils import timezone
 from scraper_redes.instagram import scrapear_perfil
-from scraper_redes.procesador import procesar_post
+from scraper_redes.procesador import procesar_post, procesar_post_facebook
 from scraper_redes.config import INSTAGRAM_TEST_URL
 
 # ID de la parroquia de prueba
@@ -280,7 +280,7 @@ def main_produccion_facebook():
                     "imagen_url": post_obj.imagen_url,
                     "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
                 }
-                resultado = procesar_post(post_dict)
+                resultado = procesar_post_facebook(post_dict)
                 post_obj.es_evento = resultado.get("es_evento")
                 post_obj.procesado = resultado.get("es_evento") is not None
                 post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}
