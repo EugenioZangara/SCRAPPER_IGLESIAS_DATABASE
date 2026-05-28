@@ -2,6 +2,13 @@
 
 ## Prioridades de desarrollo
 
+### Flujo de trabajo obligatorio
+Para TODO cambio de código, Claude Code debe:
+1. Leer el CLAUDE.md primero
+2. Aplicar los cambios priorizando SEO en vistas públicas
+3. Verificar con python manage.py check
+4. Nunca dar prompts al usuario — aplicar directamente
+
 ### SEO y visibilidad — PRIORIDAD MÁXIMA en vistas públicas
 Toda funcionalidad que afecte las vistas públicas (/publico/)
 debe considerar SEO como requisito primario, no opcional.

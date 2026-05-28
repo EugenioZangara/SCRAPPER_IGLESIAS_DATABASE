@@ -1190,6 +1190,14 @@ def publico_detalle(request, pk):
     ya_valido = bool(request.COOKIES.get(f"validado_{pk}"))
     ya_reporto = bool(request.COOKIES.get(f"reportado_{pk}"))
 
+    es_favorita = False
+    if request.user.is_authenticated:
+        try:
+            perfil = request.user.perfil
+            es_favorita = perfil.parroquia_favorita_id == parroquia.pk
+        except Exception:
+            pass
+
     return render(request, "iglesias/publico/detalle.html", {
         "parroquia": parroquia,
         "redes": redes_verificadas,
@@ -1197,6 +1205,7 @@ def publico_detalle(request, pk):
         "horarios": horarios,
         "ya_valido": ya_valido,
         "ya_reporto": ya_reporto,
+        "es_favorita": es_favorita,
     })
 
 

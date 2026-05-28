@@ -407,7 +407,6 @@
                 border-radius:12px; padding:16px; margin-top:12px;"
          id="favorita-section">
         {% if request.user.is_authenticated %}
-            {% with es_favorita=request.user.perfil.parroquia_favorita.pk == parroquia.pk %}
             <button id="btn-favorita"
                     style="width:100%; display:flex; align-items:center;
                            justify-content:center; gap:8px; padding:10px 16px;
@@ -420,14 +419,15 @@
                            {% endif %}">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                      stroke="currentColor" stroke-width="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
+                             a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
+                             1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
                           {% if es_favorita %}fill="#4f46e5"{% endif %}/>
                 </svg>
                 <span id="btn-favorita-text">
                     {% if es_favorita %}Mi parroquia ✓{% else %}Marcar como mi parroquia{% endif %}
                 </span>
             </button>
-            {% endwith %}
         {% else %}
             <a href="{% url 'account_login' %}?next={{ request.path }}"
                style="width:100%; display:flex; align-items:center;
