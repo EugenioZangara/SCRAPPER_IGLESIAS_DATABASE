@@ -662,7 +662,24 @@
                        {% if 'admin' in request.path %}class="active"{% endif %}>
                         Admin
                     </a>
-                    
+                    <form method="post" action="{% url 'account_logout' %}"
+                          style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit"
+                                style="background:none; border:none; cursor:pointer;
+                                       font-family:var(--sans); font-size:14px;
+                                       color:var(--muted); padding:7px 14px;
+                                       border-radius:8px; display:flex; align-items:center;
+                                       gap:6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/>
+                                <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                            {{ request.user.first_name|default:request.user.username }}
+                        </button>
+                    </form>
                     {% endif %}
                 </nav>
             </div>

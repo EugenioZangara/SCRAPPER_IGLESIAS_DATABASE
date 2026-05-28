@@ -271,18 +271,54 @@
           Colaboradores
         </a>
         {% if request.user.is_authenticated %}
-          <div style="display:flex; align-items:center; gap:8px;">
-            <div style="width:32px; height:32px; border-radius:50%;
-                         background:#4f46e5; display:flex; align-items:center;
-                         justify-content:center; color:white; font-size:13px;
-                         font-weight:600;">
-              {{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
+        <div style="position:relative;" id="user-menu-wrap">
+            <button onclick="document.getElementById('user-dropdown').style.display =
+                             document.getElementById('user-dropdown').style.display === 'block'
+                             ? 'none' : 'block'"
+                    style="display:flex; align-items:center; gap:8px; background:none;
+                           border:1px solid #e5e7eb; border-radius:8px; padding:6px 12px;
+                           cursor:pointer; font-size:13px; color:#1e1b4b;">
+                <div style="width:24px; height:24px; border-radius:50%; background:#4f46e5;
+                             display:flex; align-items:center; justify-content:center;
+                             color:white; font-size:11px; font-weight:600; flex-shrink:0;">
+                    {{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
+                </div>
+                {{ request.user.first_name|default:request.user.username }}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </button>
+            <div id="user-dropdown"
+                 style="display:none; position:absolute; right:0; top:calc(100% + 6px);
+                        background:white; border:1px solid #e5e7eb; border-radius:10px;
+                        box-shadow:0 4px 16px rgba(0,0,0,0.08); min-width:180px;
+                        z-index:200; overflow:hidden;">
+                <a href="{% url 'iglesias:publico_ranking' %}"
+                   style="display:block; padding:10px 16px; font-size:13px;
+                          color:#1e1b4b; text-decoration:none; border-bottom:1px solid #f3f4f6;">
+                    Mi ranking
+                </a>
+                <form method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                    <button type="submit"
+                            style="width:100%; text-align:left; padding:10px 16px;
+                                   font-size:13px; color:#dc2626; background:none;
+                                   border:none; cursor:pointer;">
+                        Cerrar sesión
+                    </button>
+                </form>
             </div>
-            <a href="{% url 'account_logout' %}"
-               style="font-size:13px; color:#6b7280; text-decoration:none;">
-              Salir
-            </a>
-          </div>
+        </div>
+        <script>
+        document.addEventListener('click', function(e) {
+            const wrap = document.getElementById('user-menu-wrap');
+            const dropdown = document.getElementById('user-dropdown');
+            if (wrap && dropdown && !wrap.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+        </script>
         {% else %}
           <a href="{% url 'socialaccount_signup' %}"
              style="display:inline-flex; align-items:center; gap:6px;
