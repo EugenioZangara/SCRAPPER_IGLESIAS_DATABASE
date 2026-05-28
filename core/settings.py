@@ -90,7 +90,7 @@ SOCIALACCOUNT_PROVIDERS = {
             "secret": env("FACEBOOK_APP_SECRET", default=""),
             "key": "",
         },
-        "SCOPE": ["email", "public_profile"],
+        "SCOPE": ["public_profile"],
         "METHOD": "oauth2",
         "VERIFIED_EMAIL": False,
     },
