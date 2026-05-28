@@ -100,6 +100,8 @@ scrapper_iglesias_database/
 ### Parroquia
 Información estructural de cada parroquia: nombre, dirección, contacto, organización
 eclesiástica, flags de control (`tiene_redes`, `detalles_completos`).
+Campos de geolocalización: `latitud` y `longitud` (FloatField, null/blank).
+Geocodificación via Nominatim con `geocodificar_parroquias.py` (máx 1 req/seg).
 
 ### RedSocial
 Vincula parroquias con sus perfiles digitales. Tipos: facebook, instagram, youtube,
@@ -259,7 +261,7 @@ El JSON que devuelve la IA tiene estos campos:
 ## Panel web
 
 ### URLs públicas (sin login)
-- `/publico/` → inicio con buscador HTMX de parroquias
+- `/publico/` → inicio con buscador HTMX de parroquias + botón "Cerca mío" (geolocalización JS con Haversine, top 10, requiere coordenadas en DB)
 - `/publico/buscar/` → endpoint HTMX de búsqueda (partial `resultados.html`)
 - `/publico/<pk>/` → detalle de parroquia pública
 - `/publico/<pk>/reportar-horario/` → POST — crea ReporteHorario y procesa con IA en background

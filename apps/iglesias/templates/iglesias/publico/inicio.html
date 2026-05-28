@@ -181,6 +181,26 @@
       <span class="filter-pill-label">Con redes</span>
     </label>
   </div>
+
+  <div style="text-align:center; margin-top:12px;">
+    <button id="btn-cerca"
+            onclick="buscarCercaMio()"
+            style="display:inline-flex; align-items:center; gap:8px;
+                   padding:9px 18px; border-radius:999px; font-size:13px;
+                   font-weight:500; border:1.5px solid #4f46e5;
+                   background:white; color:#4f46e5; cursor:pointer;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+        <path d="M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12
+                 M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
+      </svg>
+      <span id="btn-cerca-text">Parroquias cerca mío</span>
+    </button>
+    <div id="cerca-error" style="display:none; font-size:12px;
+         color:#dc2626; margin-top:8px;"></div>
+  </div>
 </div>
 
 <div id="resultados"></div>
@@ -225,4 +245,134 @@
         {% endfor %}
     </ul>
 </div>
+<script>
+const parroquiasGeo = [
+    {% for p in parroquias_geo %}
+    {
+        pk: {{ p.pk }},
+        nombre: "{{ p.nombre|escapejs }}",
+        barrio: "{{ p.barrio|default:''|escapejs }}",
+        lat: {{ p.latitud }},
+        lng: {{ p.longitud }},
+        tiene_horarios: {{ p.tiene_horarios|yesno:"true,false" }},
+        tiene_ig: {{ p.tiene_ig|yesno:"true,false" }},
+        tiene_fb: {{ p.tiene_fb|yesno:"true,false" }},
+        eventos_count: {{ p.eventos_count }},
+    },
+    {% endfor %}
+];
+
+function calcularDistancia(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) *
+              Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function formatDistancia(km) {
+    if (km < 1) return Math.round(km * 1000) + ' m';
+    return km.toFixed(1) + ' km';
+}
+
+function mostrarResultadosCerca(lat, lng) {
+    const conCoordenadas = parroquiasGeo.filter(p => p.lat && p.lng);
+    const conDistancia = conCoordenadas.map(p => ({
+        ...p,
+        distancia: calcularDistancia(lat, lng, p.lat, p.lng)
+    }));
+    conDistancia.sort((a, b) => a.distancia - b.distancia);
+    const cercanas = conDistancia.slice(0, 10);
+
+    let html = '<p style="font-size:13px; color:#6b7280; margin-bottom:16px;">' +
+               'Las 10 parroquias más cercanas a tu ubicación</p>';
+    html += '<div style="display:grid; grid-template-columns:repeat(auto-fill,' +
+            'minmax(220px,1fr)); gap:12px;">';
+
+    cercanas.forEach(p => {
+        let tags = '';
+        if (p.eventos_count > 0)
+            tags += `<span style="font-size:11px; font-weight:500; padding:2px 8px;
+                     border-radius:999px; background:#eeedfe; color:#534ab7;">
+                     ${p.eventos_count} evento${p.eventos_count > 1 ? 's' : ''}</span>`;
+        if (p.tiene_ig)
+            tags += `<span style="font-size:11px; font-weight:500; padding:2px 8px;
+                     border-radius:999px; background:#fce7f3; color:#9d174d;">
+                     Instagram</span>`;
+        if (p.tiene_fb)
+            tags += `<span style="font-size:11px; font-weight:500; padding:2px 8px;
+                     border-radius:999px; background:#eff6ff; color:#1e40af;">
+                     Facebook</span>`;
+        if (p.tiene_horarios)
+            tags += `<span style="font-size:11px; font-weight:500; padding:2px 8px;
+                     border-radius:999px; background:#f0fdf4; color:#166534;">
+                     Horarios</span>`;
+
+        html += `<a href="/publico/${p.pk}/" style="text-decoration:none;">
+            <div style="background:white; border:1px solid #e5e7eb;
+                        border-radius:12px; padding:16px; cursor:pointer;">
+                <div style="display:flex; justify-content:space-between;
+                            align-items:flex-start; margin-bottom:4px;">
+                    <div style="font-size:14px; font-weight:500; color:#1e1b4b;
+                                line-height:1.3; flex:1;">${p.nombre}</div>
+                    <span style="font-size:12px; font-weight:600; color:#4f46e5;
+                                 margin-left:8px; flex-shrink:0; white-space:nowrap;">
+                        ${formatDistancia(p.distancia)}
+                    </span>
+                </div>
+                <div style="font-size:12px; color:#6b7280; margin-bottom:10px;
+                            display:flex; align-items:center; gap:4px;">
+                    📍 ${p.barrio || ''}
+                </div>
+                <div style="display:flex; gap:5px; flex-wrap:wrap;">${tags}</div>
+            </div>
+        </a>`;
+    });
+
+    html += '</div>';
+
+    const resultadosDiv = document.getElementById('resultados');
+    if (resultadosDiv) resultadosDiv.innerHTML = html;
+}
+
+function buscarCercaMio() {
+    const btn = document.getElementById('btn-cerca');
+    const btnText = document.getElementById('btn-cerca-text');
+    const errorDiv = document.getElementById('cerca-error');
+
+    if (!navigator.geolocation) {
+        errorDiv.textContent = 'Tu navegador no soporta geolocalización.';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    btnText.textContent = 'Obteniendo ubicación...';
+    btn.disabled = true;
+    errorDiv.style.display = 'none';
+
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            btnText.textContent = 'Parroquias cerca mío';
+            btn.disabled = false;
+            btn.style.background = '#4f46e5';
+            btn.style.color = 'white';
+            mostrarResultadosCerca(lat, lng);
+        },
+        (err) => {
+            btnText.textContent = 'Parroquias cerca mío';
+            btn.disabled = false;
+            errorDiv.textContent = err.code === 1
+                ? 'Permiso de ubicación denegado.'
+                : 'No se pudo obtener tu ubicación.';
+            errorDiv.style.display = 'block';
+        },
+        { timeout: 10000, maximumAge: 60000 }
+    );
+}
+</script>
 {% endblock %}

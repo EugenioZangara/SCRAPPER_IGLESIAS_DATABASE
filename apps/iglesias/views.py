@@ -1018,16 +1018,38 @@ def crear_tipo_evento(request):
 
 
 def publico_inicio(request):
-    total = Parroquia.objects.count()
-    con_eventos = Parroquia.objects.filter(
-        eventos__activo=True,
-        eventos__verificado=True,
-        eventos__fecha__gte=date.today(),
-    ).distinct().count()
+    hoy = date.today()
+    parroquias_con_geo = Parroquia.objects.filter(
+        latitud__isnull=False,
+        longitud__isnull=False
+    ).prefetch_related("redes", "eventos", "horarios_misa")
+
+    parroquias_geo = []
+    for p in parroquias_con_geo:
+        redes_v = [r for r in p.redes.all() if r.activo and r.verificado]
+        eventos_p = [e for e in p.eventos.all()
+                     if e.activo and e.verificado and e.fecha and e.fecha >= hoy]
+        parroquias_geo.append({
+            "pk": p.pk,
+            "nombre": p.nombre,
+            "barrio": p.barrio or "",
+            "latitud": p.latitud,
+            "longitud": p.longitud,
+            "tiene_horarios": p.horarios_misa.exists(),
+            "tiene_ig": any(r.tipo == "instagram" for r in redes_v),
+            "tiene_fb": any(r.tipo == "facebook" for r in redes_v),
+            "eventos_count": len(eventos_p),
+        })
+
     return render(request, "iglesias/publico/inicio.html", {
-        "total": total,
-        "con_eventos": con_eventos,
+        "total": Parroquia.objects.count(),
+        "con_eventos": Parroquia.objects.filter(
+            eventos__activo=True,
+            eventos__verificado=True,
+            eventos__fecha__gte=hoy
+        ).distinct().count(),
         "todas_parroquias": Parroquia.objects.all().order_by("nombre"),
+        "parroquias_geo": parroquias_geo,
     })
 
 

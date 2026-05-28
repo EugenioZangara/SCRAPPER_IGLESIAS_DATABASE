@@ -32,6 +32,8 @@ class Parroquia(models.Model):
     detalles_completos = models.BooleanField(default=False)
     actualizado_el = models.DateTimeField(auto_now=True)
     tiene_redes = models.BooleanField(default=False)
+    latitud = models.FloatField(null=True, blank=True)
+    longitud = models.FloatField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Parroquia"
