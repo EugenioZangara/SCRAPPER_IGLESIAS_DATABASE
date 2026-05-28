@@ -38,4 +38,5 @@ urlpatterns = [
     path("horarios/reportes/count/", views.reportes_count, name="reportes_count"),
     path("horarios/reportes/<int:pk>/card/", views.reporte_card, name="reporte_card"),
     path("publico/<int:pk>/validar-horario/", views.validar_horario, name="validar_horario"),
+    path("publico/ranking/", views.publico_ranking, name="publico_ranking"),
 ]

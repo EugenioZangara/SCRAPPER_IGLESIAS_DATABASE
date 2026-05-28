@@ -226,6 +226,21 @@
           Ya enviaste un reporte para esta parroquia. Será revisado pronto.
         </div>
       {% else %}
+        {% if request.user.is_authenticated %}
+        <div style="font-size:12px; color:#6b7280; margin-bottom:10px;
+                    display:flex; align-items:center; gap:6px;">
+          <span>Reportando como</span>
+          <span style="font-weight:500; color:#1e1b4b;">
+            {{ request.user.get_full_name|default:request.user.username }}
+          </span>
+          {% if request.user.perfil.score > 0 %}
+          <span style="background:#eeedfe; color:#4f46e5; font-size:11px;
+                        padding:1px 7px; border-radius:999px; font-weight:500;">
+            Score: {{ request.user.perfil.score }}
+          </span>
+          {% endif %}
+        </div>
+        {% endif %}
         <div style="font-size:13px; font-weight:500; color:var(--ink);
                     margin-bottom:12px;">
           ¿Estos horarios son correctos?

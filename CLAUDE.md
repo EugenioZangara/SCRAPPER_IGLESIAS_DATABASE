@@ -48,6 +48,7 @@ desde las redes sociales de las parroquias, con validación manual antes de publ
 - **IA para análisis de imágenes**: Gemini (principal) → OpenRouter (fallback)
 - **HTTP client**: `httpx`
 - **Entorno virtual**: `entorno_SID`
+- **Login social**: django-allauth 65.3.0 — Google y Facebook OAuth2
 
 ---
 
@@ -166,6 +167,16 @@ Registro de cada ejecución del scraper, usado por la tarjeta flotante de progre
 - Ordering: `["-iniciado_en"]`
 - El endpoint `/scraper/estado/` devuelve el job más reciente en JSON para polling JS
 
+### PerfilUsuario
+Perfil extendido de usuario para scoring de colaboradores. OneToOne con User.
+- `avatar_url`, `proveedor`: datos del proveedor OAuth (google/facebook)
+- `score`: puntos acumulados (aprobación +10, bonus ×5 aprobados +20, rechazo −2, validación +1, primer reporte +5)
+- `reportes_enviados`, `reportes_aprobados`, `reportes_rechazados`, `validaciones_enviadas`
+- Ordering: `["-score"]`
+- Niveles: Nuevo (0–10) / Confiable (11–50) / Experto (51–99) / Verificado (100+)
+- Se crea automáticamente via signal `post_save` en `User`
+- Score se actualiza en `reportar_horario`, `validar_horario`, `aplicar_reporte`, `descartar_reporte`
+
 ---
 
 ## Variables de entorno (.env)
@@ -177,6 +188,10 @@ OPENROUTER_API_KEY=...          # OpenRouter — fallback cuando Gemini falla
 INSTAGRAM_SESSION_USER=pilotosprogramadores
 APIFY_API_TOKEN=...             # Apify — backend de scraping Instagram por defecto
 SCRAPER_BACKEND=apify           # "apify" (default) o "instaloader"
+GOOGLE_CLIENT_ID=...            # OAuth2 — Google login
+GOOGLE_CLIENT_SECRET=...        # OAuth2 — Google login
+FACEBOOK_APP_ID=...             # OAuth2 — Facebook login
+FACEBOOK_APP_SECRET=...         # OAuth2 — Facebook login
 ```
 
 ---
@@ -249,6 +264,8 @@ El JSON que devuelve la IA tiene estos campos:
 - `/publico/<pk>/` → detalle de parroquia pública
 - `/publico/<pk>/reportar-horario/` → POST — crea ReporteHorario y procesa con IA en background
 - `/publico/<pk>/validar-horario/` → POST — crea ValidacionHorario; devuelve `{ok, total}`
+- `/publico/ranking/` → GET — ranking de colaboradores con score
+- `/accounts/` → allauth — login Google/Facebook, logout (`account_logout`, `socialaccount_signup`)
 - `/sitemap.xml` → GET — sitemap XML de todas las parroquias (indexado por bots)
 - `/robots.txt` → GET — directivas para crawlers
 Templates en `apps/iglesias/templates/iglesias/publico/`, extienden `base_publica.html` (no requieren `base.html` del admin).

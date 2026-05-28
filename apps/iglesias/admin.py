@@ -10,6 +10,7 @@ from .models import (
     InfoBaiglesias,
     HorarioMisa,
     ReporteHorario,
+    PerfilUsuario,
 )
 
 
@@ -81,11 +82,24 @@ class HorarioMisaAdmin(admin.ModelAdmin):
 
 @admin.register(ReporteHorario)
 class ReporteHorarioAdmin(admin.ModelAdmin):
-    list_display = ("parroquia", "estado", "creado_en", "revisado_por")
+    list_display = ("parroquia", "usuario", "estado", "creado_en", "revisado_por")
     list_filter = ("estado",)
     search_fields = ("parroquia__nombre",)
     readonly_fields = ("creado_en", "revisado_en", "revisado_por",
                        "propuesta_ia", "resumen_cambios")
+
+
+@admin.register(PerfilUsuario)
+class PerfilUsuarioAdmin(admin.ModelAdmin):
+    list_display = ("user", "score", "nivel", "reportes_enviados",
+                    "reportes_aprobados", "reportes_rechazados",
+                    "validaciones_enviadas", "proveedor", "creado_en")
+    list_filter = ("proveedor",)
+    search_fields = ("user__username", "user__email")
+    ordering = ("-score",)
+    readonly_fields = ("score", "reportes_enviados", "reportes_aprobados",
+                       "reportes_rechazados", "validaciones_enviadas",
+                       "creado_en", "actualizado_en")
 
 
 @admin.register(InfoBaiglesias)

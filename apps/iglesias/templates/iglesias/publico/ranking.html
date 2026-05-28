@@ -1,0 +1,95 @@
+{% extends "iglesias/publico/base_publica.html" %}
+
+{% block meta_extra %}
+<title>Ranking de colaboradores | ParroGuía</title>
+<meta name="description" content="Los usuarios más activos que ayudan a mantener actualizada la información de las parroquias de Buenos Aires.">
+{% endblock %}
+
+{% block content %}
+<div style="max-width:600px; margin:0 auto; padding:32px 24px;">
+
+    <h1 style="font-size:24px; font-weight:600; color:#1e1b4b;
+               margin-bottom:6px;">Colaboradores</h1>
+    <p style="font-size:14px; color:#6b7280; margin-bottom:24px;">
+        Usuarios que ayudan a mantener actualizada la información
+        de las parroquias.
+    </p>
+
+    {% if mi_perfil %}
+    <div style="background:#eeedfe; border-radius:12px; padding:16px;
+                margin-bottom:24px; display:flex; align-items:center;
+                gap:14px;">
+        <div style="width:44px; height:44px; border-radius:50%;
+                     background:#4f46e5; display:flex; align-items:center;
+                     justify-content:center; color:white; font-size:18px;
+                     font-weight:600; flex-shrink:0;">
+            {{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
+        </div>
+        <div style="flex:1;">
+            <div style="font-size:14px; font-weight:500; color:#1e1b4b;">
+                {{ request.user.get_full_name|default:request.user.username }}
+            </div>
+            <div style="font-size:12px; color:#534ab7;">
+                Score: {{ mi_perfil.score }} ·
+                Nivel: {{ mi_perfil.nivel }} ·
+                {{ mi_perfil.reportes_aprobados }} reportes aprobados
+            </div>
+        </div>
+        <div style="font-size:24px; font-weight:700; color:#4f46e5;">
+            {{ mi_perfil.score }}
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="background:white; border:1px solid #e5e7eb;
+                border-radius:12px; overflow:hidden;">
+        {% for perfil in perfiles %}
+        <div style="display:flex; align-items:center; gap:14px;
+                     padding:14px 16px;
+                     border-bottom:{% if not forloop.last %}1px solid #f3f4f6{% else %}none{% endif %};
+                     {% if request.user.is_authenticated and perfil.user == request.user %}background:#f8f7ff;{% endif %}">
+            <div style="font-size:13px; font-weight:600; color:#9ca3af;
+                          width:24px; text-align:center;">
+                {{ forloop.counter }}
+            </div>
+            <div style="width:36px; height:36px; border-radius:50%;
+                          background:#e5e7eb; display:flex; align-items:center;
+                          justify-content:center; font-size:14px;
+                          font-weight:600; color:#6b7280; flex-shrink:0;">
+                {% if perfil.avatar_url %}
+                    <img src="{{ perfil.avatar_url }}" alt="{{ perfil.user.username }}"
+                         style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
+                {% else %}
+                    {{ perfil.user.first_name|slice:":1"|upper|default:perfil.user.username|slice:":1"|upper }}
+                {% endif %}
+            </div>
+            <div style="flex:1;">
+                <div style="font-size:14px; font-weight:500; color:#1e1b4b;">
+                    {{ perfil.user.get_full_name|default:perfil.user.username }}
+                </div>
+                <div style="font-size:11px; margin-top:2px;">
+                    <span style="color:{{ perfil.nivel_color }};
+                                  font-weight:500;">{{ perfil.nivel }}</span>
+                    · {{ perfil.reportes_aprobados }} reportes ·
+                    {{ perfil.validaciones_enviadas }} validaciones
+                </div>
+            </div>
+            <div style="font-size:20px; font-weight:700; color:#4f46e5;">
+                {{ perfil.score }}
+            </div>
+        </div>
+        {% empty %}
+        <div style="padding:32px; text-align:center; color:#6b7280;
+                     font-size:14px;">
+            Aún no hay colaboradores. ¡Sé el primero!
+        </div>
+        {% endfor %}
+    </div>
+
+    <p style="font-size:12px; color:#9ca3af; text-align:center;
+               margin-top:16px;">
+        El score se calcula según la cantidad de reportes aprobados
+        y validaciones realizadas.
+    </p>
+</div>
+{% endblock %}

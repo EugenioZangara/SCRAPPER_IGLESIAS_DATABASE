@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class Parroquia(models.Model):
@@ -241,6 +242,11 @@ class ValidacionHorario(models.Model):
         "Parroquia", on_delete=models.CASCADE,
         related_name="validaciones_horario"
     )
+    usuario = models.ForeignKey(
+        User, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="validaciones_horario_usuario"
+    )
     creado_en = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -252,6 +258,53 @@ class ValidacionHorario(models.Model):
         return f"Validación {self.pk} — {self.parroquia.nombre}"
 
 
+class PerfilUsuario(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE,
+        related_name="perfil"
+    )
+    avatar_url = models.URLField(max_length=500, blank=True, null=True)
+    proveedor = models.CharField(
+        max_length=20, blank=True, null=True,
+        help_text="google, facebook, etc."
+    )
+    score = models.IntegerField(default=0)
+    reportes_enviados = models.IntegerField(default=0)
+    reportes_aprobados = models.IntegerField(default=0)
+    reportes_rechazados = models.IntegerField(default=0)
+    validaciones_enviadas = models.IntegerField(default=0)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-score"]
+        verbose_name = "Perfil de Usuario"
+        verbose_name_plural = "Perfiles de Usuario"
+
+    def __str__(self):
+        return f"{self.user.username} — score: {self.score}"
+
+    @property
+    def nivel(self):
+        if self.score >= 100:
+            return "Verificado"
+        elif self.score >= 51:
+            return "Experto"
+        elif self.score >= 11:
+            return "Confiable"
+        return "Nuevo"
+
+    @property
+    def nivel_color(self):
+        colores = {
+            "Verificado": "#4f46e5",
+            "Experto": "#0f6e56",
+            "Confiable": "#d97706",
+            "Nuevo": "#6b7280",
+        }
+        return colores.get(self.nivel, "#6b7280")
+
+
 class ReporteHorario(models.Model):
     ESTADO_CHOICES = [
         ("pendiente", "Pendiente"),
@@ -260,6 +313,11 @@ class ReporteHorario(models.Model):
     ]
     parroquia = models.ForeignKey(
         "Parroquia", on_delete=models.CASCADE,
+        related_name="reportes_horario"
+    )
+    usuario = models.ForeignKey(
+        User, on_delete=models.SET_NULL,
+        null=True, blank=True,
         related_name="reportes_horario"
     )
     texto_usuario = models.TextField(

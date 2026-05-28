@@ -21,6 +21,7 @@ from apps.iglesias import views as iglesias_views
 urlpatterns = [
     path('', include('apps.iglesias.urls')),
     path('admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
     path('sitemap.xml', iglesias_views.sitemap, name='sitemap'),
     path('robots.txt', iglesias_views.robots_txt, name='robots_txt'),
 ]

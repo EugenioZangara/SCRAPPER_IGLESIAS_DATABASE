@@ -1209,7 +1209,11 @@ def reportar_horario(request, pk):
     reporte = ReporteHorario.objects.create(
         parroquia=parroquia,
         texto_usuario=texto,
+        usuario=request.user if request.user.is_authenticated else None,
     )
+
+    from apps.iglesias.signals import actualizar_score_reporte_enviado
+    actualizar_score_reporte_enviado(reporte)
 
     import threading
     def procesar():
@@ -1284,6 +1288,9 @@ def aplicar_reporte(request, pk):
     reporte.revisado_por = request.user
     reporte.save()
 
+    from apps.iglesias.signals import actualizar_score_aprobacion
+    actualizar_score_aprobacion(reporte)
+
     messages.success(
         request,
         f"Horarios de {parroquia.nombre} actualizados correctamente."
@@ -1301,6 +1308,9 @@ def descartar_reporte(request, pk):
     reporte.revisado_en = timezone.now()
     reporte.revisado_por = request.user
     reporte.save()
+
+    from apps.iglesias.signals import actualizar_score_rechazo
+    actualizar_score_rechazo(reporte)
 
     messages.warning(
         request,
@@ -1331,8 +1341,14 @@ def validar_horario(request, pk):
         return JsonResponse({"ok": True, "total": total, "ya_validado": True})
 
     from .models import ValidacionHorario
-    ValidacionHorario.objects.create(parroquia=parroquia)
+    validacion = ValidacionHorario.objects.create(
+        parroquia=parroquia,
+        usuario=request.user if request.user.is_authenticated else None,
+    )
     total = ValidacionHorario.objects.filter(parroquia=parroquia).count()
+
+    from apps.iglesias.signals import actualizar_score_validacion
+    actualizar_score_validacion(validacion)
 
     response = JsonResponse({"ok": True, "total": total, "ya_validado": False})
     response.set_cookie(
@@ -1374,3 +1390,19 @@ def robots_txt(request):
     )
     from django.http import HttpResponse
     return HttpResponse(content, content_type="text/plain")
+
+
+def publico_ranking(request):
+    from .models import PerfilUsuario
+    perfiles = PerfilUsuario.objects.filter(
+        score__gt=0
+    ).select_related("user").order_by("-score")[:20]
+
+    mi_perfil = None
+    if request.user.is_authenticated:
+        mi_perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
+
+    return render(request, "iglesias/publico/ranking.html", {
+        "perfiles": perfiles,
+        "mi_perfil": mi_perfil,
+    })
