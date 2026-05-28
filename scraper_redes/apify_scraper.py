@@ -1,5 +1,6 @@
 import os
 import httpx
+import time
 from datetime import datetime, timezone
 
 APIFY_BASE = "https://api.apify.com/v2"
@@ -13,36 +14,73 @@ def normalizar_url_instagram(url: str) -> str:
     return f"https://www.instagram.com{path}/"
 
 
+def _get_apify_tokens() -> list:
+    tokens = []
+    t1 = os.environ.get("APIFY_API_TOKEN")
+    t2 = os.environ.get("APIFY_API_TOKEN_2")
+    if t1:
+        tokens.append(t1)
+    if t2:
+        tokens.append(t2)
+    return tokens
+
+
 def scrapear_perfil_apify(url: str, limite: int = 5) -> list[dict]:
-    token = os.environ.get("APIFY_API_TOKEN")
-    if not token:
+    """
+    Scrapea posts de un perfil de Instagram usando Apify.
+    Intenta con APIFY_API_TOKEN y si da 403 reintenta con APIFY_API_TOKEN_2.
+    """
+    tokens = _get_apify_tokens()
+    if not tokens:
         raise ValueError("APIFY_API_TOKEN no está configurado.")
 
     url_limpia = normalizar_url_instagram(url)
     print(f"  [Apify] Scrapeando: {url_limpia}")
 
-    headers = {"Authorization": f"Bearer {token}"}
+    run_input = {
+        "directUrls": [url_limpia],
+        "resultsType": "posts",
+        "resultsLimit": limite,
+    }
+
+    token_usado = None
+    run_id = None
+    dataset_id = None
+    last_error = None
+
+    for token in tokens:
+        headers = {"Authorization": f"Bearer {token}"}
+        try:
+            resp = httpx.post(
+                f"{APIFY_BASE}/acts/apify~instagram-scraper/runs",
+                json=run_input,
+                headers=headers,
+                timeout=30,
+            )
+            if resp.status_code == 403:
+                print(f"  [Apify] Token agotado, intentando siguiente...")
+                last_error = "403 Forbidden"
+                continue
+            resp.raise_for_status()
+            run_id = resp.json()["data"]["id"]
+            dataset_id = resp.json()["data"]["defaultDatasetId"]
+            token_usado = token
+            break
+        except Exception as e:
+            last_error = str(e)
+            if "403" in str(e):
+                print(f"  [Apify] Token agotado, intentando siguiente...")
+                continue
+            raise
+
+    if not token_usado:
+        print(f"  [Apify] Todos los tokens fallaron: {last_error}")
+        return []
 
     try:
-        # Iniciar el run
-        run_input = {
-            "directUrls": [url_limpia],
-            "resultsType": "posts",
-            "resultsLimit": limite,
-        }
-        resp = httpx.post(
-            f"{APIFY_BASE}/acts/apify~instagram-scraper/runs",
-            json=run_input,
-            headers=headers,
-            timeout=30,
-        )
-        resp.raise_for_status()
-        run_id = resp.json()["data"]["id"]
-        dataset_id = resp.json()["data"]["defaultDatasetId"]
+        headers = {"Authorization": f"Bearer {token_usado}"}
 
         # Esperar que termine
-        import time
-
         for _ in range(60):  # máximo 5 minutos
             time.sleep(5)
             status_resp = httpx.get(
@@ -92,6 +130,7 @@ def scrapear_perfil_apify(url: str, limite: int = 5) -> list[dict]:
                         "caption": item.get("caption", ""),
                         "tipo": item.get("type", ""),
                         "location": item.get("locationName", ""),
+                        "url_post": f"https://www.instagram.com/p/{item.get('shortCode', '')}/",
                     },
                 }
             )

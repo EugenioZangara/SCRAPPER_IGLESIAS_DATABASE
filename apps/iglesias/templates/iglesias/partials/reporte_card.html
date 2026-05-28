@@ -52,6 +52,22 @@
             <div style="font-size:13px; color:#1e1b4b;">
                 {{ reporte.texto_usuario }}
             </div>
+            {% if reporte.url_post %}
+            <a href="{{ reporte.url_post }}"
+               target="_blank" rel="noopener noreferrer"
+               style="display:inline-flex; align-items:center; gap:5px;
+                      font-size:12px; color:#4f46e5; text-decoration:none;
+                      margin-top:8px; padding:5px 10px; border-radius:6px;
+                      border:1px solid #e5e7eb; background:white;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                Ver publicación original
+            </a>
+            {% endif %}
         </div>
     </div>
     {% else %}
@@ -256,6 +272,22 @@
             <div style="font-size:13px; color:#1e1b4b;">
                 {{ reporte.texto_usuario }}
             </div>
+            {% if reporte.url_post %}
+            <a href="{{ reporte.url_post }}"
+               target="_blank" rel="noopener noreferrer"
+               style="display:inline-flex; align-items:center; gap:5px;
+                      font-size:12px; color:#4f46e5; text-decoration:none;
+                      margin-top:8px; padding:5px 10px; border-radius:6px;
+                      border:1px solid #e5e7eb; background:white;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                Ver publicación original
+            </a>
+            {% endif %}
         </div>
     </div>
     {% else %}

@@ -345,6 +345,10 @@ class ReporteHorario(models.Model):
         max_length=1000, blank=True, null=True,
         help_text="URL de la imagen del post scrapeado"
     )
+    url_post = models.URLField(
+        max_length=1000, blank=True, null=True,
+        help_text="URL del post original en la red social"
+    )
     fuente = models.CharField(
         max_length=20,
         choices=[

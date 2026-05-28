@@ -10,40 +10,76 @@ APIFY_BASE = "https://api.apify.com/v2"
 def normalizar_url_facebook(url: str) -> str:
     """Normaliza URLs de Facebook eliminando parámetros y locale."""
     parsed = urlparse(url)
-    # Asegurar https://www.facebook.com/
     netloc = "www.facebook.com"
     path = parsed.path.rstrip("/")
     return f"https://{netloc}{path}"
+
+
+def _get_apify_tokens() -> list:
+    tokens = []
+    t1 = os.environ.get("APIFY_API_TOKEN")
+    t2 = os.environ.get("APIFY_API_TOKEN_2")
+    if t1:
+        tokens.append(t1)
+    if t2:
+        tokens.append(t2)
+    return tokens
 
 
 def scrapear_perfil_facebook(url: str, limite: int = 5) -> list[dict]:
     """
     Scrapea posts de una página de Facebook usando Apify.
     Retorna lista de dicts compatible con el formato del pipeline.
+    Intenta con APIFY_API_TOKEN y si da 403 reintenta con APIFY_API_TOKEN_2.
     """
-    token = os.environ.get("APIFY_API_TOKEN")
-    if not token:
-        raise ValueError("APIFY_API_TOKEN no está configurado.")
+    tokens = _get_apify_tokens()
+    if not tokens:
+        raise ValueError("No hay APIFY_API_TOKEN configurado.")
 
     url_limpia = normalizar_url_facebook(url)
     print(f"  [Apify FB] Scrapeando: {url_limpia}")
 
-    headers = {"Authorization": f"Bearer {token}"}
+    run_input = {
+        "startUrls": [{"url": url_limpia}],
+        "resultsLimit": limite,
+    }
+
+    token_usado = None
+    run_id = None
+    dataset_id = None
+    last_error = None
+
+    for token in tokens:
+        headers = {"Authorization": f"Bearer {token}"}
+        try:
+            resp = httpx.post(
+                f"{APIFY_BASE}/acts/apify~facebook-posts-scraper/runs",
+                json=run_input,
+                headers=headers,
+                timeout=30,
+            )
+            if resp.status_code == 403:
+                print(f"  [Apify FB] Token agotado, intentando siguiente...")
+                last_error = "403 Forbidden"
+                continue
+            resp.raise_for_status()
+            run_id = resp.json()["data"]["id"]
+            dataset_id = resp.json()["data"]["defaultDatasetId"]
+            token_usado = token
+            break
+        except Exception as e:
+            last_error = str(e)
+            if "403" in str(e):
+                print(f"  [Apify FB] Token agotado, intentando siguiente...")
+                continue
+            raise
+
+    if not token_usado:
+        print(f"  [Apify FB] Todos los tokens fallaron: {last_error}")
+        return []
 
     try:
-        run_input = {
-            "startUrls": [{"url": url_limpia}],
-            "resultsLimit": limite,
-        }
-        resp = httpx.post(
-            f"{APIFY_BASE}/acts/apify~facebook-posts-scraper/runs",
-            json=run_input,
-            headers=headers,
-            timeout=30,
-        )
-        resp.raise_for_status()
-        run_id = resp.json()["data"]["id"]
-        dataset_id = resp.json()["data"]["defaultDatasetId"]
+        headers = {"Authorization": f"Bearer {token_usado}"}
 
         # Esperar que termine
         for _ in range(60):

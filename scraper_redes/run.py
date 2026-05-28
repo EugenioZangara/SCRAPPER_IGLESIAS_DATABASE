@@ -108,6 +108,7 @@ def procesar_posts_pendientes(parroquia):
                     fuente="scraper",
                     texto_usuario="Horarios detectados desde imagen: " + ", ".join(lineas),
                     imagen_url=post_obj.imagen_url,
+                    url_post=post_obj.raw_data.get("url_post", "") if post_obj.raw_data else "",
                     propuesta_ia=resultado["horarios_detectados"],
                     resumen_cambios="Detectado automáticamente desde imagen de la red social.",
                 )
@@ -310,6 +311,7 @@ def main_produccion_facebook():
                             fuente="scraper",
                             texto_usuario="Horarios detectados desde imagen: " + ", ".join(lineas),
                             imagen_url=post_obj.imagen_url,
+                            url_post=post_obj.raw_data.get("url_post", "") if post_obj.raw_data else "",
                             propuesta_ia=resultado["horarios_detectados"],
                             resumen_cambios="Detectado automáticamente desde imagen de la red social.",
                         )

@@ -161,6 +161,7 @@ Reporte para corregir horarios de misas. Puede provenir de usuarios o del scrape
 - `resumen_cambios`: descripción de los cambios detectados
 - `estado`: "pendiente" / "aplicado" / "descartado"
 - `imagen_url`: URLField(1000) — URL de la imagen del post (solo scraper)
+- `url_post`: URLField(1000) — URL del post original en la red social (solo scraper)
 - `fuente`: "usuario" (default) / "scraper"
 - `revisado_en`, `revisado_por`: FK auth.User
 - Ordering: `["-creado_en"]`
@@ -202,7 +203,8 @@ GEMINI_API_KEY=...              # Google AI Studio — modelo principal
 OPENROUTER_API_KEY=...          # OpenRouter — fallback cuando Gemini falla
 MISTRAL_API_KEY=...             # Mistral — fallback caption-only para Facebook
 INSTAGRAM_SESSION_USER=pilotosprogramadores
-APIFY_API_TOKEN=...             # Apify — backend de scraping Instagram por defecto
+APIFY_API_TOKEN=...             # Apify — token principal (Instagram y Facebook)
+APIFY_API_TOKEN_2=...           # Apify — token secundario, fallback cuando el primero da 403
 SCRAPER_BACKEND=apify           # "apify" (default) o "instaloader"
 GOOGLE_CLIENT_ID=...            # OAuth2 — Google login
 GOOGLE_CLIENT_SECRET=...        # OAuth2 — Google login
