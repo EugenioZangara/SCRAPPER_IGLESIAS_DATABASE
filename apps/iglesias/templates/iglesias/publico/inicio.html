@@ -245,22 +245,12 @@
     </ul>
 </div>
 <script>
-  {% load l10n %}
-const parroquiasGeo = [
-    {% for p in parroquias_geo %}
-    {
-        pk: {{ p.pk }},
-        nombre: "{{ p.nombre|escapejs }}",
-        barrio: "{{ p.barrio|default:''|escapejs }}",
-        lat: {{ p.latitud|unlocalize }},
-lng: {{ p.longitud|unlocalize }},
-        tiene_horarios: {{ p.tiene_horarios|yesno:"true,false" }},
-        tiene_ig: {{ p.tiene_ig|yesno:"true,false" }},
-        tiene_fb: {{ p.tiene_fb|yesno:"true,false" }},
-        eventos_count: {{ p.eventos_count }},
-    },
-    {% endfor %}
-];
+let parroquiasGeo = [];
+
+fetch('/publico/geo/')
+    .then(r => r.json())
+    .then(data => { parroquiasGeo = data.parroquias; })
+    .catch(() => {});
 
 function calcularDistancia(lat1, lng1, lat2, lng2) {
     const R = 6371;
