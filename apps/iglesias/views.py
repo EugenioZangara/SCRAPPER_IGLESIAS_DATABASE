@@ -310,7 +310,7 @@ def moderacion_eventos(request):
     else:
         eventos = es_futuro(Evento.objects.all())
 
-    eventos = eventos.select_related("parroquia", "post").order_by("fecha", "-creado_en")
+    eventos = eventos.select_related("parroquia", "tipo", "post").order_by("fecha", "creado_en")
 
     counts = {
         "pendiente": es_futuro(Evento.objects.filter(verificado=False, activo=True)).count(),
