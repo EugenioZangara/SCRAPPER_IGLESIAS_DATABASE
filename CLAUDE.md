@@ -174,6 +174,7 @@ Reporte para corregir horarios de misas. Puede provenir de usuarios o del scrape
 ### ScraperJob
 Registro de cada ejecución del scraper, usado por la tarjeta flotante de progreso.
 - `estado`: "corriendo" / "completado" / "error"
+- `origen`: "manual" (ejecutado desde panel) / "automatico" (GitHub Actions via `scraper_automatico`)
 - `total`, `procesados`: contadores de parroquias
 - `posts_nuevos`, `eventos_nuevos`, `errores`: resultados acumulados
 - `parroquia_actual`: nombre de la parroquia en proceso (vacío al terminar)
@@ -181,6 +182,7 @@ Registro de cada ejecución del scraper, usado por la tarjeta flotante de progre
 - `iniciado_en`, `actualizado_en`: timestamps automáticos
 - Ordering: `["-iniciado_en"]`
 - El endpoint `/scraper/estado/` devuelve el job más reciente en JSON para polling JS
+- El panel de moderación muestra historial de las últimas 5 corridas con fecha, origen, posts, eventos, errores y duración
 
 ### PerfilUsuario
 Perfil extendido de usuario para scoring de colaboradores. OneToOne con User.

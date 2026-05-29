@@ -381,6 +381,14 @@ class ScraperJob(models.Model):
     ]
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES,
                               default="corriendo")
+    origen = models.CharField(
+        max_length=20,
+        choices=[
+            ("manual", "Manual"),
+            ("automatico", "Automático"),
+        ],
+        default="manual"
+    )
     total = models.IntegerField(default=0)
     procesados = models.IntegerField(default=0)
     posts_nuevos = models.IntegerField(default=0)
@@ -397,3 +405,43 @@ class ScraperJob(models.Model):
 
     def __str__(self):
         return f"ScraperJob {self.pk} — {self.estado}"
+
+
+class Banner(models.Model):
+    POSICION_CHOICES = [
+        ("resultados", "Entre resultados del buscador"),
+        ("detalle", "Página de detalle de parroquia"),
+    ]
+    titulo = models.CharField(max_length=100)
+    imagen = models.ImageField(
+        upload_to="banners/",
+        null=True, blank=True,
+        help_text="Imagen del banner (recomendado: 728x90px)"
+    )
+    imagen_static = models.CharField(
+        max_length=200, blank=True, null=True,
+        help_text="Ruta estática ej: iglesias/img/ad_gaudium1.jpeg"
+    )
+    url_destino = models.URLField(
+        max_length=500, blank=True, null=True,
+        help_text="URL a la que redirige el banner"
+    )
+    texto_alternativo = models.CharField(
+        max_length=200, blank=True,
+        help_text="Texto alternativo para SEO y accesibilidad"
+    )
+    posicion = models.CharField(
+        max_length=20, choices=POSICION_CHOICES,
+        default="resultados"
+    )
+    activo = models.BooleanField(default=True)
+    orden = models.IntegerField(default=0)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["orden", "-creado_en"]
+        verbose_name = "Banner publicitario"
+        verbose_name_plural = "Banners publicitarios"
+
+    def __str__(self):
+        return f"{self.titulo} ({self.posicion})"

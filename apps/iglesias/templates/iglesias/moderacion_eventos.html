@@ -47,6 +47,141 @@
 </form>
 {% endif %}
 
+<div style="margin-top:16px; background:white; border:1px solid #e5e7eb;
+            border-radius:12px; padding:16px;">
+    <div style="font-size:11px; font-weight:600; text-transform:uppercase;
+                 letter-spacing:0.06em; color:#6b7280; margin-bottom:14px;">
+        Historial de scraping
+    </div>
+
+    {% if ultimo_job %}
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr));
+                 gap:10px; margin-bottom:16px; padding-bottom:16px;
+                 border-bottom:1px solid #f3f4f6;">
+        <div style="background:#f8f7ff; border-radius:8px; padding:12px;">
+            <div style="font-size:11px; color:#6b7280; margin-bottom:4px;">
+                Último scraping
+            </div>
+            <div style="font-size:13px; font-weight:500; color:#1e1b4b;">
+                {{ ultimo_job.iniciado_en|date:"d/m/Y" }}
+            </div>
+            <div style="font-size:12px; color:#6b7280;">
+                {{ ultimo_job.iniciado_en|time:"H:i" }} hs
+            </div>
+        </div>
+        <div style="background:#f8f7ff; border-radius:8px; padding:12px;">
+            <div style="font-size:11px; color:#6b7280; margin-bottom:4px;">
+                Origen
+            </div>
+            <div style="font-size:13px; font-weight:500;
+                         {% if ultimo_job.origen == 'automatico' %}
+                         color:#16a34a;
+                         {% else %}color:#1e1b4b;{% endif %}">
+                {% if ultimo_job.origen == "automatico" %}
+                    ⚡ Automático
+                {% else %}
+                    👤 Manual
+                {% endif %}
+            </div>
+        </div>
+        <div style="background:#f8f7ff; border-radius:8px; padding:12px;">
+            <div style="font-size:11px; color:#6b7280; margin-bottom:4px;">
+                Posts nuevos
+            </div>
+            <div style="font-size:20px; font-weight:600; color:#4f46e5;">
+                {{ ultimo_job.posts_nuevos }}
+            </div>
+        </div>
+        <div style="background:#f8f7ff; border-radius:8px; padding:12px;">
+            <div style="font-size:11px; color:#6b7280; margin-bottom:4px;">
+                Eventos detectados
+            </div>
+            <div style="font-size:20px; font-weight:600; color:#16a34a;">
+                {{ ultimo_job.eventos_nuevos }}
+            </div>
+        </div>
+        <div style="background:#f8f7ff; border-radius:8px; padding:12px;">
+            <div style="font-size:11px; color:#6b7280; margin-bottom:4px;">
+                Errores
+            </div>
+            <div style="font-size:20px; font-weight:600;
+                         {% if ultimo_job.errores > 0 %}color:#dc2626;
+                         {% else %}color:#6b7280;{% endif %}">
+                {{ ultimo_job.errores }}
+            </div>
+        </div>
+    </div>
+
+    {% if ultimo_job.mensaje_final %}
+    <div style="font-size:12px; color:#6b7280; margin-bottom:16px;">
+        {{ ultimo_job.mensaje_final }}
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+    {% if jobs_recientes %}
+    <div style="font-size:11px; font-weight:600; text-transform:uppercase;
+                 letter-spacing:0.06em; color:#6b7280; margin-bottom:10px;">
+        Últimas 5 corridas
+    </div>
+    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead>
+            <tr style="border-bottom:1px solid #f3f4f6;">
+                <th style="text-align:left; padding:6px 8px; color:#6b7280;
+                            font-weight:500;">Fecha</th>
+                <th style="text-align:left; padding:6px 8px; color:#6b7280;
+                            font-weight:500;">Origen</th>
+                <th style="text-align:right; padding:6px 8px; color:#6b7280;
+                            font-weight:500;">Posts</th>
+                <th style="text-align:right; padding:6px 8px; color:#6b7280;
+                            font-weight:500;">Eventos</th>
+                <th style="text-align:right; padding:6px 8px; color:#6b7280;
+                            font-weight:500;">Errores</th>
+                <th style="text-align:right; padding:6px 8px; color:#6b7280;
+                            font-weight:500;">Duración</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs_recientes %}
+            <tr style="border-bottom:1px solid #f9fafb;">
+                <td style="padding:7px 8px; color:#1e1b4b;">
+                    {{ job.iniciado_en|date:"d/m/Y H:i" }}
+                </td>
+                <td style="padding:7px 8px;">
+                    {% if job.origen == "automatico" %}
+                    <span style="color:#16a34a; font-weight:500;">⚡ Auto</span>
+                    {% else %}
+                    <span style="color:#6b7280;">👤 Manual</span>
+                    {% endif %}
+                </td>
+                <td style="padding:7px 8px; text-align:right;
+                            color:#4f46e5; font-weight:500;">
+                    {{ job.posts_nuevos }}
+                </td>
+                <td style="padding:7px 8px; text-align:right;
+                            color:#16a34a; font-weight:500;">
+                    {{ job.eventos_nuevos }}
+                </td>
+                <td style="padding:7px 8px; text-align:right;
+                            {% if job.errores > 0 %}color:#dc2626;
+                            {% else %}color:#6b7280;{% endif %}">
+                    {{ job.errores }}
+                </td>
+                <td style="padding:7px 8px; text-align:right; color:#6b7280;">
+                    {% if job.actualizado_en and job.iniciado_en %}
+                        {% with duracion=job.actualizado_en|timeuntil:job.iniciado_en %}
+                        {{ duracion }}
+                        {% endwith %}
+                    {% else %}—{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+
 <section class="stats-dir">
     <div class="stat lead">
         <div class="stat-label"><span>Total eventos</span></div>

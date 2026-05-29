@@ -105,4 +105,6 @@ urlpatterns = [
     path("admin-login/", views.admin_login, name="admin_login"),
     path("publico/<int:pk>/favorita/", views.set_parroquia_favorita, name="set_parroquia_favorita"),
     path("api/scraper/ejecutar/", views.scraper_automatico, name="scraper_automatico"),
+    path("publico/privacidad/", views.pagina_privacidad, name="privacidad"),
+    path("publico/terminos/", views.pagina_terminos, name="terminos"),
 ]

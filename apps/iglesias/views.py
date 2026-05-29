@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario
+from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, Banner
 
 from django.views.decorators.http import require_POST
 from django.urls import reverse
@@ -320,6 +320,14 @@ def moderacion_eventos(request):
         "total": es_futuro(Evento.objects.all()).count(),
     }
 
+    ultimo_job = ScraperJob.objects.filter(
+        estado="completado"
+    ).order_by("-actualizado_en").first()
+
+    jobs_recientes = ScraperJob.objects.filter(
+        estado="completado"
+    ).order_by("-iniciado_en")[:5]
+
     return render(request, "iglesias/moderacion_eventos.html", {
         "eventos": eventos,
         "estado": estado,
@@ -333,6 +341,8 @@ def moderacion_eventos(request):
         "total_cuentas_fb": RedSocial.objects.filter(
             tipo="facebook", activo=True, verificado=True
         ).count(),
+        "ultimo_job": ultimo_job,
+        "jobs_recientes": jobs_recientes,
     })
 
 
@@ -426,6 +436,7 @@ def ejecutar_scraper_completo(request):
     job = ScraperJob.objects.create(
         total=len(redes_ig) + len(redes_fb),
         procesados=0,
+        origen="manual",
     )
 
     def correr_scraper():
@@ -1236,10 +1247,13 @@ def publico_buscar(request):
             "tiene_fb": any(r.tipo == "facebook" for r in redes_verificadas),
         })
 
+    banners = list(Banner.objects.filter(posicion="resultados", activo=True))
+
     return render(request, "iglesias/publico/partials/resultados.html", {
         "resultados": resultados,
         "total": len(resultados),
         "query": q,
+        "banners": banners,
     })
 
 
@@ -1271,6 +1285,8 @@ def publico_detalle(request, pk):
         except Exception:
             pass
 
+    banner_detalle = Banner.objects.filter(posicion="detalle", activo=True).first()
+
     return render(request, "iglesias/publico/detalle.html", {
         "parroquia": parroquia,
         "redes": redes_verificadas,
@@ -1279,6 +1295,7 @@ def publico_detalle(request, pk):
         "ya_valido": ya_valido,
         "ya_reporto": ya_reporto,
         "es_favorita": es_favorita,
+        "banner_detalle": banner_detalle,
     })
 
 
@@ -1406,7 +1423,7 @@ def revision_reportes(request):
         estado="pendiente"
     ).select_related("parroquia").prefetch_related("parroquia__horarios_misa")
 
-    if fuente in ("usuario", "scraper"):
+    if fuente in ("usuario", "scraper", "scraper_web"):
         pendientes_qs = pendientes_qs.filter(fuente=fuente)
 
     revisados = ReporteHorario.objects.exclude(
@@ -1422,6 +1439,7 @@ def revision_reportes(request):
         "fuente_activa": fuente,
         "total_usuario": ReporteHorario.objects.filter(estado="pendiente", fuente="usuario").count(),
         "total_scraper": ReporteHorario.objects.filter(estado="pendiente", fuente="scraper").count(),
+        "total_web": ReporteHorario.objects.filter(estado="pendiente", fuente="scraper_web").count(),
     })
 
 
@@ -1638,6 +1656,7 @@ def scraper_automatico(request):
     job = ScraperJob.objects.create(
         total=len(redes_ig) + len(redes_fb),
         procesados=0,
+        origen="automatico",
     )
 
     def correr():
@@ -1798,3 +1817,11 @@ def scraper_automatico(request):
         "total": job.total,
         "mensaje": f"Scraper iniciado — {len(redes_ig)} IG + {len(redes_fb)} FB",
     })
+
+
+def pagina_privacidad(request):
+    return render(request, "iglesias/publico/privacidad.html")
+
+
+def pagina_terminos(request):
+    return render(request, "iglesias/publico/terminos.html")

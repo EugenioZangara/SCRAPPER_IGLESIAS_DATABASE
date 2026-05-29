@@ -533,4 +533,28 @@ function enviarReporte(pk) {
     .catch(() => alert('Error al enviar el reporte. Intentá de nuevo.'));
 }
 </script>
+
+{% if banner_detalle %}
+<div style="margin-top:24px; text-align:center;" aria-label="Publicidad">
+  {% if banner_detalle.url_destino %}
+  <a href="{{ banner_detalle.url_destino }}" target="_blank" rel="noopener sponsored"
+     style="display:inline-block; text-decoration:none;">
+  {% endif %}
+    {% if banner_detalle.imagen %}
+      <img src="{{ banner_detalle.imagen.url }}"
+           alt="{{ banner_detalle.texto_alternativo|default:banner_detalle.titulo }}"
+           loading="lazy"
+           style="max-width:100%; height:auto; border-radius:8px;">
+    {% else %}
+      <div style="background:#f3f4f6; border:1px solid var(--rule);
+                  border-radius:8px; padding:12px 20px; display:inline-block;
+                  font-size:12px; color:var(--muted);">
+        Publicidad · {{ banner_detalle.titulo }}
+      </div>
+    {% endif %}
+  {% if banner_detalle.url_destino %}
+  </a>
+  {% endif %}
+</div>
+{% endif %}
 {% endblock %}

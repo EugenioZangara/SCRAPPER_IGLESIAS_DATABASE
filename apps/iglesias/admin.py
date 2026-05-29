@@ -11,6 +11,7 @@ from .models import (
     HorarioMisa,
     ReporteHorario,
     PerfilUsuario,
+    Banner,
 )
 
 
@@ -107,3 +108,10 @@ class InfoBaiglesiasAdmin(admin.ModelAdmin):
     list_display = ("parroquia", "url_scrapeada", "scrapeado_el")
     search_fields = ("parroquia__nombre",)
     readonly_fields = ("scrapeado_el",)
+
+
+@admin.register(Banner)
+class BannerAdmin(admin.ModelAdmin):
+    list_display = ("titulo", "posicion", "activo", "orden", "creado_en")
+    list_filter = ("posicion", "activo")
+    list_editable = ("activo", "orden")

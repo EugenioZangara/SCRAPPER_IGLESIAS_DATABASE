@@ -51,6 +51,42 @@
       </div>
     </div>
   </a>
+
+  {% if forloop.counter|divisibleby:6 and banners and not forloop.last %}
+  <div style="grid-column:1/-1; margin:4px 0;" aria-label="Publicidad">
+    {% with banner=banners.0 %}
+    {% if banner.url_destino %}
+    <a href="{{ banner.url_destino }}" target="_blank" rel="noopener sponsored"
+       style="display:block; text-decoration:none;">
+    {% endif %}
+      {% if banner.imagen_static %}
+        {% load static %}
+        <img src="{% static banner.imagen_static %}"
+             alt="{{ banner.texto_alternativo }}"
+             style="width:100%; max-height:160px; object-fit:cover;
+                    object-position:center; border-radius:8px;
+                    border:1px solid var(--rule);">
+      {% elif banner.imagen %}
+        <img src="{{ banner.imagen.url }}"
+             alt="{{ banner.texto_alternativo }}"
+             style="width:100%; max-height:160px; object-fit:cover;
+                    object-position:center; border-radius:8px;
+                    border:1px solid var(--rule);">
+      {% else %}
+        <div style="width:100%; height:80px; background:#f0fdf4;
+                    border:1px dashed #86efac; border-radius:8px;
+                    display:flex; align-items:center; justify-content:center;
+                    color:#16a34a; font-size:13px; font-weight:500;">
+          {{ banner.titulo }}
+        </div>
+      {% endif %}
+    {% if banner.url_destino %}
+    </a>
+    {% endif %}
+    {% endwith %}
+  </div>
+  {% endif %}
+
   {% endfor %}
 </div>
 {% else %}

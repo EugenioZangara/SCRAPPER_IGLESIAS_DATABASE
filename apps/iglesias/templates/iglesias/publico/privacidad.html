@@ -1,0 +1,98 @@
+{% extends "iglesias/publico/base_publica.html" %}
+
+{% block meta_extra %}
+<title>Política de Privacidad — ParroGuía</title>
+<meta name="description" content="Política de privacidad de ParroGuía. Información sobre el tratamiento de datos personales, cookies y publicidad en nuestro sitio.">
+<link rel="canonical" href="https://scrapper-iglesias-database.onrender.com/publico/privacidad/">
+{% endblock %}
+
+{% block content %}
+<a href="{% url 'iglesias:publico_inicio' %}" class="pub-back">← Volver al inicio</a>
+
+<div class="pub-section" style="max-width:720px;">
+  <h1 style="font-size:22px; font-weight:600; color:var(--ink); margin-bottom:6px;">
+    Política de Privacidad
+  </h1>
+  <p style="font-size:12px; color:var(--muted); margin-bottom:24px;">
+    Última actualización: 29 de mayo de 2026
+  </p>
+
+  <div style="font-size:14px; color:var(--ink); line-height:1.7;">
+
+    <h2 style="font-size:16px; font-weight:600; margin:24px 0 8px;">1. Información que recopilamos</h2>
+    <p>ParroGuía recopila información de dos maneras:</p>
+    <ul style="margin:8px 0 16px 20px;">
+      <li><strong>Información que usted proporciona:</strong> al iniciar sesión con Google o Facebook (nombre, dirección de correo electrónico e imagen de perfil públicos).</li>
+      <li><strong>Información recopilada automáticamente:</strong> datos de uso del sitio, dirección IP y cookies de sesión.</li>
+    </ul>
+
+    <h2 style="font-size:16px; font-weight:600; margin:24px 0 8px;">2. Uso de la información</h2>
+    <p>Usamos la información recopilada para:</p>
+    <ul style="margin:8px 0 16px 20px;">
+      <li>Permitir el inicio de sesión y la gestión de su cuenta.</li>
+      <li>Registrar sus contribuciones (reportes y validaciones de horarios de misas).</li>
+      <li>Mostrar publicidad relevante a través de Google AdSense.</li>
+      <li>Mejorar la experiencia del usuario en el sitio.</li>
+    </ul>
+
+    <h2 style="font-size:16px; font-weight:600; margin:24px 0 8px;">3. Cookies</h2>
+    <p>Utilizamos cookies para:</p>
+    <ul style="margin:8px 0 16px 20px;">
+      <li><strong>Cookies esenciales:</strong> necesarias para el funcionamiento del inicio de sesión y la seguridad (CSRF).</li>
+      <li><strong>Cookies de preferencias:</strong> recordamos si ya validó o reportó una parroquia.</li>
+      <li><strong>Cookies de publicidad:</strong> Google AdSense puede usar cookies para mostrar anuncios personalizados basados en sus visitas a este y otros sitios web.</li>
+    </ul>
+    <p>Puede gestionar o deshabilitar las cookies en la configuración de su navegador. Al deshabilitar las cookies de publicidad, puede seguir visitando el sitio pero los anuncios mostrados serán menos relevantes.</p>
+
+    <h2 style="font-size:16px; font-weight:600; margin:24px 0 8px;">4. Publicidad (Google AdSense)</h2>
+    <p>
+      ParroGuía usa Google AdSense para mostrar anuncios. Google puede usar cookies DoubleClick para mostrar anuncios basados en sus intereses. Puede optar por no recibir publicidad personalizada visitando
+      <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener noreferrer"
+         style="color:var(--primary);">Configuración de anuncios de Google</a>.
+    </p>
+    <p style="margin-top:8px;">
+      Para más información sobre cómo Google usa los datos, consulte la
+      <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer"
+         style="color:var(--primary);">Política de Privacidad de Google</a>.
+    </p>
+
+    <h2 style="font-size:16px; font-weight:600; margin:24px 0 8px;">5. Inicio de sesión social</h2>
+    <p>
+      Cuando inicia sesión con Google o Facebook, recibimos los datos básicos de su perfil público (nombre, email, foto). No accedemos a sus contactos, publicaciones ni datos privados. Puede revocar el acceso de ParroGuía desde la configuración de seguridad de su cuenta de Google o Facebook en cualquier momento.
+    </p>
+
+    <h2 style="font-size:16px; font-weight:600; margin:24px 0 8px;">6. Compartir información con terceros</h2>
+    <p>No vendemos ni cedemos sus datos personales a terceros. Solo compartimos información con:</p>
+    <ul style="margin:8px 0 16px 20px;">
+      <li><strong>Google AdSense:</strong> para mostrar publicidad (ver punto 4).</li>
+      <li><strong>Google OAuth / Facebook OAuth:</strong> para la autenticación (ver punto 5).</li>
+      <li><strong>Render.com:</strong> proveedor de infraestructura donde se aloja el sitio.</li>
+    </ul>
+
+    <h2 style="font-size:16px; font-weight:600; margin:24px 0 8px;">7. Retención de datos</h2>
+    <p>
+      Conservamos los datos de su cuenta mientras esté activa. Los reportes y validaciones de horarios que usted envíe quedan almacenados para mantener la calidad de la información del directorio. Puede solicitar la eliminación de su cuenta y datos asociados contactándonos.
+    </p>
+
+    <h2 style="font-size:16px; font-weight:600; margin:24px 0 8px;">8. Sus derechos</h2>
+    <p>Usted tiene derecho a:</p>
+    <ul style="margin:8px 0 16px 20px;">
+      <li>Acceder a los datos que tenemos sobre usted.</li>
+      <li>Solicitar la corrección o eliminación de sus datos.</li>
+      <li>Oponerse al tratamiento de sus datos para publicidad.</li>
+    </ul>
+
+    <h2 style="font-size:16px; font-weight:600; margin:24px 0 8px;">9. Contacto</h2>
+    <p>
+      Para consultas sobre privacidad, puede contactarnos en:
+      <a href="mailto:notagencyads@gmail.com" style="color:var(--primary);">notagencyads@gmail.com</a>
+    </p>
+
+    <h2 style="font-size:16px; font-weight:600; margin:24px 0 8px;">10. Cambios a esta política</h2>
+    <p>
+      Podemos actualizar esta política periódicamente. Los cambios significativos serán notificados en el sitio. Le recomendamos revisar esta página periódicamente.
+    </p>
+
+  </div>
+</div>
+{% endblock %}
