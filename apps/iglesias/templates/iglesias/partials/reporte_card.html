@@ -84,99 +84,88 @@
     </a>
     {% endif %}
 
-    <div class="reporte-comparacion" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;
-                margin-bottom:14px;">
-
-        <!-- Columna izquierda: horarios actuales -->
-        <div style="background:#f9fafb; border-radius:8px; padding:14px;">
-            <div style="font-size:10px; font-weight:600; text-transform:uppercase;
-                         letter-spacing:0.06em; color:#6b7280; margin-bottom:10px;">
-                Horarios actuales
-            </div>
-            {% with horarios=reporte.parroquia.horarios_misa.all %}
-            {% if horarios %}
-                <table style="width:100%; border-collapse:collapse;">
-                    <thead>
-                        <tr>
-                            <th style="font-size:11px; text-transform:uppercase;
-                                       letter-spacing:0.05em; color:#6b7280;
-                                       text-align:left; padding:4px 6px;
-                                       border-bottom:1px solid #e5e7eb;">Día</th>
-                            <th style="font-size:11px; text-transform:uppercase;
-                                       letter-spacing:0.05em; color:#6b7280;
-                                       text-align:left; padding:4px 6px;
-                                       border-bottom:1px solid #e5e7eb;">Horarios</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for h in horarios %}
-                        <tr>
-                            <td style="font-size:13px; color:#374151; padding:5px 6px;
-                                       border-bottom:1px solid #f3f4f6;">
-                                {{ h.get_dia_semana_display }}
-                            </td>
-                            <td style="font-size:13px; color:#374151; padding:5px 6px;
-                                       border-bottom:1px solid #f3f4f6;">
-                                {{ h.horarios }}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <div style="font-size:13px; color:#9ca3af; font-style:italic;">
-                    Sin horarios cargados
-                </div>
-            {% endif %}
-            {% endwith %}
+    <!-- Horarios actuales -->
+    <div style="background:#f9fafb; border-radius:8px; padding:14px; margin-bottom:14px;">
+        <div style="font-size:10px; font-weight:600; text-transform:uppercase;
+                     letter-spacing:0.06em; color:#6b7280; margin-bottom:10px;">
+            Horarios actuales
         </div>
-
-        <!-- Columna derecha: propuesta de la IA -->
-        <div style="background:#eeedfe; border-radius:8px; padding:14px;">
-            <div style="font-size:10px; font-weight:600; text-transform:uppercase;
-                         letter-spacing:0.06em; color:#534ab7; margin-bottom:10px;
-                         display:flex; align-items:center; gap:5px;">
-                ✦ Propuesta de la IA
-            </div>
+        {% with horarios=reporte.parroquia.horarios_misa.all %}
+        {% if horarios %}
             <table style="width:100%; border-collapse:collapse;">
                 <thead>
                     <tr>
                         <th style="font-size:11px; text-transform:uppercase;
-                                   letter-spacing:0.05em; color:#534ab7;
+                                   letter-spacing:0.05em; color:#6b7280;
                                    text-align:left; padding:4px 6px;
-                                   border-bottom:1px solid #afa9ec;">Día</th>
+                                   border-bottom:1px solid #e5e7eb;">Día</th>
                         <th style="font-size:11px; text-transform:uppercase;
-                                   letter-spacing:0.05em; color:#534ab7;
+                                   letter-spacing:0.05em; color:#6b7280;
                                    text-align:left; padding:4px 6px;
-                                   border-bottom:1px solid #afa9ec;">Horarios</th>
+                                   border-bottom:1px solid #e5e7eb;">Horarios</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for cambio in reporte.propuesta_ia %}
+                    {% for h in horarios %}
                     <tr>
-                        <td style="font-size:13px; color:#3730a3; padding:5px 6px;
-                                   border-bottom:1px solid #ede9fe;">
-                            {% if cambio.dia == 0 %}Lunes
-                            {% elif cambio.dia == 1 %}Martes
-                            {% elif cambio.dia == 2 %}Miércoles
-                            {% elif cambio.dia == 3 %}Jueves
-                            {% elif cambio.dia == 4 %}Viernes
-                            {% elif cambio.dia == 5 %}Sábado
-                            {% elif cambio.dia == 6 %}Domingo
-                            {% endif %}
+                        <td style="font-size:13px; color:#374151; padding:5px 6px;
+                                   border-bottom:1px solid #f3f4f6;">
+                            {{ h.get_dia_semana_display }}
                         </td>
-                        <td style="font-size:13px; font-weight:500; color:#1e1b4b;
-                                   padding:5px 6px; border-bottom:1px solid #ede9fe;">
-                            {% if cambio.horario %}
-                                {{ cambio.horario }}
-                            {% else %}
-                                <span style="color:#dc2626; font-style:italic;">Sin misa</span>
-                            {% endif %}
+                        <td style="font-size:13px; color:#374151; padding:5px 6px;
+                                   border-bottom:1px solid #f3f4f6;">
+                            {{ h.horarios }}
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        {% else %}
+            <div style="font-size:13px; color:#9ca3af; font-style:italic;">
+                Sin horarios cargados
+            </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Propuesta editable de la IA -->
+    <form method="post" action="{% url 'iglesias:aplicar_reporte' reporte.pk %}">
+        {% csrf_token %}
+        <div style="background:#eeedfe; border-radius:8px; padding:14px; margin-bottom:14px;">
+            <div style="font-size:10px; font-weight:600; text-transform:uppercase;
+                         letter-spacing:0.06em; color:#534ab7; margin-bottom:10px;
+                         display:flex; align-items:center; gap:6px;">
+                ✦ Propuesta de la IA
+                <span style="font-weight:400; color:#6b7280; font-size:11px;
+                              text-transform:none; letter-spacing:0;">
+                    — podés editar antes de aplicar
+                </span>
+            </div>
+            {% for cambio in reporte.propuesta_ia %}
+            <div style="display:grid; grid-template-columns:140px 1fr;
+                         gap:8px; align-items:center; padding:5px 0;
+                         border-bottom:1px solid #ded9f5;">
+                <input type="hidden" name="dia_{{ forloop.counter0 }}" value="{{ cambio.dia }}">
+                <label style="font-size:13px; color:#3730a3; font-weight:500;">
+                    {% if cambio.dia == 0 %}Lunes
+                    {% elif cambio.dia == 1 %}Martes
+                    {% elif cambio.dia == 2 %}Miércoles
+                    {% elif cambio.dia == 3 %}Jueves
+                    {% elif cambio.dia == 4 %}Viernes
+                    {% elif cambio.dia == 5 %}Sábado
+                    {% elif cambio.dia == 6 %}Domingo
+                    {% endif %}
+                </label>
+                <input type="text"
+                       name="horario_{{ forloop.counter0 }}"
+                       value="{{ cambio.horario }}"
+                       placeholder="ej: 8:00 · 19:00 (vacío = sin misa)"
+                       style="border:1px solid #afa9ec; border-radius:6px;
+                              padding:5px 10px; font-size:13px;
+                              font-family:inherit; color:#1e1b4b;
+                              background:white; width:100%; box-sizing:border-box;">
+            </div>
+            {% endfor %}
             {% if reporte.resumen_cambios %}
             <div style="font-size:12px; color:#534ab7; margin-top:10px;
                          padding-top:8px; border-top:1px solid #afa9ec;">
@@ -184,36 +173,30 @@
             </div>
             {% endif %}
         </div>
-
-    </div>
-    <style>
-    @media (max-width:640px) {
-        .reporte-comparacion { grid-template-columns: 1fr !important; }
-    }
-    </style>
-
-    <div style="display:flex; gap:10px;">
-        <form method="post"
-              action="{% url 'iglesias:aplicar_reporte' reporte.pk %}">
-            {% csrf_token %}
+        <div style="display:flex; gap:10px; align-items:center;">
             <button type="submit"
                     style="background:#4f46e5; color:white; border:none;
                            border-radius:8px; padding:9px 18px; font-size:13px;
                            font-weight:500; cursor:pointer;">
                 ✓ Aplicar cambios
             </button>
-        </form>
-        <form method="post"
-              action="{% url 'iglesias:descartar_reporte' reporte.pk %}">
-            {% csrf_token %}
-            <button type="submit"
-                    style="background:none; border:1px solid #fca5a5;
-                           color:#dc2626; border-radius:8px; padding:9px 18px;
-                           font-size:13px; font-weight:500; cursor:pointer;">
-                ✕ Descartar
-            </button>
-        </form>
-    </div>
+            <span style="font-size:12px; color:#6b7280;">
+                Editá los horarios antes de aplicar si es necesario
+            </span>
+        </div>
+    </form>
+
+    <form method="post"
+          action="{% url 'iglesias:descartar_reporte' reporte.pk %}"
+          style="margin-top:8px;">
+        {% csrf_token %}
+        <button type="submit"
+                style="background:none; border:1px solid #fca5a5;
+                       color:#dc2626; border-radius:8px; padding:7px 14px;
+                       font-size:12px; font-weight:500; cursor:pointer;">
+            ✕ Descartar
+        </button>
+    </form>
 </div>
 
 {% else %}

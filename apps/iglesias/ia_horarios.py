@@ -80,43 +80,36 @@ def procesar_reporte_horario(parroquia, texto_usuario: str) -> dict:
 
     DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
-    horarios_actuales = {}
+    horarios_dict = {}
     for h in parroquia.horarios_misa.all():
-        horarios_actuales[h.dia_semana] = h.horarios
+        horarios_dict[h.dia_semana] = h.horarios
 
     tabla_actual = "\n".join([
-        f"  {DIAS[i]}: {horarios_actuales.get(i, 'sin misa')}"
+        f"  {DIAS[i]}: {horarios_dict.get(i, 'sin misa')}"
         for i in range(7)
     ])
 
-    ejemplo = '{"horarios": [{"dia": 0, "horario": "19:00"}, {"dia": 3, "horario": ""}], "resumen_cambios": "descripción"}'
+    ejemplo = '{"cambios": [{"dia": 0, "horario": "19:00"}, {"dia": 5, "horario": "19:00"}], "resumen_cambios": "Se agregaron misas de lunes a sábado a las 19:00"}'
 
     prompt = (
-        f"Sos un asistente que actualiza horarios de misas de parroquias católicas.\n\n"
-        f"HORARIOS ACTUALES de {parroquia.nombre} (0=Lunes, 6=Domingo):\n"
+        f"Sos un asistente que actualiza horarios de misas.\n\n"
+        f"HORARIOS ACTUALES de {parroquia.nombre}:\n"
         f"{tabla_actual}\n\n"
         f"REPORTE DEL USUARIO:\n"
         f'"{texto_usuario}"\n\n'
         f"Tu tarea:\n"
-        f"1. Analizá el reporte del usuario\n"
-        f"2. Devolvé SOLO los días que cambian, con su nuevo horario\n"
-        f"   Si un día deja de tener misa, devolvelo con horario vacío ''\n"
-        f"   Si un día no cambia, NO lo incluyas en la respuesta\n"
-        f"3. Describí brevemente qué cambios detectaste\n\n"
-        f"REGLAS CRÍTICAS:\n"
-        f"- Solo modificá o agregá los días que el usuario mencionó EXPLÍCITAMENTE\n"
-        f"- Si el usuario no menciona un día, ese día se mantiene EXACTAMENTE igual\n"
-        f"- NUNCA elimines un día que no fue mencionado por el usuario\n"
-        f"- NUNCA inventes horarios que no existen en los datos actuales\n"
-        f"- Si el usuario dice 'Lunes a Viernes 19:00', solo actualizás\n"
-        f"  esos días — el resto de los días quedan sin cambios\n"
-        f"- Si eliminás un día de un rango existente, los demás días\n"
-        f"  del rango mantienen exactamente el mismo horario original\n"
-        f"- El resultado debe incluir TODOS los días actuales más los cambios\n"
-        f"  propuestos por el usuario\n"
-        f"- dia es un número: 0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, "
-        f"4=Viernes, 5=Sábado, 6=Domingo\n\n"
-        f"Respondé SOLO con JSON válido sin backticks ni texto extra:\n"
+        f"Devolvé ÚNICAMENTE los días que el usuario mencionó "
+        f"explícitamente con sus nuevos horarios.\n"
+        f"NO incluyas días que el usuario no mencionó.\n"
+        f"NO elimines días que no fueron mencionados.\n\n"
+        f"EJEMPLOS:\n"
+        f"- Usuario dice 'los domingos a las 10' → solo devolvés dia:6\n"
+        f"- Usuario dice 'lunes a viernes 19hs' → devolvés dias 0,1,2,3,4\n"
+        f"- Usuario dice 'sábados ya no hay misa' → devolvés dia:5 horario:''\n\n"
+        f"dia: 0=Lunes, 1=Martes, 2=Miércoles, 3=Jueves, "
+        f"4=Viernes, 5=Sábado, 6=Domingo\n"
+        f"Si un día deja de tener misa, horario debe ser '' (vacío).\n\n"
+        f"Respondé SOLO con JSON válido sin backticks:\n"
         + ejemplo
     )
 
@@ -141,7 +134,7 @@ def procesar_reporte_horario(parroquia, texto_usuario: str) -> dict:
 
             result = _parsear_respuesta(text)
             return {
-                "propuesta_ia": result.get("horarios", []),
+                "propuesta_ia": result.get("cambios", []),
                 "resumen_cambios": result.get("resumen_cambios", ""),
             }
         except Exception as e:
