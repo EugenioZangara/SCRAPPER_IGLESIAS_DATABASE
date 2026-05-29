@@ -113,8 +113,8 @@ def main():
                 time.sleep(0.5)
                 continue
 
-            if score < 0.65:
-                print(f"  ⚠ Match dudoso — omitiendo")
+            if 0.55 <= score < 0.65:
+                print(f"  DUDOSO: '{nombre_externo}' → '{parroquia.nombre}' ({score:.2f})")
                 matches_dudosos += 1
                 time.sleep(0.5)
                 continue

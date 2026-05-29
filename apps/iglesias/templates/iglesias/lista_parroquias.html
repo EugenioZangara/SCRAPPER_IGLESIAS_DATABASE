@@ -18,6 +18,39 @@
         {{ stats.total }} parroquias registradas<br>
         {{ stats.detalles_completos }} con detalles completos<br>
         {{ stats.con_redes }} con redes detectadas
+        {% if ultimo_job %}
+        <div style="margin-top:12px; padding-top:12px;
+                    border-top:1px solid var(--rule); font-size:12px;
+                    color:var(--muted); line-height:1.8;">
+            <div style="font-size:11px; font-weight:600; text-transform:uppercase;
+                         letter-spacing:0.06em; color:var(--ink); margin-bottom:6px;">
+                Último scraping
+            </div>
+            <div>
+                {{ ultimo_job.iniciado_en|date:"d/m/Y" }}
+                a las {{ ultimo_job.iniciado_en|time:"H:i" }}
+            </div>
+            <div>
+                {% if ultimo_job.origen == "automatico" %}
+                    ⚡ Automático
+                {% else %}
+                    👤 Manual
+                {% endif %}
+                {% if ultimo_job_duracion %}
+                    · {{ ultimo_job_duracion }}
+                {% endif %}
+            </div>
+            <div style="margin-top:4px;">
+                {{ ultimo_job.posts_nuevos }} posts nuevos
+                · {{ ultimo_job.eventos_nuevos }} eventos
+                {% if ultimo_job.errores > 0 %}
+                · <span style="color:#dc2626;">
+                    {{ ultimo_job.errores }} errores
+                  </span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </section>
 

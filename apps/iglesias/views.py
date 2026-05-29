@@ -178,6 +178,16 @@ def lista_parroquias(request):
         for tipo, etiqueta in RedSocial.TIPO_CHOICES
     ]
 
+    ultimo_job = ScraperJob.objects.filter(
+        estado="completado"
+    ).order_by("-iniciado_en").first()
+
+    duracion = None
+    if ultimo_job and ultimo_job.actualizado_en and ultimo_job.iniciado_en:
+        delta = ultimo_job.actualizado_en - ultimo_job.iniciado_en
+        minutos = int(delta.total_seconds() // 60)
+        duracion = f"{minutos} min" if minutos > 0 else "< 1 min"
+
     return render(
         request,
         "iglesias/lista_parroquias.html",
@@ -192,6 +202,8 @@ def lista_parroquias(request):
                 "redes": estado_redes,
                 "detalles": estado_detalles,
             },
+            "ultimo_job": ultimo_job,
+            "ultimo_job_duracion": duracion,
         },
     )
 
@@ -858,6 +870,54 @@ def aprobar_extendido(request, pk):
         "hora_fin_str": hora_fin_str,
         "next": request.GET.get("next", ""),
     })
+
+
+@require_POST
+def editar_nombre_parroquia(request, pk):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+    nombre = request.POST.get("nombre", "").strip()
+    if nombre and len(nombre) >= 3:
+        parroquia.nombre = nombre.upper()
+        parroquia.save(update_fields=["nombre"])
+    return redirect("iglesias:detalle_parroquia", pk=pk)
+
+
+@require_POST
+def agregar_red_social(request, pk):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+    tipo = request.POST.get("tipo", "").strip()
+    url = request.POST.get("url", "").strip()
+    username = request.POST.get("username", "").strip()
+
+    TIPOS_VALIDOS = ["facebook", "instagram", "youtube", "tiktok", "otro"]
+    if tipo not in TIPOS_VALIDOS:
+        messages.error(request, "Tipo de red social inválido.")
+        return redirect("iglesias:detalle_parroquia", pk=pk)
+
+    if not url.startswith("http"):
+        url = "https://" + url
+
+    from .models import RedSocial
+    _, creada = RedSocial.objects.get_or_create(
+        parroquia=parroquia,
+        url=url,
+        defaults={
+            "tipo": tipo,
+            "username": username or None,
+            "activo": True,
+            "verificado": False,
+        }
+    )
+    if creada:
+        messages.success(request, f"Red social {tipo} agregada correctamente.")
+    else:
+        messages.warning(request, "Esa URL ya estaba registrada.")
+
+    return redirect("iglesias:detalle_parroquia", pk=pk)
 
 
 def editar_seccion_contacto(request, pk):

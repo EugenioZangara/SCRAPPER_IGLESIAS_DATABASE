@@ -38,6 +38,16 @@ urlpatterns = [
         name="editar_seccion_bai",
     ),
     path(
+        "parroquias/<int:pk>/editar/nombre/",
+        views.editar_nombre_parroquia,
+        name="editar_nombre_parroquia",
+    ),
+    path(
+        "parroquias/<int:pk>/agregar-red/",
+        views.agregar_red_social,
+        name="agregar_red_social",
+    ),
+    path(
         "redes/<int:pk>/verificar/",
         views.verificar_red_social,
         name="verificar_red_social",

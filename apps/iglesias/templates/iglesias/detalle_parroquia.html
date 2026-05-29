@@ -31,7 +31,50 @@
 <section class="fiche-head">
     <div>
         <div class="eyebrow">Ficha parroquial</div>
+        {% if request.user.is_staff %}
+        <div style="display:flex; align-items:center; gap:10px;">
+            <h1 class="title" id="nombre-display">
+                {{ parroquia.nombre }}<em>.</em>
+            </h1>
+            <button onclick="document.getElementById('nombre-form').style.display='flex';
+                             document.getElementById('nombre-display').style.display='none';
+                             this.style.display='none';"
+                    style="background:none; border:1px solid var(--rule);
+                           border-radius:6px; padding:4px 10px; font-size:11px;
+                           color:var(--muted); cursor:pointer; flex-shrink:0;">
+                ✎ Editar
+            </button>
+        </div>
+        <form id="nombre-form"
+              method="post"
+              action="{% url 'iglesias:editar_nombre_parroquia' parroquia.pk %}"
+              style="display:none; align-items:center; gap:8px; margin-bottom:8px;">
+            {% csrf_token %}
+            <input type="text" name="nombre"
+                   value="{{ parroquia.nombre }}"
+                   style="font-size:24px; font-weight:600; font-family:var(--sans);
+                          border:1.5px solid var(--primary); border-radius:8px;
+                          padding:6px 12px; color:var(--ink); width:400px;
+                          outline:none;">
+            <button type="submit"
+                    style="background:var(--primary); color:white; border:none;
+                           border-radius:8px; padding:8px 16px; font-size:13px;
+                           font-weight:500; cursor:pointer;">
+                Guardar
+            </button>
+            <button type="button"
+                    onclick="document.getElementById('nombre-form').style.display='none';
+                             document.getElementById('nombre-display').style.display='block';
+                             document.querySelector('[onclick*=nombre-form]').style.display='inline';"
+                    style="background:none; border:1px solid var(--rule);
+                           border-radius:8px; padding:8px 16px; font-size:13px;
+                           color:var(--muted); cursor:pointer;">
+                Cancelar
+            </button>
+        </form>
+        {% else %}
         <h1 class="title">{{ parroquia.nombre }}<em>.</em></h1>
+        {% endif %}
         <div class="sub-loc">
             {% if parroquia.barrio %}<span>Barrio <b>{{ parroquia.barrio }}</b></span><span class="dot"></span>{% endif %}
             {% if parroquia.decanato %}<span>Decanato <b>{{ parroquia.decanato }}</b></span><span class="dot"></span>{% endif %}
@@ -334,6 +377,52 @@
                     </div>
                 </div>
             {% endfor %}
+            {% if request.user.is_staff %}
+            <div style="margin-top:14px; padding-top:14px;
+                        border-top:1px solid var(--rule);">
+                <div style="font-size:11px; font-weight:600; text-transform:uppercase;
+                             letter-spacing:0.06em; color:var(--muted); margin-bottom:10px;">
+                    Agregar red social
+                </div>
+                <form method="post"
+                      action="{% url 'iglesias:agregar_red_social' parroquia.pk %}">
+                    {% csrf_token %}
+                    <div style="display:grid; gap:8px;">
+                        <select name="tipo"
+                                style="border:1px solid var(--rule); border-radius:8px;
+                                       padding:8px 10px; font-size:13px;
+                                       font-family:var(--sans); color:var(--ink);
+                                       background:white; width:100%;">
+                            <option value="instagram">Instagram</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="youtube">YouTube</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                        <input type="url" name="url"
+                               placeholder="https://www.instagram.com/parroquia..."
+                               required
+                               style="border:1px solid var(--rule); border-radius:8px;
+                                      padding:8px 10px; font-size:13px;
+                                      font-family:var(--sans); color:var(--ink);
+                                      width:100%; outline:none;">
+                        <input type="text" name="username"
+                               placeholder="@usuario (opcional)"
+                               style="border:1px solid var(--rule); border-radius:8px;
+                                      padding:8px 10px; font-size:13px;
+                                      font-family:var(--sans); color:var(--ink);
+                                      width:100%; outline:none;">
+                        <button type="submit"
+                                style="background:var(--primary); color:white;
+                                       border:none; border-radius:8px; padding:9px;
+                                       font-size:13px; font-weight:500; cursor:pointer;
+                                       width:100%;">
+                            + Agregar red social
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
         </section>
 
         <!-- Scraping Instagram (solo staff + IG verificada) -->
