@@ -1434,16 +1434,13 @@ def aplicar_reporte(request, pk):
     parroquia = reporte.parroquia
 
     cambios = []
-    i = 0
-    while f"dia_{i}" in request.POST:
+    for i in range(7):
         dia_str = request.POST.get(f"dia_{i}", "").strip()
         horario_val = request.POST.get(f"horario_{i}", "").strip()
         if dia_str.isdigit():
             cambios.append({"dia": int(dia_str), "horario": horario_val})
-        i += 1
     if not cambios:
-        propuesta = reporte.propuesta_ia or []
-        cambios = propuesta.get("cambios", []) if isinstance(propuesta, dict) else propuesta
+        cambios = reporte.propuesta_ia or []
 
     for cambio in cambios:
         dia = cambio.get("dia")
