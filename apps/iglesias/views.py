@@ -1,3 +1,4 @@
+import os
 from datetime import date
 
 from django.contrib.auth import authenticate, login as auth_login
@@ -1600,4 +1601,193 @@ def admin_login(request):
     return render(request, "iglesias/admin_login.html", {
         "error": error,
         "next": request.GET.get("next", ""),
+    })
+
+
+def scraper_automatico(request):
+    if request.method != "POST":
+        from django.http import HttpResponseNotAllowed
+        return HttpResponseNotAllowed(["POST"])
+
+    token = request.headers.get("X-Scraper-Token", "")
+    token_esperado = os.environ.get("SCRAPER_SECRET_TOKEN", "")
+    if not token_esperado or token != token_esperado:
+        return JsonResponse({"ok": False, "error": "Token inválido"}, status=403)
+
+    if ScraperJob.objects.filter(estado="corriendo").exists():
+        return JsonResponse({"ok": False, "error": "Ya hay un scraper corriendo"})
+
+    import threading
+    from datetime import timedelta
+
+    redes_ig = list(RedSocial.objects.filter(
+        tipo="instagram", activo=True, verificado=True
+    ).select_related("parroquia"))
+
+    redes_fb = list(RedSocial.objects.filter(
+        tipo="facebook", activo=True, verificado=True
+    ).select_related("parroquia"))
+
+    job = ScraperJob.objects.create(
+        total=len(redes_ig) + len(redes_fb),
+        procesados=0,
+    )
+
+    def correr():
+        from scraper_redes.run import (
+            scrapear_con_backend,
+            scrapear_facebook_con_backend,
+            crear_evento_desde_post,
+        )
+        from scraper_redes.procesador import procesar_post, procesar_post_facebook
+        import time, random
+
+        try:
+            # Instagram
+            for red in redes_ig:
+                if ScraperJob.objects.filter(pk=job.pk, estado="completado").exists():
+                    break
+                job.parroquia_actual = red.parroquia.nombre
+                job.procesados += 1
+                job.save(update_fields=["parroquia_actual", "procesados", "actualizado_en"])
+                try:
+                    posts = scrapear_con_backend(red.url)
+                    guardados = 0
+                    for post in posts:
+                        _, creado = PostParroquia.objects.get_or_create(
+                            post_id=post["post_id"],
+                            defaults={
+                                "parroquia": red.parroquia,
+                                "red_social": "instagram",
+                                "imagen_url": post["imagen_url"],
+                                "fecha_publicacion": post["fecha"],
+                                "raw_data": post["raw_data"],
+                            }
+                        )
+                        if creado:
+                            guardados += 1
+                    pendientes = PostParroquia.objects.filter(
+                        parroquia=red.parroquia,
+                        procesado=False,
+                    )
+                    for post_obj in pendientes:
+                        post_dict = {
+                            "post_id": post_obj.post_id,
+                            "imagen_url": post_obj.imagen_url,
+                            "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
+                        }
+                        resultado = procesar_post(post_dict)
+                        post_obj.es_evento = resultado.get("es_evento")
+                        post_obj.procesado = resultado.get("es_evento") is not None
+                        post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}
+                        post_obj.save()
+                        if resultado.get("es_evento") and not resultado.get("es_pasado"):
+                            if not hasattr(post_obj, "evento"):
+                                crear_evento_desde_post(post_obj, resultado)
+                                job.eventos_nuevos += 1
+                        if resultado.get("tiene_horarios") and resultado.get("horarios_detectados"):
+                            hace_7dias = timezone.now() - timedelta(days=7)
+                            if not ReporteHorario.objects.filter(
+                                parroquia=red.parroquia, fuente="scraper",
+                                estado="pendiente", creado_en__gte=hace_7dias
+                            ).exists():
+                                ReporteHorario.objects.create(
+                                    parroquia=red.parroquia,
+                                    fuente="scraper",
+                                    texto_usuario=f"Scraper Instagram @{red.url}",
+                                    propuesta_ia=resultado["horarios_detectados"],
+                                    resumen_cambios="Detectado automáticamente",
+                                    imagen_url=post_obj.imagen_url,
+                                    url_post=post_obj.raw_data.get("url_post", "") if post_obj.raw_data else "",
+                                )
+                    job.posts_nuevos += guardados
+                    job.save(update_fields=["posts_nuevos", "eventos_nuevos", "actualizado_en"])
+                    time.sleep(random.uniform(2, 4))
+                except Exception as e:
+                    job.errores += 1
+                    job.save(update_fields=["errores", "actualizado_en"])
+                    print(f"ERROR IG {red.parroquia.nombre}: {e}")
+
+            # Facebook
+            for red in redes_fb:
+                if ScraperJob.objects.filter(pk=job.pk, estado="completado").exists():
+                    break
+                job.parroquia_actual = f"[FB] {red.parroquia.nombre}"
+                job.procesados += 1
+                job.save(update_fields=["parroquia_actual", "procesados", "actualizado_en"])
+                try:
+                    posts = scrapear_facebook_con_backend(red.url)
+                    guardados_fb = 0
+                    for post in posts:
+                        _, creado = PostParroquia.objects.get_or_create(
+                            post_id=post["post_id"],
+                            defaults={
+                                "parroquia": red.parroquia,
+                                "red_social": "facebook",
+                                "imagen_url": post["imagen_url"],
+                                "fecha_publicacion": post["fecha"],
+                                "raw_data": post["raw_data"],
+                            }
+                        )
+                        if creado:
+                            guardados_fb += 1
+                    pendientes_fb = PostParroquia.objects.filter(
+                        parroquia=red.parroquia,
+                        procesado=False,
+                        red_social="facebook",
+                    )
+                    for post_obj in pendientes_fb:
+                        post_dict = {
+                            "post_id": post_obj.post_id,
+                            "imagen_url": post_obj.imagen_url,
+                            "caption": post_obj.raw_data.get("caption", "") if post_obj.raw_data else "",
+                        }
+                        resultado = procesar_post_facebook(post_dict)
+                        post_obj.es_evento = resultado.get("es_evento")
+                        post_obj.procesado = resultado.get("es_evento") is not None
+                        post_obj.raw_data = {**(post_obj.raw_data or {}), "gemini": resultado}
+                        post_obj.save()
+                        if resultado.get("es_evento") and not resultado.get("es_pasado"):
+                            if not hasattr(post_obj, "evento"):
+                                crear_evento_desde_post(post_obj, resultado)
+                                job.eventos_nuevos += 1
+                        if resultado.get("tiene_horarios") and resultado.get("horarios_detectados"):
+                            hace_7dias = timezone.now() - timedelta(days=7)
+                            if not ReporteHorario.objects.filter(
+                                parroquia=red.parroquia, fuente="scraper",
+                                estado="pendiente", creado_en__gte=hace_7dias
+                            ).exists():
+                                ReporteHorario.objects.create(
+                                    parroquia=red.parroquia,
+                                    fuente="scraper",
+                                    texto_usuario=f"Scraper Facebook {red.url}",
+                                    propuesta_ia=resultado["horarios_detectados"],
+                                    resumen_cambios="Detectado automáticamente",
+                                    imagen_url=post_obj.imagen_url,
+                                    url_post=post_obj.raw_data.get("url_post", "") if post_obj.raw_data else "",
+                                )
+                    job.posts_nuevos += guardados_fb
+                    job.save(update_fields=["posts_nuevos", "eventos_nuevos", "actualizado_en"])
+                    time.sleep(random.uniform(5, 10))
+                except Exception as e:
+                    job.errores += 1
+                    job.save(update_fields=["errores", "actualizado_en"])
+                    print(f"ERROR FB {red.parroquia.nombre}: {e}")
+
+        finally:
+            job.estado = "completado"
+            job.parroquia_actual = ""
+            job.mensaje_final = (
+                f"{job.total} fuentes · {job.posts_nuevos} posts · "
+                f"{job.eventos_nuevos} eventos · {job.errores} errores"
+            )
+            job.save()
+
+    threading.Thread(target=correr, daemon=True).start()
+
+    return JsonResponse({
+        "ok": True,
+        "job_id": job.pk,
+        "total": job.total,
+        "mensaje": f"Scraper iniciado — {len(redes_ig)} IG + {len(redes_fb)} FB",
     })

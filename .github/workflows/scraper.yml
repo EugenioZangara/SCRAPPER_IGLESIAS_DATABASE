@@ -1,0 +1,35 @@
+name: Scraper automático ParroGuía
+
+on:
+  schedule:
+    # Lunes y jueves a las 9am Argentina (12:00 UTC)
+    - cron: '0 12 * * 1'
+    - cron: '0 12 * * 4'
+  workflow_dispatch:  # permite lanzarlo manualmente desde GitHub
+
+jobs:
+  ejecutar-scraper:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lanzar scraper
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            -H "X-Scraper-Token: ${{ secrets.SCRAPER_SECRET_TOKEN }}" \
+            ${{ secrets.SCRAPER_URL }}/api/scraper/ejecutar/)
+          echo "HTTP Status: $response"
+          if [ "$response" != "200" ]; then
+            echo "Error: el scraper respondió con status $response"
+            exit 1
+          fi
+          echo "Scraper lanzado exitosamente"
+
+      - name: Verificar inicio
+        run: |
+          sleep 10
+          curl -s ${{ secrets.SCRAPER_URL }}/scraper/estado/ | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          print('Activo:', data.get('activo'))
+          print('Total:', data.get('total', 0))
+          "

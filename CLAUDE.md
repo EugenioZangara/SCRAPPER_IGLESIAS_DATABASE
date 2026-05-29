@@ -206,6 +206,7 @@ INSTAGRAM_SESSION_USER=pilotosprogramadores
 APIFY_API_TOKEN=...             # Apify — token principal (Instagram y Facebook)
 APIFY_API_TOKEN_2=...           # Apify — token secundario, fallback cuando el primero da 403
 SCRAPER_BACKEND=apify           # "apify" (default) o "instaloader"
+SCRAPER_SECRET_TOKEN=...        # Token secreto para /api/scraper/ejecutar/ (GitHub Actions)
 GOOGLE_CLIENT_ID=...            # OAuth2 — Google login
 GOOGLE_CLIENT_SECRET=...        # OAuth2 — Google login
 FACEBOOK_APP_ID=...             # OAuth2 — Facebook login
@@ -384,14 +385,36 @@ Calculado en `_estado_eventos()` en `views.py`:
 
 ---
 
+## Scheduler automático (GitHub Actions)
+
+Archivo: `.github/workflows/scraper.yml`
+Horario: lunes y jueves 9am Argentina (12:00 UTC)
+
+Endpoint: `POST /api/scraper/ejecutar/` — autenticado con header `X-Scraper-Token`
+Vista: `scraper_automatico` en `views.py`
+
+Secrets necesarios en GitHub:
+(Settings → Secrets and variables → Actions → New repository secret)
+- `SCRAPER_SECRET_TOKEN`: mismo valor que en `.env` y Render
+- `SCRAPER_URL`: `https://scrapper-iglesias-database.onrender.com`
+  (cambiar cuando se migre a DonWeb)
+
+Variables de entorno a agregar:
+- `.env`: `SCRAPER_SECRET_TOKEN=<token generado con secrets.token_hex(32)>`
+- Render: misma variable con `sync: false`
+
+Para migrar a DonWeb: solo cambiar `SCRAPER_URL` en GitHub Secrets.
+Para lanzar manualmente: GitHub → Actions → Scraper automático ParroGuía → Run workflow
+
+---
+
 ## Próximos pasos pendientes
 
 1. **Escalar a las 186 parroquias**: reemplazar URL hardcodeada en `config.py` por
    un loop sobre `RedSocial.objects.filter(tipo="instagram", activo=True)`
-2. **Scheduler semanal**: implementar con Celery Beat o Render Cron Job
-3. **Migración a producción**: cuando esté en Render, el scraper llama a un endpoint
-   REST de la app Django en lugar de escribir directo a la DB
-4. **Modelos de IA en producción**: reemplazar Gemini free tier por modelo pago
+2. **Migración a producción**: cuando esté en Render, el scraper llama a un endpoint
+   REST de la app Django en lugar de escribir directo a la DB ✅ implementado via `/api/scraper/ejecutar/`
+3. **Modelos de IA en producción**: reemplazar Gemini free tier por modelo pago
    (Gemini Pro o Claude API) para mayor precisión y sin límites de cuota
 
 ---
