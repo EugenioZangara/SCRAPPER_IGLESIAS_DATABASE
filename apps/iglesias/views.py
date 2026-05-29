@@ -1,6 +1,6 @@
 import os
 from datetime import date
-
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login as auth_login
 from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
@@ -1604,6 +1604,7 @@ def admin_login(request):
     })
 
 
+@csrf_exempt
 def scraper_automatico(request):
     if request.method != "POST":
         from django.http import HttpResponseNotAllowed
