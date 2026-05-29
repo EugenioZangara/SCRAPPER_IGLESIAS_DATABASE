@@ -76,11 +76,8 @@ for pk, url in MATCHES:
         print(f"Procesando: {parroquia.nombre}")
 
         ya_existe = ReporteHorario.objects.filter(
-            parroquia=parroquia,
-            fuente="scraper_web",
-            estado="pendiente",
-            creado_en__gte=hace_30dias,
-        ).exists()
+            parroquia=parroquia, fuente="scraper_web", creado_en__gte=hace_30dias
+        ).exists()  # cualquier estado — pendiente, aplicado o descartado
 
         if ya_existe:
             print(f"  → Ya tiene reporte pendiente")
