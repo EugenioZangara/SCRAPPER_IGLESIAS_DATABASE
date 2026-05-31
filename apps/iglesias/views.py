@@ -12,19 +12,29 @@ from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, Cat
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.utils import timezone
 
 # --- Eliminar RedSocial ---
 @require_POST
-@login_required
-@user_passes_test(lambda u: u.is_staff)
 def eliminar_red_social(request, pk):
-    red = get_object_or_404(RedSocial, pk=pk)
-    parroquia_id = red.parroquia_id
-    red.delete()
-    next_url = request.POST.get("next") or reverse("iglesias:detalle_parroquia", args=[parroquia_id])
-    return redirect(next_url)
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
+    try:
+        red = RedSocial.objects.get(pk=pk)
+        parroquia_id = red.parroquia_id
+        red.delete()
+        messages.success(request, "Red social eliminada.")
+    except RedSocial.DoesNotExist:
+        messages.warning(request, "La red social ya no existe.")
+        next_url = request.POST.get("next", "").strip()
+        if next_url and next_url.startswith("/"):
+            return redirect(next_url)
+        return redirect("iglesias:lista_parroquias")
+
+    next_url = request.POST.get("next", "").strip()
+    if next_url and next_url.startswith("/"):
+        return redirect(next_url)
+    return redirect("iglesias:detalle_parroquia", pk=parroquia_id)
 
 
 def _armar_grupo_red(parroquia, tipo, etiqueta):
