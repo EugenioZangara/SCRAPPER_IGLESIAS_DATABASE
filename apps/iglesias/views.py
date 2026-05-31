@@ -909,7 +909,7 @@ def agregar_red_social(request, pk):
             "tipo": tipo,
             "username": username or None,
             "activo": True,
-            "verificado": False,
+            "verificado": True,
         }
     )
     if creada:
