@@ -14,28 +14,6 @@ from django.urls import reverse
 from django.contrib import messages
 from django.utils import timezone
 
-# --- Eliminar RedSocial ---
-@require_POST
-def eliminar_red_social(request, pk):
-    if not request.user.is_staff:
-        return HttpResponse("Forbidden", status=403)
-    try:
-        red = RedSocial.objects.get(pk=pk)
-        parroquia_id = red.parroquia_id
-        red.delete()
-        messages.success(request, "Red social eliminada.")
-    except RedSocial.DoesNotExist:
-        messages.warning(request, "La red social ya no existe.")
-        next_url = request.POST.get("next", "").strip()
-        if next_url and next_url.startswith("/"):
-            return redirect(next_url)
-        return redirect("iglesias:lista_parroquias")
-
-    next_url = request.POST.get("next", "").strip()
-    if next_url and next_url.startswith("/"):
-        return redirect(next_url)
-    return redirect("iglesias:detalle_parroquia", pk=parroquia_id)
-
 
 def _armar_grupo_red(parroquia, tipo, etiqueta):
     redes = [
@@ -266,7 +244,7 @@ def verificar_red_social(request, pk):
 
 @require_POST
 def eliminar_red_social(request, pk):
-    red = get_object_or_404(RedSocial, pk=pk, activo=True, verificado=False)
+    red = get_object_or_404(RedSocial, pk=pk)
     parroquia = red.parroquia
     tipo = red.tipo
     etiqueta = red.get_tipo_display()
