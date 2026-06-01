@@ -68,6 +68,11 @@ urlpatterns = [
         name="aprobar_extendido",
     ),
     path(
+        "parroquias/<int:pk>/eliminar/",
+        views.eliminar_parroquia,
+        name="eliminar_parroquia",
+    ),
+    path(
         "parroquias/<int:pk>/scrapear/",
         views.scrapear_parroquia,
         name="scrapear_parroquia",

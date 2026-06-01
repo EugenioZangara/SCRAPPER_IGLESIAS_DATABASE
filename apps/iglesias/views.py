@@ -252,6 +252,27 @@ def verificar_red_social(request, pk):
 
 
 @require_POST
+def eliminar_parroquia(request, pk):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
+
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+    nombre = parroquia.nombre
+
+    confirmacion = request.POST.get("confirmar", "").strip()
+    if confirmacion != "ELIMINAR":
+        messages.error(
+            request,
+            "Para eliminar escribí ELIMINAR en el campo de confirmación."
+        )
+        return redirect("iglesias:detalle_parroquia", pk=pk)
+
+    parroquia.delete()
+    messages.success(request, f"Parroquia '{nombre}' eliminada correctamente.")
+    return redirect("iglesias:lista_parroquias")
+
+
+@require_POST
 def eliminar_red_social(request, pk):
     red = get_object_or_404(RedSocial, pk=pk)
     parroquia = red.parroquia

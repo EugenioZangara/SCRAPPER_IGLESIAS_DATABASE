@@ -484,6 +484,68 @@
                     </a>
                 {% endif %}
             </div>
+            {% if request.user.is_staff %}
+            <div style="margin-top:16px; padding-top:16px;
+                        border-top:1px solid var(--rule);">
+                <button onclick="document.getElementById('modal-eliminar').style.display='flex'"
+                        style="width:100%; padding:9px; border-radius:8px;
+                               background:none; border:1px solid #fca5a5;
+                               color:#dc2626; font-size:13px; font-weight:500;
+                               cursor:pointer;">
+                    ✕ Eliminar parroquia
+                </button>
+            </div>
+
+            <!-- Modal de confirmación -->
+            <div id="modal-eliminar"
+                 style="display:none; position:fixed; inset:0; z-index:999;
+                        background:rgba(0,0,0,0.5); align-items:center;
+                        justify-content:center;">
+                <div style="background:white; border-radius:12px; padding:28px;
+                            max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+                    <h3 style="font-size:17px; font-weight:600; color:#1e1b4b;
+                                margin-bottom:10px;">
+                        ¿Eliminar parroquia?
+                    </h3>
+                    <p style="font-size:14px; color:#6b7280; margin-bottom:6px; line-height:1.5;">
+                        Esta acción eliminará permanentemente
+                        <strong>{{ parroquia.nombre }}</strong>
+                        y todos sus datos asociados (redes, posts, eventos, horarios).
+                    </p>
+                    <p style="font-size:13px; color:#dc2626; margin-bottom:16px;">
+                        Esta acción no se puede deshacer.
+                    </p>
+                    <p style="font-size:13px; color:#374151; margin-bottom:8px;">
+                        Escribí <strong>ELIMINAR</strong> para confirmar:
+                    </p>
+                    <form method="post"
+                          action="{% url 'iglesias:eliminar_parroquia' parroquia.pk %}">
+                        {% csrf_token %}
+                        <input type="text" name="confirmar"
+                               placeholder="ELIMINAR"
+                               autocomplete="off"
+                               style="width:100%; padding:9px 12px; border:1px solid #fca5a5;
+                                      border-radius:8px; font-size:14px; margin-bottom:12px;
+                                      outline:none; font-family:var(--mono);">
+                        <div style="display:flex; gap:10px;">
+                            <button type="submit"
+                                    style="flex:1; padding:10px; border-radius:8px;
+                                           background:#dc2626; color:white; border:none;
+                                           font-size:13px; font-weight:500; cursor:pointer;">
+                                Eliminar definitivamente
+                            </button>
+                            <button type="button"
+                                    onclick="document.getElementById('modal-eliminar').style.display='none'"
+                                    style="flex:1; padding:10px; border-radius:8px;
+                                           background:#f3f4f6; color:#374151; border:none;
+                                           font-size:13px; font-weight:500; cursor:pointer;">
+                                Cancelar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
         </section>
 
     </aside>
