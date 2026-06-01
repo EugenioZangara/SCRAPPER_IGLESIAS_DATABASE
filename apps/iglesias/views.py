@@ -227,9 +227,18 @@ def detalle_parroquia(request, pk):
 
 @require_POST
 def verificar_red_social(request, pk):
-    red = get_object_or_404(RedSocial, pk=pk, activo=True, verificado=False)
+    try:
+        red = RedSocial.objects.get(pk=pk)
+    except RedSocial.DoesNotExist:
+        messages.warning(request, "La red social ya no existe.")
+        next_url = request.POST.get("next", "").strip()
+        if next_url and next_url.startswith("/"):
+            return redirect(next_url)
+        return redirect("iglesias:lista_parroquias")
+
     red.verificado = True
-    red.save(update_fields=["verificado"])
+    red.activo = True
+    red.save(update_fields=["verificado", "activo"])
 
     if request.headers.get("HX-Request"):
         grupo = _armar_grupo_red(red.parroquia, red.tipo, red.get_tipo_display())

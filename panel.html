@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Búsqueda de Webs — ParroGuía</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:system-ui,sans-serif; background:#f3f4f6; color:#1f2937; }
+.header { background:#4f46e5; color:white; padding:16px 24px; display:flex; justify-content:space-between; align-items:center; }
+.header h1 { font-size:18px; font-weight:600; }
+.container { max-width:900px; margin:24px auto; padding:0 16px; }
+.card { background:white; border-radius:12px; border:1px solid #e5e7eb; padding:20px; margin-bottom:16px; transition:border-color .2s; }
+.card.buscando { border-color:#4f46e5; }
+.card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.nombre { font-size:15px; font-weight:600; color:#1f2937; }
+.barrio { font-size:12px; color:#6b7280; margin-top:2px; }
+.badge { font-size:11px; padding:3px 10px; border-radius:999px; font-weight:500; white-space:nowrap; }
+.badge-ok { background:#dcfce7; color:#166534; }
+.badge-pending { background:#fef3c7; color:#92400e; }
+.badge-skip { background:#f3f4f6; color:#6b7280; }
+.badge-buscando { background:#eeedfe; color:#4f46e5; }
+.badge-noresult { background:#fee2e2; color:#dc2626; }
+.resultados { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+.resultado-item { display:flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid #e5e7eb; border-radius:8px; background:#f9fafb; }
+.resultado-url { font-size:12px; color:#4f46e5; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.btn { padding:6px 12px; border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; border:none; transition:opacity .15s; }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+.btn-aplicar { background:#4f46e5; color:white; }
+.btn-skip { background:#f3f4f6; color:#6b7280; border:1px solid #e5e7eb; }
+.btn-buscar { background:#f0fdf4; color:#166534; border:1px solid #86efac; }
+.btn-deshacer { background:#fef3c7; color:#92400e; border:1px solid #fbbf24; }
+.input-manual { width:100%; padding:7px 10px; border:1px solid #4f46e5; border-radius:8px; font-size:13px; margin-bottom:8px; outline:none; }
+.aplicado { background:#f0fdf4; border-color:#86efac; }
+.omitido { opacity:.6; }
+.progress { background:#e5e7eb; border-radius:999px; height:6px; margin:12px 0; }
+.progress-bar { background:#4f46e5; height:6px; border-radius:999px; transition:width .3s; }
+.stats { display:flex; gap:16px; font-size:13px; color:#6b7280; margin-bottom:12px; flex-wrap:wrap; }
+.stats span { font-weight:600; color:#1f2937; }
+.spinner { display:inline-block; width:12px; height:12px; border:2px solid #4f46e5; border-top-color:transparent; border-radius:50%; animation:spin .8s linear infinite; margin-right:6px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.acciones { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.url-guardada { font-size:12px; color:#059669; word-break:break-all; margin-bottom:6px; }
+.sin-resultado { font-size:12px; color:#dc2626; padding:6px 10px; background:#fef2f2; border-radius:6px; margin-bottom:8px; }
+.buscando-msg { font-size:12px; color:#4f46e5; display:flex; align-items:center; margin-bottom:8px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🔍 Búsqueda de Webs — ParroGuía</h1>
+  <span id="progreso">Cargando...</span>
+</div>
+<div class="container">
+  <div class="stats" id="stats"></div>
+  <div style="margin-bottom:16px; display:flex; gap:10px; align-items:center;">
+    <button class="btn btn-aplicar" id="btn-masiva" onclick="buscarTodas()"
+            style="padding:9px 18px; font-size:13px;">
+        🔍 Buscar todas las pendientes
+    </button>
+    <span id="masiva-status" style="font-size:13px; color:#6b7280;"></span>
+</div>
+  <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+  <div id="lista"></div>
+</div>
+<script>
+  async function buscarTodas() {
+    const btn = document.getElementById('btn-masiva');
+    const status = document.getElementById('masiva-status');
+    btn.disabled = true;
+    btn.textContent = '⏳ Buscando...';
+    status.textContent = 'Búsqueda masiva en proceso — los resultados aparecen a medida que se encuentran';
+
+    await fetch('/api/buscar-todas');
+
+    // Recargar resultados cada 15 segundos
+    let interval = setInterval(async () => {
+        await cargarDatos();
+        const pendientes = datos.filter(p => !cache[p.pk] && (!p.resultados || p.resultados.length === 0));
+        if (pendientes.length === 0) {
+            clearInterval(interval);
+            btn.disabled = false;
+            btn.textContent = '🔍 Buscar todas las pendientes';
+            status.textContent = '✓ Búsqueda completada';
+        }
+    }, 15000);
+}
+let datos = [];
+let cache = {};
+let buscando = {};
+
+async function cargarDatos() {
+  try {
+    const resp = await fetch('/api/parroquias');
+    const json = await resp.json();
+    datos = json.parroquias;
+    cache = json.cache || {};
+    renderizar();
+  } catch(e) {
+    document.getElementById('lista').innerHTML = '<div style="color:red;padding:20px">Error al cargar: ' + e.message + '</div>';
+  }
+}
+
+function renderizar() {
+  const total = datos.length;
+  const aplicadas = Object.values(cache).filter(v => v && v !== 'SKIP').length;
+  const omitidas = Object.values(cache).filter(v => v === 'SKIP').length;
+  const pendientes = total - aplicadas - omitidas;
+
+  document.getElementById('progreso').textContent = aplicadas + '/' + total + ' completadas';
+  document.getElementById('stats').innerHTML =
+    '<div>Total: <span>' + total + '</span></div>' +
+    '<div>✓ Guardadas: <span style="color:#166534">' + aplicadas + '</span></div>' +
+    '<div>— Omitidas: <span style="color:#6b7280">' + omitidas + '</span></div>' +
+    '<div>⏳ Pendientes: <span style="color:#d97706">' + pendientes + '</span></div>';
+  document.getElementById('progress-bar').style.width = Math.round((aplicadas + omitidas) / total * 100) + '%';
+
+  document.getElementById('lista').innerHTML = datos.map(p => {
+    const estado = cache[p.pk];
+    const aplicado = estado && estado !== 'SKIP';
+    const omitido = estado === 'SKIP';
+    const esBuscando = buscando[p.pk];
+    const res = p.resultados || [];
+    const sinResultado = p.sinResultado;
+
+    let html = '<div class="card ' + (aplicado ? 'aplicado' : omitido ? 'omitido' : esBuscando ? 'buscando' : '') + '" id="card-' + p.pk + '">';
+    html += '<div class="card-header">';
+    html += '<div><div class="nombre">' + p.nombre + '</div>';
+    html += '<div class="barrio">📍 ' + (p.barrio || 'sin barrio') + (p.direccion ? ' · ' + p.direccion : '') + '</div></div>';
+
+    if (aplicado) html += '<span class="badge badge-ok">✓ Guardada</span>';
+    else if (omitido) html += '<span class="badge badge-skip">Omitida</span>';
+    else if (esBuscando) html += '<span class="badge badge-buscando"><span class="spinner"></span>Buscando...</span>';
+    else if (sinResultado) html += '<span class="badge badge-noresult">Sin resultado</span>';
+    else html += '<span class="badge badge-pending">Pendiente</span>';
+    html += '</div>';
+
+    if (aplicado) {
+      html += '<div class="url-guardada">🌐 ' + estado + '</div>';
+      html += '<button class="btn btn-deshacer" onclick="deshacer(' + p.pk + ')">↩ Deshacer</button>';
+    } else if (!omitido) {
+      if (esBuscando) {
+        html += '<div class="buscando-msg"><span class="spinner"></span>Buscando en la web...</div>';
+      } else if (sinResultado) {
+        html += '<div class="sin-resultado">❌ No se encontraron resultados automáticos. Ingresá la URL manualmente.</div>';
+      } else if (res.length > 0) {
+        html += '<div class="resultados">';
+        res.forEach(url => {
+          const urlEsc = url.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+          html += '<div class="resultado-item">';
+          html += '<a href="' + url + '" target="_blank" class="resultado-url" title="' + url + '">' + url + '</a>';
+          html += '<button class="btn btn-aplicar" onclick="aplicar(' + p.pk + ', \'' + urlEsc + '\')">✓ Usar</button>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+      html += '<input class="input-manual" id="manual-' + p.pk + '" type="url" placeholder="https://... (URL manual)">';
+      html += '<div class="acciones">';
+      html += '<button class="btn btn-aplicar" onclick="aplicarManual(' + p.pk + ')">✓ Guardar URL</button>';
+      if (!esBuscando) {
+        html += '<button class="btn btn-buscar" onclick="buscar(' + p.pk + ')" id="btn-buscar-' + p.pk + '">' + (res.length > 0 ? '🔍 Rebuscar' : '🔍 Buscar') + '</button>';
+      }
+      html += '<button class="btn btn-skip" onclick="omitir(' + p.pk + ')">Omitir</button>';
+      html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+  }).join('');
+}
+
+async function aplicar(pk, url) {
+  const resp = await fetch('/api/aplicar', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({pk, url})
+  });
+  const data = await resp.json();
+  if (data.ok) {
+    cache[pk] = url;
+    renderizar();
+  }
+}
+
+async function aplicarManual(pk) {
+  const input = document.getElementById('manual-' + pk);
+  const url = input ? input.value.trim() : '';
+  if (!url) return alert('Ingresá una URL válida');
+  if (!url.startsWith('http')) return alert('La URL debe empezar con http:// o https://');
+  await aplicar(pk, url);
+}
+
+async function omitir(pk) {
+  await fetch('/api/omitir', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({pk})
+  });
+  cache[pk] = 'SKIP';
+  renderizar();
+}
+
+async function deshacer(pk) {
+  await fetch('/api/deshacer', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({pk})
+  });
+  delete cache[pk];
+  renderizar();
+}
+
+async function buscar(pk) {
+  buscando[pk] = true;
+  const p = datos.find(x => x.pk === pk);
+  if (p) p.sinResultado = false;
+  renderizar();
+
+  const resp = await fetch('/api/buscar/' + pk);
+  const data = await resp.json();
+  delete buscando[pk];
+
+  if (p) {
+    p.resultados = data.resultados || [];
+    p.sinResultado = p.resultados.length === 0;
+  }
+  renderizar();
+}
+
+cargarDatos();
+</script>
+</body>
+</html>

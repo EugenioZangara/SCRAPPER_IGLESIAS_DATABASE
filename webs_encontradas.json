@@ -1,0 +1,482 @@
+[
+  {
+    "pk": 373,
+    "nombre": "ASUNCION DE LA SANTISIMA VIRGEN",
+    "barrio": "FLORES",
+    "url_encontrada": null
+  },
+  {
+    "pk": 553,
+    "nombre": "BUEN PASTOR",
+    "barrio": "CABALLITO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 374,
+    "nombre": "CORAZON DE JESUS",
+    "barrio": "VILLA PUEYRREDON",
+    "url_encontrada": null
+  },
+  {
+    "pk": 376,
+    "nombre": "CRISTO MAESTRO",
+    "barrio": "FLORESTA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 551,
+    "nombre": "CRISTO OBRERO",
+    "barrio": "RETIRO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 377,
+    "nombre": "CRISTO OBRERO Y SAN BLAS",
+    "barrio": "VILLA SOLDATI",
+    "url_encontrada": null
+  },
+  {
+    "pk": 380,
+    "nombre": "ENCARNACION DEL SEÑOR",
+    "barrio": "PATERNAL",
+    "url_encontrada": null
+  },
+  {
+    "pk": 381,
+    "nombre": "ESPIRITU SANTO",
+    "barrio": "VILLA URQUIZA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 383,
+    "nombre": "INMACULADA CONCEPCION (C)",
+    "barrio": "CONSTITUCION",
+    "url_encontrada": null
+  },
+  {
+    "pk": 384,
+    "nombre": "INMACULADA CONCEPCION (D)",
+    "barrio": "VILLA DEVOTO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 385,
+    "nombre": "INMACULADA VIRGEN DE FATIMA",
+    "barrio": "VILLA REAL",
+    "url_encontrada": null
+  },
+  {
+    "pk": 386,
+    "nombre": "INMACULADO CORAZON DE MARIA",
+    "barrio": "CONSTITUCION",
+    "url_encontrada": null
+  },
+  {
+    "pk": 387,
+    "nombre": "JESUS DE LA BUENA ESPERANZA",
+    "barrio": "VILLA DEVOTO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 388,
+    "nombre": "JESUS DE NAZARET",
+    "barrio": "NUEVA POMPEYA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 390,
+    "nombre": "JESUS SALVADOR",
+    "barrio": "VILLA LUGANO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 392,
+    "nombre": "MADRE DE DIOS",
+    "barrio": "VILLA LUGANO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 550,
+    "nombre": "MARIA MADRE DE LA ESPERANZA",
+    "barrio": "VILLA LUGANO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 393,
+    "nombre": "MARIA MADRE DE LA IGLESIA",
+    "barrio": "CABALLITO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 395,
+    "nombre": "MARIA REINA",
+    "barrio": "VILLA URQUIZA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 397,
+    "nombre": "NAVIDAD DEL SEÑOR",
+    "barrio": "CHACARITA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 398,
+    "nombre": "NIÑO JESUS",
+    "barrio": "VILLA LUGANO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 399,
+    "nombre": "NUESTRA SEÑORA DE BALVANERA",
+    "barrio": "BALVANERA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 400,
+    "nombre": "NUESTRA SEÑORA DE BELEN",
+    "barrio": "VILLA URQUIZA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 401,
+    "nombre": "NUESTRA SEÑORA DE BUENOS AIRES",
+    "barrio": "CABALLITO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 403,
+    "nombre": "NUESTRA SEÑORA DE CAACUPE",
+    "barrio": "CABALLITO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 548,
+    "nombre": "NUESTRA SEÑORA DE CZESTOCHOWA",
+    "barrio": "SAN CRISTOBAL",
+    "url_encontrada": null
+  },
+  {
+    "pk": 405,
+    "nombre": "NUESTRA SEÑORA DE FATIMA (B)",
+    "barrio": "BELGRANO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 404,
+    "nombre": "NUESTRA SEÑORA DE FATIMA (F)",
+    "barrio": "VILLA SOLDATI",
+    "url_encontrada": null
+  },
+  {
+    "pk": 407,
+    "nombre": "NUESTRA SEÑORA DE ITATI",
+    "barrio": "ALMAGRO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 555,
+    "nombre": "NUESTRA SEÑORA DE LA ESPERANZA",
+    "barrio": "PUERTO MADERO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 419,
+    "nombre": "NUESTRA SEÑORA DE LA SALUD",
+    "barrio": "VERSAILLES",
+    "url_encontrada": null
+  },
+  {
+    "pk": 420,
+    "nombre": "NUESTRA SEÑORA DE LA VISITACION",
+    "barrio": "FLORES",
+    "url_encontrada": null
+  },
+  {
+    "pk": 425,
+    "nombre": "NUESTRA SEÑORA DE LORETO",
+    "barrio": "PALERMO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 426,
+    "nombre": "NUESTRA SEÑORA DE LOS DOLORES",
+    "barrio": "CABALLITO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 427,
+    "nombre": "NUESTRA SEÑORA DE LOS REMEDIOS",
+    "barrio": "PARQUE AVELLANEDA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 433,
+    "nombre": "NUESTRA SEÑORA DE MONTSERRAT",
+    "barrio": "MONTSERRAT",
+    "url_encontrada": null
+  },
+  {
+    "pk": 434,
+    "nombre": "NUESTRA SEÑORA DEL BUEN CONSEJO",
+    "barrio": "VELEZ SARSFIELD",
+    "url_encontrada": null
+  },
+  {
+    "pk": 435,
+    "nombre": "NUESTRA SEÑORA DEL CARMELO",
+    "barrio": "RECOLETA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 554,
+    "nombre": "NUESTRA SEÑORA DEL CARMEN (F)",
+    "barrio": "MATADEROS",
+    "url_encontrada": null
+  },
+  {
+    "pk": 437,
+    "nombre": "NUESTRA SEÑORA DEL CARMEN (MG)",
+    "barrio": "sin barrio",
+    "url_encontrada": null
+  },
+  {
+    "pk": 411,
+    "nombre": "NUESTRA SEÑORA DEL CONSUELO",
+    "barrio": "VILLA GRAL. MITRE",
+    "url_encontrada": null
+  },
+  {
+    "pk": 441,
+    "nombre": "NUESTRA SEÑORA DEL ROSARIO",
+    "barrio": "PALERMO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 442,
+    "nombre": "NUESTRA SEÑORA DEL ROSARIO DE NUEVA POMPEYA",
+    "barrio": "NUEVA POMPEYA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 443,
+    "nombre": "NUESTRA SEÑORA DEL ROSARIO DEL MILAGRO",
+    "barrio": "VILLA LUGANO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 447,
+    "nombre": "PATROCINIO DE LA VIRGEN",
+    "barrio": "NUEVA POMPEYA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 449,
+    "nombre": "PRESENTACION DEL SEÑOR",
+    "barrio": "SAAVEDRA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 461,
+    "nombre": "SAN ANTONIO DE PADUA (P.PATRICIOS)",
+    "barrio": "PARQUE PATRICIOS",
+    "url_encontrada": null
+  },
+  {
+    "pk": 462,
+    "nombre": "SAN ANTONIO MARIA ZACCARIA",
+    "barrio": "BARRACAS",
+    "url_encontrada": null
+  },
+  {
+    "pk": 470,
+    "nombre": "SAN CRISTOBAL",
+    "barrio": "SAN CRISTOBAL",
+    "url_encontrada": null
+  },
+  {
+    "pk": 471,
+    "nombre": "SAN ENRIQUE Y SANTA CUNEGUNDA",
+    "barrio": "LINIERS",
+    "url_encontrada": null
+  },
+  {
+    "pk": 473,
+    "nombre": "SAN FERMIN",
+    "barrio": "VILLA ORTUZAR",
+    "url_encontrada": null
+  },
+  {
+    "pk": 558,
+    "nombre": "SAN FRANCISCO DE ASIS",
+    "barrio": "VILLA SOLDATI",
+    "url_encontrada": null
+  },
+  {
+    "pk": 477,
+    "nombre": "SAN ILDEFONSO",
+    "barrio": "PALERMO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 480,
+    "nombre": "SAN JOSE DE CALASANZ",
+    "barrio": "CABALLITO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 482,
+    "nombre": "SAN JOSE DEL TALAR",
+    "barrio": "AGRONOMIA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 483,
+    "nombre": "SAN JUAN BAUTISTA",
+    "barrio": "VILLA DEVOTO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 485,
+    "nombre": "SAN JUAN BOSCO",
+    "barrio": "PALERMO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 557,
+    "nombre": "SAN JUAN DIEGO CUAUHTLATOATZIN",
+    "barrio": "VILLA LUGANO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 487,
+    "nombre": "SAN JUAN MARIA VIANNEY",
+    "barrio": "VILLA DEL PARQUE",
+    "url_encontrada": null
+  },
+  {
+    "pk": 552,
+    "nombre": "SAN LUCAS",
+    "barrio": "RECOLETA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 489,
+    "nombre": "SAN LUIS GONZAGA",
+    "barrio": "MONTE CASTRO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 492,
+    "nombre": "SAN MIGUEL",
+    "barrio": "PARQUE PATRICIOS",
+    "url_encontrada": null
+  },
+  {
+    "pk": 494,
+    "nombre": "SAN NICOLAS DE BARI",
+    "barrio": "RETIRO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 500,
+    "nombre": "SAN PEDRO (BOCA)",
+    "barrio": "BOCA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 498,
+    "nombre": "SAN PEDRO APOSTOL",
+    "barrio": "MONTE CASTRO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 502,
+    "nombre": "SAN RAFAEL ARCANGEL",
+    "barrio": "VILLA DEVOTO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 506,
+    "nombre": "SAN TARSICIO",
+    "barrio": "PALERMO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 507,
+    "nombre": "SAN VICENTE DE PAUL",
+    "barrio": "MATADEROS",
+    "url_encontrada": null
+  },
+  {
+    "pk": 512,
+    "nombre": "SANTA CLARA",
+    "barrio": "FLORES",
+    "url_encontrada": null
+  },
+  {
+    "pk": 516,
+    "nombre": "SANTA ELISA",
+    "barrio": "BARRACAS",
+    "url_encontrada": null
+  },
+  {
+    "pk": 517,
+    "nombre": "SANTA FRANCISCA JAVIER CABRINI",
+    "barrio": "FLORES",
+    "url_encontrada": null
+  },
+  {
+    "pk": 534,
+    "nombre": "SANTISIMA CRUZ",
+    "barrio": "VILLA GRAL. MITRE",
+    "url_encontrada": null
+  },
+  {
+    "pk": 537,
+    "nombre": "SANTISIMO SACRAMENTO",
+    "barrio": "RETIRO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 538,
+    "nombre": "SANTO CRISTO",
+    "barrio": "VILLA RIACHUELO",
+    "url_encontrada": null
+  },
+  {
+    "pk": 539,
+    "nombre": "SANTOS SABINO Y BONIFACIO",
+    "barrio": "PARQUE AVELLANEDA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 544,
+    "nombre": "TRANSITO DE SAN JOSE",
+    "barrio": "LINIERS",
+    "url_encontrada": null
+  },
+  {
+    "pk": 545,
+    "nombre": "VIRGEN DE LOS DESAMPARADOS",
+    "barrio": "PARQUE AVELLANEDA",
+    "url_encontrada": null
+  },
+  {
+    "pk": 402,
+    "nombre": "VIRGEN DE LOS MILAGROS DE CAACUPE",
+    "barrio": "BARRACAS",
+    "url_encontrada": null
+  },
+  {
+    "pk": 556,
+    "nombre": "VIRGEN INMACULADA",
+    "barrio": "VILLA SOLDATI",
+    "url_encontrada": null
+  },
+  {
+    "pk": 547,
+    "nombre": "VIRGEN INMACULADA DE LOURDES",
+    "barrio": "FLORES",
+    "url_encontrada": null
+  }
+]
