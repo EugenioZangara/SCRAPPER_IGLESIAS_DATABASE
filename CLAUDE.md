@@ -110,6 +110,15 @@ eclesiástica, flags de control (`tiene_redes`, `detalles_completos`).
 Campos de geolocalización: `latitud` y `longitud` (FloatField, null/blank).
 Geocodificación via Nominatim con `geocodificar_parroquias.py` (máx 1 req/seg).
 
+Campos de protección granular (toggleables desde el detalle de parroquia, solo staff):
+- `web_verificada`: si True, el scraper no sobreescribe `sitio_web`
+- `redes_verificadas`: si True, el scraper salta la parroquia en los loops de Instagram y Facebook
+- `horarios_verificados`: si True, el scraper no crea ReporteHorario de tipo scraper
+
+Vista `toggle_verificacion` (POST `/parroquias/<pk>/toggle-verificacion/`) invierte el campo
+recibido en `campo` (validado contra lista blanca). Botones en la sección "Protección de datos"
+del aside del detalle de parroquia, visibles solo para staff.
+
 ### RedSocial
 Vincula parroquias con sus perfiles digitales. Tipos: facebook, instagram, youtube,
 tiktok, otro. Campos: `url`, `username`, `activo`, `verificado`.

@@ -327,6 +327,76 @@
                     <span class="badge warn">Sin eventos</span>
                 {% endif %}
             </div>
+
+            {% if request.user.is_staff %}
+            <div style="margin-top:14px; padding-top:14px;
+                        border-top:1px solid var(--rule);">
+                <div style="font-size:11px; font-weight:600; text-transform:uppercase;
+                             letter-spacing:0.06em; color:var(--muted); margin-bottom:10px;">
+                    Protección de datos
+                </div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+
+                    <form method="post"
+                          action="{% url 'iglesias:toggle_verificacion' parroquia.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="campo" value="web_verificada">
+                        <button type="submit"
+                                style="width:100%; text-align:left; padding:8px 12px;
+                                       border-radius:8px; font-size:13px; cursor:pointer;
+                                       border:1px solid {% if parroquia.web_verificada %}#86efac{% else %}var(--rule){% endif %};
+                                       background:{% if parroquia.web_verificada %}#f0fdf4{% else %}white{% endif %};
+                                       color:{% if parroquia.web_verificada %}#166534{% else %}var(--muted){% endif %};">
+                            {% if parroquia.web_verificada %}✓{% else %}○{% endif %}
+                            Web verificada
+                            <span style="font-size:11px; display:block; margin-top:2px;
+                                          color:{% if parroquia.web_verificada %}#16a34a{% else %}#9ca3af{% endif %};">
+                                {% if parroquia.web_verificada %}El scraper no modifica el sitio web{% else %}Clic para proteger{% endif %}
+                            </span>
+                        </button>
+                    </form>
+
+                    <form method="post"
+                          action="{% url 'iglesias:toggle_verificacion' parroquia.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="campo" value="redes_verificadas">
+                        <button type="submit"
+                                style="width:100%; text-align:left; padding:8px 12px;
+                                       border-radius:8px; font-size:13px; cursor:pointer;
+                                       border:1px solid {% if parroquia.redes_verificadas %}#86efac{% else %}var(--rule){% endif %};
+                                       background:{% if parroquia.redes_verificadas %}#f0fdf4{% else %}white{% endif %};
+                                       color:{% if parroquia.redes_verificadas %}#166534{% else %}var(--muted){% endif %};">
+                            {% if parroquia.redes_verificadas %}✓{% else %}○{% endif %}
+                            Redes verificadas
+                            <span style="font-size:11px; display:block; margin-top:2px;
+                                          color:{% if parroquia.redes_verificadas %}#16a34a{% else %}#9ca3af{% endif %};">
+                                {% if parroquia.redes_verificadas %}El scraper no modifica las redes{% else %}Clic para proteger{% endif %}
+                            </span>
+                        </button>
+                    </form>
+
+                    <form method="post"
+                          action="{% url 'iglesias:toggle_verificacion' parroquia.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="campo" value="horarios_verificados">
+                        <button type="submit"
+                                style="width:100%; text-align:left; padding:8px 12px;
+                                       border-radius:8px; font-size:13px; cursor:pointer;
+                                       border:1px solid {% if parroquia.horarios_verificados %}#86efac{% else %}var(--rule){% endif %};
+                                       background:{% if parroquia.horarios_verificados %}#f0fdf4{% else %}white{% endif %};
+                                       color:{% if parroquia.horarios_verificados %}#166534{% else %}var(--muted){% endif %};">
+                            {% if parroquia.horarios_verificados %}✓{% else %}○{% endif %}
+                            Horarios verificados
+                            <span style="font-size:11px; display:block; margin-top:2px;
+                                          color:{% if parroquia.horarios_verificados %}#16a34a{% else %}#9ca3af{% endif %};">
+                                {% if parroquia.horarios_verificados %}El scraper no modifica los horarios{% else %}Clic para proteger{% endif %}
+                            </span>
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+            {% endif %}
         </section>
 
         <!-- Redes sociales -->

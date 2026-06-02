@@ -200,6 +200,11 @@ def main_produccion():
         print(f"\n--- [{i}/{total}] {parroquia.nombre} ---")
         print(f"URL: {red.url}")
 
+        if red.parroquia.redes_verificadas:
+            print(f"  Saltando {red.parroquia.nombre} — redes verificadas")
+            resumen["procesadas"] += 1
+            continue
+
         try:
             posts = scrapear_con_backend(red.url)
 
@@ -250,6 +255,11 @@ def main_produccion_facebook():
     for i, red in enumerate(redes, 1):
         print(f"--- [{i}/{total}] {red.parroquia.nombre} ---")
         print(f"URL: {red.url}")
+
+        if red.parroquia.redes_verificadas:
+            print(f"  Saltando {red.parroquia.nombre} — redes verificadas")
+            continue
+
         try:
             posts = scrapear_facebook_con_backend(red.url)
             guardados = 0

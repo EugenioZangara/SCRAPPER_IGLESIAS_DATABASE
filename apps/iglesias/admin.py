@@ -31,7 +31,8 @@ class ParroquiaAdmin(admin.ModelAdmin):
         "detalles_completos",
     )
     search_fields = ("nombre", "barrio", "decanato")
-    list_filter = ("tiene_redes", "detalles_completos", "vicaria")
+    list_filter = ("tiene_redes", "detalles_completos", "vicaria",
+                   "web_verificada", "redes_verificadas", "horarios_verificados")
     inlines = [HorarioMisaInline]
 
 

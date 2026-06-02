@@ -122,4 +122,9 @@ urlpatterns = [
     path("api/scraper/ejecutar/", views.scraper_automatico, name="scraper_automatico"),
     path("publico/privacidad/", views.pagina_privacidad, name="privacidad"),
     path("publico/terminos/", views.pagina_terminos, name="terminos"),
+    path(
+        "parroquias/<int:pk>/toggle-verificacion/",
+        views.toggle_verificacion,
+        name="toggle_verificacion",
+    ),
 ]

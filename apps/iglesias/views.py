@@ -476,6 +476,10 @@ def ejecutar_scraper_completo(request):
         import time, random
 
         for i, red in enumerate(redes_ig):
+            if red.parroquia.redes_verificadas:
+                job.procesados += 1
+                job.save(update_fields=["procesados", "actualizado_en"])
+                continue
             job.parroquia_actual = red.parroquia.nombre
             job.procesados = i
             job.save(update_fields=["parroquia_actual", "procesados", "actualizado_en"])
@@ -556,6 +560,10 @@ def ejecutar_scraper_completo(request):
         job.save(update_fields=["procesados", "actualizado_en"])
 
         for red in redes_fb:
+            if red.parroquia.redes_verificadas:
+                job.procesados += 1
+                job.save(update_fields=["procesados", "actualizado_en"])
+                continue
             job.parroquia_actual = f"[FB] {red.parroquia.nombre}"
             job.procesados += 1
             job.save(update_fields=["parroquia_actual", "procesados", "actualizado_en"])
@@ -1753,6 +1761,10 @@ def scraper_automatico(request):
             for red in redes_ig:
                 if ScraperJob.objects.filter(pk=job.pk, estado="completado").exists():
                     break
+                if red.parroquia.redes_verificadas:
+                    job.procesados += 1
+                    job.save(update_fields=["procesados", "actualizado_en"])
+                    continue
                 job.parroquia_actual = red.parroquia.nombre
                 job.procesados += 1
                 job.save(update_fields=["parroquia_actual", "procesados", "actualizado_en"])
@@ -1818,6 +1830,10 @@ def scraper_automatico(request):
             for red in redes_fb:
                 if ScraperJob.objects.filter(pk=job.pk, estado="completado").exists():
                     break
+                if red.parroquia.redes_verificadas:
+                    job.procesados += 1
+                    job.save(update_fields=["procesados", "actualizado_en"])
+                    continue
                 job.parroquia_actual = f"[FB] {red.parroquia.nombre}"
                 job.procesados += 1
                 job.save(update_fields=["parroquia_actual", "procesados", "actualizado_en"])
@@ -1901,6 +1917,28 @@ def scraper_automatico(request):
 
 def pagina_privacidad(request):
     return render(request, "iglesias/publico/privacidad.html")
+
+
+@require_POST
+def toggle_verificacion(request, pk):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
+
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+    campo = request.POST.get("campo", "")
+
+    CAMPOS_VALIDOS = ["web_verificada", "redes_verificadas", "horarios_verificados"]
+    if campo not in CAMPOS_VALIDOS:
+        messages.error(request, "Campo inválido.")
+        return redirect("iglesias:detalle_parroquia", pk=pk)
+
+    valor_actual = getattr(parroquia, campo)
+    setattr(parroquia, campo, not valor_actual)
+    parroquia.save(update_fields=[campo])
+
+    estado = "activada" if not valor_actual else "desactivada"
+    messages.success(request, f"Protección '{campo}' {estado}.")
+    return redirect("iglesias:detalle_parroquia", pk=pk)
 
 
 def pagina_terminos(request):

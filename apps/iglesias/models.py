@@ -32,6 +32,18 @@ class Parroquia(models.Model):
     detalles_completos = models.BooleanField(default=False)
     actualizado_el = models.DateTimeField(auto_now=True)
     tiene_redes = models.BooleanField(default=False)
+    web_verificada = models.BooleanField(
+        default=False,
+        help_text="Si True, el scraper no sobreescribe sitio_web"
+    )
+    redes_verificadas = models.BooleanField(
+        default=False,
+        help_text="Si True, el scraper no agrega ni modifica redes sociales"
+    )
+    horarios_verificados = models.BooleanField(
+        default=False,
+        help_text="Si True, el scraper no sobreescribe horarios de misa"
+    )
     latitud = models.FloatField(null=True, blank=True)
     longitud = models.FloatField(null=True, blank=True)
 
