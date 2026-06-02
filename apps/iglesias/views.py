@@ -931,6 +931,8 @@ def agregar_red_social(request, pk):
         }
     )
     if creada:
+        parroquia.tiene_redes = True
+        parroquia.save(update_fields=["tiene_redes", "actualizado_el"])
         messages.success(request, f"Red social {tipo} agregada correctamente.")
     else:
         messages.warning(request, "Esa URL ya estaba registrada.")
