@@ -103,6 +103,47 @@ def analizar_con_gemini(imagen_bytes: bytes, caption: str = "") -> dict:
     return json.loads(texto)
 
 
+def analizar_con_groq(imagen_bytes: bytes, caption: str = "") -> dict:
+    """
+    Groq no soporta visión en modelos gratuitos —
+    usa solo el caption con Llama 3.3 70B.
+    """
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY no configurada")
+
+    caption_line = f"El pie de foto dice: {caption}" if caption else ""
+    prompt_texto = (
+        "Analizás publicaciones de redes sociales de parroquias católicas.\n"
+        "Basándote SOLO en el texto del pie de foto, determiná si es un evento\n"
+        "o si contiene horarios de misa.\n\n"
+        + PROMPT_FLYER.format(caption_line=caption_line).split("Respondé")[0]
+        + "Respondé ÚNICAMENTE con JSON válido sin markdown:\n"
+        + '{"es_evento": false, "es_pasado": false, "titulo": null, '
+        + '"fecha": null, "hora": null, "lugar": null, "descripcion": null, '
+        + '"tipo_evento": null, "tiene_horarios": false, "horarios_detectados": []}'
+    )
+
+    response = httpx.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": "llama-3.3-70b-versatile",
+            "messages": [{"role": "user", "content": prompt_texto}],
+            "max_tokens": 500,
+            "temperature": 0.1,
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    texto = response.json()["choices"][0]["message"]["content"]
+    texto = texto.strip().replace("```json", "").replace("```", "").strip()
+    return json.loads(texto)
+
+
 def analizar_con_openrouter(
     imagen_bytes: bytes,
     caption: str = "",
@@ -155,6 +196,7 @@ def analizar_flyer(imagen_bytes: bytes, caption: str = "") -> dict:
     FALLBACKS = [
         ("gemini", None),
         ("openrouter", "meta-llama/llama-4-maverick:free"),
+        ("groq", None),
         ("openrouter", "nvidia/nemotron-nano-12b-v2-vl:free"),
     ]
 
@@ -163,6 +205,9 @@ def analizar_flyer(imagen_bytes: bytes, caption: str = "") -> dict:
             if proveedor == "gemini":
                 print("  Usando Gemini 2.0 Flash...")
                 return analizar_con_gemini(imagen_bytes, caption)
+            elif proveedor == "groq":
+                print("  Usando Groq Llama 3.3 (solo caption)...")
+                return analizar_con_groq(imagen_bytes, caption)
             else:
                 print(f"  Usando OpenRouter {modelo}...")
                 return analizar_con_openrouter(imagen_bytes, caption, modelo)

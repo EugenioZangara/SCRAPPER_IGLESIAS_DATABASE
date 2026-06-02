@@ -213,6 +213,7 @@ META_ACCESS_TOKEN=...           # Graph API de Facebook (opcional por ahora)
 GEMINI_API_KEY=...              # Google AI Studio — modelo principal
 OPENROUTER_API_KEY=...          # OpenRouter — fallback cuando Gemini falla
 MISTRAL_API_KEY=...             # Mistral — fallback caption-only para Facebook
+GROQ_API_KEY=...               # Groq — fallback texto-only (Llama 3.3 70B, sin visión)
 INSTAGRAM_SESSION_USER=pilotosprogramadores
 APIFY_API_TOKEN=...             # Apify — token principal (Instagram y Facebook)
 APIFY_API_TOKEN_2=...           # Apify — token secundario, fallback cuando el primero da 403

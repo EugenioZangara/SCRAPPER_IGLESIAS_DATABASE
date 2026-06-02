@@ -31,6 +31,26 @@ def _llamar_mistral(prompt: str) -> str:
     return response.json()["choices"][0]["message"]["content"]
 
 
+def _llamar_groq(prompt: str) -> str:
+    import httpx
+    response = httpx.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={
+            "Authorization": f"Bearer {os.environ.get('GROQ_API_KEY')}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": "llama-3.3-70b-versatile",
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 1000,
+            "temperature": 0.1,
+        },
+        timeout=30,
+    )
+    response.raise_for_status()
+    return response.json()["choices"][0]["message"]["content"]
+
+
 def _llamar_openrouter(prompt: str, modelo: str) -> str:
     from openai import OpenAI
     client = OpenAI(
@@ -116,6 +136,7 @@ def procesar_reporte_horario(parroquia, texto_usuario: str) -> dict:
     MODELOS_FALLBACK = [
         ("gemini_directo", None),
         ("mistral", None),
+        ("groq", None),
         ("openrouter", "meta-llama/llama-3.3-70b-instruct:free"),
         ("openrouter", "deepseek/deepseek-chat-v3-0324:free"),
     ]
@@ -128,6 +149,9 @@ def procesar_reporte_horario(parroquia, texto_usuario: str) -> dict:
             elif proveedor == "mistral":
                 text = _llamar_mistral(prompt)
                 print(f"  ia_horarios: usando Mistral")
+            elif proveedor == "groq":
+                text = _llamar_groq(prompt)
+                print(f"  ia_horarios: usando Groq")
             else:
                 text = _llamar_openrouter(prompt, modelo)
                 print(f"  ia_horarios: usando OpenRouter {modelo}")
