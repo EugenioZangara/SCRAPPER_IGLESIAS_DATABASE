@@ -61,11 +61,15 @@
     {% endif %}
       {% if banner.imagen_static %}
         {% load static %}
-        <img src="{% static banner.imagen_static %}"
-             alt="{{ banner.texto_alternativo }}"
-             style="width:100%; max-height:160px; object-fit:cover;
-                    object-position:center; border-radius:8px;
-                    border:1px solid var(--rule);">
+        <picture>
+          <source media="(max-width: 640px)"
+                  srcset="{% static 'iglesias/img/ad_gaudium2.jpg' %}">
+          <img src="{% static banner.imagen_static %}"
+               alt="{{ banner.texto_alternativo }}"
+               style="width:100%; max-height:160px; object-fit:cover;
+                      object-position:center; border-radius:8px;
+                      border:1px solid var(--rule);">
+        </picture>
       {% elif banner.imagen %}
         <img src="{{ banner.imagen.url }}"
              alt="{{ banner.texto_alternativo }}"
