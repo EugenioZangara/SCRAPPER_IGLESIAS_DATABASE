@@ -1,11 +1,11 @@
 # test_groq.py
 import os, httpx
 
-with open('.env', encoding='utf-8') as f:
+with open(".env", encoding="utf-8") as f:
     for line in f:
         line = line.strip()
-        if line and not line.startswith('#') and '=' in line:
-            k, v = line.split('=', 1)
+        if line and not line.startswith("#") and "=" in line:
+            k, v = line.split("=", 1)
             os.environ[k.strip()] = v.strip()
 
 response = httpx.post(
