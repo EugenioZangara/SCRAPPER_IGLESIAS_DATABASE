@@ -84,6 +84,17 @@ def exportar_evento_a_sheets(evento) -> bool:
             else:
                 fecha_inicio += " 00:00:00"
 
+        # URL del post original
+        url_post = ""
+        if evento.post:
+            if evento.post.red_social == "instagram":
+                url_post = f"https://www.instagram.com/p/{evento.post.post_id}/"
+            elif evento.post.red_social == "facebook":
+                raw = evento.post.raw_data or {}
+                url_post = raw.get("url_post", "")
+                if not url_post and evento.post.post_id:
+                    url_post = f"https://www.facebook.com/{evento.post.post_id}"
+
         fila = [
             evento.titulo or "",
             evento.tipo.nombre if evento.tipo else "",
@@ -102,6 +113,7 @@ def exportar_evento_a_sheets(evento) -> bool:
             formatear_edad(evento.edad_desde, evento.edad_hasta),
             "Sí" if evento.gratuito else "No",
             str(evento.capacidad) if evento.capacidad else "",
+            url_post,
         ]
 
         sheet.append_row(fila, value_input_option="USER_ENTERED")
