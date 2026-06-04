@@ -113,10 +113,10 @@
          alt="ParroGuía"
          style="width:96px; height:96px; border-radius:22px;
                 object-fit:cover;
-                box-shadow:0 4px 24px rgba(79,70,229,0.18);">
+                box-shadow:0 4px 24px rgba(42,68,148,0.18);">
   </div>
   <h1 style="font-size:clamp(28px,5vw,42px); font-weight:700;
-              color:#1e1b4b; margin-bottom:8px; letter-spacing:-0.02em;">
+              color:#1a2a5c; margin-bottom:8px; letter-spacing:-0.02em;">
     Encontrá tu parroquia
   </h1>
   <p style="font-size:15px; color:#6b7280; margin-bottom:28px;">
@@ -182,12 +182,27 @@
     </label>
   </div>
 
+  {% if total_provincias > 1 %}
+  <div style="margin-top:12px; text-align:center;">
+    <select id="select-provincia"
+            onchange="filtrarProvincia(this.value)"
+            style="padding:8px 14px; border-radius:8px; font-size:13px;
+                   border:1.5px solid var(--rule); background:white;
+                   color:var(--ink); font-family:var(--sans); cursor:pointer;">
+      <option value="">Todas las provincias</option>
+      {% for p in provincias %}
+      <option value="{{ p.provincia }}">{{ p.provincia }} ({{ p.total }})</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
   <div style="text-align:center; margin-top:12px;">
     <button id="btn-cerca"
             style="display:inline-flex; align-items:center; gap:8px;
                    padding:9px 18px; border-radius:999px; font-size:13px;
-                   font-weight:500; border:1.5px solid #4f46e5;
-                   background:white; color:#4f46e5; cursor:pointer;">
+                   font-weight:500; border:1.5px solid #2a4494;
+                   background:white; color:#2a4494; cursor:pointer;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/>
@@ -212,10 +227,10 @@
 {% if mi_parroquia %}
 <div style="padding:0 0 20px;">
     <div style="font-size:12px; font-weight:500; text-transform:uppercase;
-                letter-spacing:0.06em; color:#4f46e5; margin-bottom:10px;
+                letter-spacing:0.06em; color:#2a4494; margin-bottom:10px;
                 display:flex; align-items:center; gap:6px;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="#4f46e5"
-             stroke="#4f46e5" stroke-width="2">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="#2a4494"
+             stroke="#2a4494" stroke-width="2">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
                      a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
                      1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -224,9 +239,9 @@
     </div>
     <a href="{% url 'iglesias:publico_detalle' mi_parroquia.pk %}"
        style="text-decoration:none; display:block;">
-        <div style="background:#eeedfe; border:1.5px solid #4f46e5;
+        <div style="background:#e8edf8; border:1.5px solid #2a4494;
                     border-radius:12px; padding:16px;">
-            <div style="font-size:15px; font-weight:600; color:#1e1b4b;
+            <div style="font-size:15px; font-weight:600; color:#1a2a5c;
                          margin-bottom:4px;">
                 {{ mi_parroquia.nombre }}
             </div>
@@ -237,7 +252,7 @@
             <div style="display:flex; gap:5px; flex-wrap:wrap;">
                 {% if mi_parroquia.eventos_count > 0 %}
                 <span style="font-size:11px; font-weight:500; padding:2px 8px;
-                              border-radius:999px; background:#4f46e5; color:white;">
+                              border-radius:999px; background:#2a4494; color:white;">
                     {{ mi_parroquia.eventos_count }} evento{{ mi_parroquia.eventos_count|pluralize }}
                 </span>
                 {% endif %}
@@ -276,14 +291,14 @@
 
 <noscript>
 <div style="padding:0 24px 32px;">
-    <h2 style="font-size:16px; font-weight:500; color:#1e1b4b;
+    <h2 style="font-size:16px; font-weight:500; color:#1a2a5c;
                margin-bottom:16px;">Todas las parroquias</h2>
     <div style="display:grid; grid-template-columns:repeat(auto-fill,
                 minmax(200px,1fr)); gap:8px;">
         {% for p in todas_parroquias %}
         <a href="{% url 'iglesias:publico_detalle' p.pk %}"
            style="display:block; padding:12px; border:1px solid #e5e7eb;
-                  border-radius:8px; text-decoration:none; color:#1e1b4b;
+                  border-radius:8px; text-decoration:none; color:#1a2a5c;
                   font-size:13px; font-weight:500;">
             {{ p.nombre }}
             {% if p.barrio %}
@@ -349,7 +364,7 @@ function mostrarResultadosCerca(lat, lng) {
         let tags = '';
         if (p.eventos_count > 0)
             tags += `<span style="font-size:11px; font-weight:500; padding:2px 8px;
-                     border-radius:999px; background:#eeedfe; color:#534ab7;">
+                     border-radius:999px; background:#e8edf8; color:#2a4494;">
                      ${p.eventos_count} evento${p.eventos_count > 1 ? 's' : ''}</span>`;
         if (p.tiene_ig)
             tags += `<span style="font-size:11px; font-weight:500; padding:2px 8px;
@@ -369,9 +384,9 @@ function mostrarResultadosCerca(lat, lng) {
                         border-radius:12px; padding:16px; cursor:pointer;">
                 <div style="display:flex; justify-content:space-between;
                             align-items:flex-start; margin-bottom:4px;">
-                    <div style="font-size:14px; font-weight:500; color:#1e1b4b;
+                    <div style="font-size:14px; font-weight:500; color:#1a2a5c;
                                 line-height:1.3; flex:1;">${p.nombre}</div>
-                    <span style="font-size:12px; font-weight:600; color:#4f46e5;
+                    <span style="font-size:12px; font-weight:600; color:#2a4494;
                                  margin-left:8px; flex-shrink:0; white-space:nowrap;">
                         ${formatDistancia(p.distancia)}
                     </span>
@@ -412,7 +427,7 @@ function buscarCercaMio() {
             const lng = pos.coords.longitude;
             btnText.textContent = 'Parroquias cerca mío';
             btn.disabled = false;
-            btn.style.background = '#4f46e5';
+            btn.style.background = '#2a4494';
             btn.style.color = 'white';
             mostrarResultadosCerca(lat, lng);
             const verTodas = document.getElementById('ver-todas-wrap');
@@ -436,7 +451,7 @@ function volverAlListado() {
     const verTodas = document.getElementById('ver-todas-wrap');
 
     btn.style.background = 'white';
-    btn.style.color = '#4f46e5';
+    btn.style.color = '#2a4494';
     btnText.textContent = 'Parroquias cerca mío';
     if (verTodas) verTodas.style.display = 'none';
 
@@ -452,5 +467,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnVer = document.getElementById('btn-ver-todas');
     if (btnVer) btnVer.addEventListener('click', volverAlListado);
 });
+
+function filtrarProvincia(provincia) {
+    const params = new URLSearchParams();
+    if (provincia) params.set('provincia', provincia);
+    htmx.ajax('GET',
+        '{% url "iglesias:publico_buscar" %}?' + params.toString(),
+        {target: '#resultados', swap: 'innerHTML'}
+    );
+}
 </script>
 {% endblock %}

@@ -16,8 +16,8 @@
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "{{ parroquia.direccion|default:'' }}",
-    "addressLocality": "{{ parroquia.barrio|default:'Buenos Aires' }}",
-    "addressRegion": "Buenos Aires",
+    "addressLocality": "{{ parroquia.ciudad|default:parroquia.barrio|default:'' }}",
+    "addressRegion": "{{ parroquia.provincia|default:'Buenos Aires' }}",
     "addressCountry": "AR"
   }
   {% if parroquia.telefonos %}
@@ -67,6 +67,16 @@
         <span class="pub-field-lbl">Dirección</span>
         <span class="pub-field-val">
           {{ parroquia.direccion|default:"" }}{% if parroquia.direccion and parroquia.barrio %}, {% endif %}{{ parroquia.barrio|default:"" }}
+          {% if parroquia.ciudad or parroquia.provincia %}
+          <span style="display:block; font-size:13px; color:var(--muted); margin-top:4px;">
+            {% if parroquia.ciudad %}{{ parroquia.ciudad }}{% endif %}
+            {% if parroquia.ciudad and parroquia.provincia %} · {% endif %}
+            {% if parroquia.provincia %}{{ parroquia.provincia }}{% endif %}
+            {% if parroquia.diocesis %}
+            <span style="display:block; font-size:12px; margin-top:2px;">{{ parroquia.diocesis }}</span>
+            {% endif %}
+          </span>
+          {% endif %}
         </span>
       </div>
       {% endif %}
@@ -186,8 +196,8 @@
           <div style="margin-top:14px;">
             <a href="tel:{{ parroquia.telefonos }}"
                style="display:inline-flex; align-items:center; gap:6px;
-                      font-size:13px; font-weight:500; color:#4f46e5;
-                      text-decoration:none; border:1px solid #4f46e5;
+                      font-size:13px; font-weight:500; color:#2a4494;
+                      text-decoration:none; border:1px solid #2a4494;
                       border-radius:8px; padding:7px 14px;">
               📞 {{ parroquia.telefonos }}
             </a>
@@ -234,9 +244,10 @@
             {{ request.user.get_full_name|default:request.user.username }}
           </span>
           {% if request.user.perfil.score > 0 %}
-          <span style="background:#eeedfe; color:#4f46e5; font-size:11px;
-                        padding:1px 7px; border-radius:999px; font-weight:500;">
-            Score: {{ request.user.perfil.score }}
+          <span style="background:#FFF9CC; color:#a07b00; font-size:11px;
+                        padding:1px 7px; border-radius:999px; font-weight:600;
+                        border:1px solid #FFD700;">
+            ★ {{ request.user.perfil.score }}
           </span>
           {% endif %}
         </div>
@@ -278,7 +289,7 @@
         <div id="reporte-form" style="display:none; margin-top:12px;">
           <textarea id="reporte-texto"
                     placeholder="Ej: Los domingos hay misa a las 9, 11 y 20."
-                    style="width:100%; border:1px solid #4f46e5; border-radius:8px;
+                    style="width:100%; border:1px solid #2a4494; border-radius:8px;
                            padding:10px; font-size:13px; resize:none;
                            min-height:80px; font-family:inherit;
                            color:var(--ink);"></textarea>
@@ -290,7 +301,7 @@
             <button onclick="enviarReporte({{ parroquia.pk }})"
                     style="display:inline-flex; align-items:center; gap:6px;
                            padding:8px 16px; border-radius:8px; font-size:13px;
-                           font-weight:500; background:#4f46e5; color:white;
+                           font-weight:500; background:#2a4494; color:white;
                            border:none; cursor:pointer;">
               Enviar reporte
             </button>
@@ -369,7 +380,7 @@
           </div>
         {% endif %}
         <a href="{{ red.url }}" target="_blank" rel="noopener noreferrer"
-           style="font-size:12px; color:#4f46e5; text-decoration:none; white-space:nowrap;">
+           style="font-size:12px; color:#2a4494; text-decoration:none; white-space:nowrap;">
           Ver perfil →
         </a>
       </div>
@@ -397,7 +408,7 @@
       <a href="#"
          style="display:inline-flex; align-items:center; gap:6px;
                 font-size:13px; font-weight:500; color:white;
-                background:#4f46e5; border-radius:8px;
+                background:#2a4494; border-radius:8px;
                 padding:8px 16px; text-decoration:none;">
         Ver eventos de la parroquia →
       </a>
@@ -413,7 +424,7 @@
                            border-radius:8px; font-size:13px; font-weight:500;
                            cursor:pointer; transition:all .15s;
                            {% if es_favorita %}
-                           background:#eeedfe; color:#4f46e5; border:1.5px solid #4f46e5;
+                           background:#e8edf8; color:#2a4494; border:1.5px solid #2a4494;
                            {% else %}
                            background:white; color:#6b7280; border:1px solid #e5e7eb;
                            {% endif %}">
@@ -422,7 +433,7 @@
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
                              a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
                              1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                          {% if es_favorita %}fill="#4f46e5"{% endif %}/>
+                          {% if es_favorita %}fill="#2a4494"{% endif %}/>
                 </svg>
                 <span id="btn-favorita-text">
                     {% if es_favorita %}Mi parroquia ✓{% else %}Marcar como mi parroquia{% endif %}
@@ -463,9 +474,9 @@
                 const btn = document.getElementById('btn-favorita');
                 const txt = document.getElementById('btn-favorita-text');
                 if (data.favorita) {
-                    btn.style.background = '#eeedfe';
-                    btn.style.color = '#4f46e5';
-                    btn.style.border = '1.5px solid #4f46e5';
+                    btn.style.background = '#e8edf8';
+                    btn.style.color = '#2a4494';
+                    btn.style.border = '1.5px solid #2a4494';
                     txt.textContent = 'Mi parroquia ✓';
                 } else {
                     btn.style.background = 'white';

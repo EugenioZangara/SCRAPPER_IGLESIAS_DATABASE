@@ -8,7 +8,7 @@
 {% block content %}
 <div style="max-width:600px; margin:0 auto; padding:32px 24px;">
 
-    <h1 style="font-size:24px; font-weight:600; color:#1e1b4b;
+    <h1 style="font-size:24px; font-weight:600; color:#1a2a5c;
                margin-bottom:6px;">Colaboradores</h1>
     <p style="font-size:14px; color:#6b7280; margin-bottom:24px;">
         Usuarios que ayudan a mantener actualizada la información
@@ -16,27 +16,29 @@
     </p>
 
     {% if mi_perfil %}
-    <div style="background:#eeedfe; border-radius:12px; padding:16px;
+    <div style="background:#e8edf8; border-radius:12px; padding:16px;
                 margin-bottom:24px; display:flex; align-items:center;
                 gap:14px;">
         <div style="width:44px; height:44px; border-radius:50%;
-                     background:#4f46e5; display:flex; align-items:center;
+                     background:#2a4494; display:flex; align-items:center;
                      justify-content:center; color:white; font-size:18px;
                      font-weight:600; flex-shrink:0;">
             {{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
         </div>
         <div style="flex:1;">
-            <div style="font-size:14px; font-weight:500; color:#1e1b4b;">
+            <div style="font-size:14px; font-weight:500; color:#1a2a5c;">
                 {{ request.user.get_full_name|default:request.user.username }}
             </div>
-            <div style="font-size:12px; color:#534ab7;">
+            <div style="font-size:12px; color:#2a4494;">
                 Score: {{ mi_perfil.score }} ·
                 Nivel: {{ mi_perfil.nivel }} ·
                 {{ mi_perfil.reportes_aprobados }} reportes aprobados
             </div>
         </div>
-        <div style="font-size:24px; font-weight:700; color:#4f46e5;">
-            {{ mi_perfil.score }}
+        <div style="font-size:22px; font-weight:700; color:#a07b00;
+                    background:#FFF9CC; border:1px solid #FFD700;
+                    border-radius:8px; padding:4px 12px; line-height:1.2;">
+            ★ {{ mi_perfil.score }}
         </div>
     </div>
     {% endif %}
@@ -47,7 +49,7 @@
         <div style="display:flex; align-items:center; gap:14px;
                      padding:14px 16px;
                      border-bottom:{% if not forloop.last %}1px solid #f3f4f6{% else %}none{% endif %};
-                     {% if request.user.is_authenticated and perfil.user == request.user %}background:#f8f7ff;{% endif %}">
+                     {% if request.user.is_authenticated and perfil.user == request.user %}background:#f0f3fa;{% endif %}">
             <div style="font-size:13px; font-weight:600; color:#9ca3af;
                           width:24px; text-align:center;">
                 {{ forloop.counter }}
@@ -64,7 +66,7 @@
                 {% endif %}
             </div>
             <div style="flex:1;">
-                <div style="font-size:14px; font-weight:500; color:#1e1b4b;">
+                <div style="font-size:14px; font-weight:500; color:#1a2a5c;">
                     {{ perfil.user.get_full_name|default:perfil.user.username }}
                 </div>
                 <div style="font-size:11px; margin-top:2px;">
@@ -74,7 +76,9 @@
                     {{ perfil.validaciones_enviadas }} validaciones
                 </div>
             </div>
-            <div style="font-size:20px; font-weight:700; color:#4f46e5;">
+            <div style="font-size:16px; font-weight:700; color:#a07b00;
+                        background:#FFF9CC; border:1px solid #FFD700;
+                        border-radius:6px; padding:3px 10px; line-height:1.2;">
                 {{ perfil.score }}
             </div>
         </div>

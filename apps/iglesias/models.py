@@ -20,6 +20,19 @@ class Parroquia(models.Model):
     vicaria = models.CharField(max_length=100, blank=True, null=True)
     decanato = models.CharField(max_length=100, blank=True, null=True)
     barrio = models.CharField(max_length=100, blank=True, null=True)
+    provincia = models.CharField(
+        max_length=100, blank=True, null=True,
+        default="Ciudad Autónoma de Buenos Aires",
+        help_text="Provincia donde se encuentra la parroquia"
+    )
+    ciudad = models.CharField(
+        max_length=100, blank=True, null=True,
+        help_text="Ciudad o localidad"
+    )
+    diocesis = models.CharField(
+        max_length=150, blank=True, null=True,
+        help_text="Diócesis o Arquidiócesis"
+    )
     clero_cargo = models.CharField(max_length=255, blank=True, null=True)
     parroco = models.CharField(max_length=255, blank=True, null=True)
 

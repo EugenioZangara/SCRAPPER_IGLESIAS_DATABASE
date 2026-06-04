@@ -1218,6 +1218,14 @@ def publico_inicio(request):
         except Exception:
             pass
 
+    provincias = (
+        Parroquia.objects
+        .exclude(provincia__isnull=True)
+        .values("provincia")
+        .annotate(total=Count("pk"))
+        .order_by("-total")
+    )
+
     return render(request, "iglesias/publico/inicio.html", {
         "total": Parroquia.objects.count(),
         "con_eventos": Parroquia.objects.filter(
@@ -1227,6 +1235,8 @@ def publico_inicio(request):
         ).distinct().count(),
         "todas_parroquias": Parroquia.objects.all().order_by("nombre"),
         "mi_parroquia": mi_parroquia,
+        "provincias": provincias,
+        "total_provincias": provincias.count(),
     })
 
 
@@ -1284,13 +1294,18 @@ def publico_buscar(request):
     q = request.GET.get("q", "").strip()
     barrio = request.GET.get("barrio", "").strip()
     filtro = request.GET.get("filtro", "todas").strip()
+    provincia = request.GET.get("provincia", "").strip()
 
     parroquias = Parroquia.objects.all()
+
+    if provincia:
+        parroquias = parroquias.filter(provincia__icontains=provincia)
 
     if q:
         parroquias = parroquias.filter(
             Q(nombre__icontains=q)
             | Q(barrio__icontains=q)
+            | Q(ciudad__icontains=q)
             | Q(parroco__icontains=q)
             | Q(direccion__icontains=q)
         )
