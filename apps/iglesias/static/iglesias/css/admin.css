@@ -1,0 +1,244 @@
+:root {
+  --primary: #2457a6;
+  --primary-soft: #eaf1fb;
+  --primary-dark: #163b73;
+  --accent: #b88728;
+  --accent-soft: #fff4d8;
+  --paper: #ffffff;
+  --paper-2: #f6f8fb;
+  --ink: #18233f;
+  --ink-2: #31415f;
+  --muted: #657082;
+  --faint: #98a1af;
+  --rule: #dde4ee;
+  --rule-2: #eef2f7;
+  --surface: #ffffff;
+  --surface-soft: #f6f8fb;
+  --line: #dde4ee;
+  --text: #18233f;
+  --brand: #2457a6;
+  --brand-soft: #eaf1fb;
+  --blue: #2457a6;
+  --blue-soft: #eaf1fb;
+}
+
+body {
+  background:
+    linear-gradient(180deg, #ffffff 0%, #f7f9fc 42%, #ffffff 100%) !important;
+  color: var(--ink) !important;
+}
+
+a {
+  text-underline-offset: 3px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(36, 87, 166, .22);
+  outline-offset: 2px;
+}
+
+.masthead {
+  background: rgba(255, 255, 255, .9) !important;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(24, 35, 63, .04);
+}
+
+.masthead-inner {
+  min-height: 64px;
+}
+
+.brand-mark {
+  color: var(--ink) !important;
+}
+
+.brand-mark img {
+  box-shadow: 0 10px 22px rgba(36, 87, 166, .16);
+}
+
+.nav {
+  flex-wrap: wrap;
+}
+
+.nav a,
+.nav button {
+  border-radius: 10px !important;
+  transition: background .15s ease, color .15s ease, transform .15s ease;
+}
+
+.nav a:hover,
+.nav button:hover {
+  background: var(--paper-2) !important;
+  color: var(--primary) !important;
+  text-decoration: none;
+}
+
+.nav a.active {
+  background: var(--primary) !important;
+  color: #fff !important;
+}
+
+.head {
+  padding-top: 38px !important;
+}
+
+h1.title {
+  letter-spacing: 0 !important;
+}
+
+.eyebrow {
+  color: var(--accent) !important;
+}
+
+.head-meta,
+.stats-dir .stat,
+.panel,
+.red-item,
+.evento-item,
+#scraper-card {
+  border-color: var(--rule) !important;
+  box-shadow: 0 8px 24px rgba(24, 35, 63, .05);
+}
+
+.stats-dir {
+  gap: 12px !important;
+}
+
+.stats-dir .stat {
+  border-radius: 14px !important;
+}
+
+.stats-dir .stat.lead {
+  background: linear-gradient(135deg, var(--primary), #2f6ec1) !important;
+  color: #fff !important;
+}
+
+.stats-dir .stat.lead .stat-label,
+.stats-dir .stat.lead .stat-foot,
+.stats-dir .stat.lead .stat-num {
+  color: #fff !important;
+}
+
+.stat-num {
+  letter-spacing: 0 !important;
+}
+
+.filters {
+  gap: 12px !important;
+}
+
+.search input,
+.select select,
+.btn-filter,
+input,
+select,
+textarea,
+button {
+  border-radius: 10px !important;
+}
+
+.search input:focus,
+.select select:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 4px rgba(36, 87, 166, .14) !important;
+}
+
+.btn-filter,
+button {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.btn-filter:hover,
+button:hover {
+  background: var(--primary-dark) !important;
+}
+
+.row {
+  border-bottom-color: var(--rule) !important;
+}
+
+.row:not(.head-row) {
+  border-radius: 12px;
+}
+
+.row:not(.head-row):hover {
+  background: #f7f9fc !important;
+}
+
+.g.on,
+.g.on.fb,
+.status-marker.verified {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.web-link {
+  border-bottom-color: var(--accent) !important;
+}
+
+.badge.ok {
+  background: #e8f7ef !important;
+  color: #147a4f !important;
+  border-color: #b9e4cd !important;
+}
+
+.badge.warn {
+  background: var(--accent-soft) !important;
+  color: #8a621d !important;
+  border-color: #eed39b !important;
+}
+
+.badge.missing {
+  background: #fff0f0 !important;
+  color: #c43d3d !important;
+  border-color: #f0b6b6 !important;
+}
+
+@media (max-width: 760px) {
+  .wrap {
+    padding: 0 16px !important;
+  }
+
+  .masthead-inner {
+    align-items: flex-start !important;
+    flex-direction: column;
+    gap: 12px !important;
+  }
+
+  .nav {
+    width: 100%;
+  }
+
+  .nav a,
+  .nav form,
+  .nav button {
+    flex: 1 1 auto;
+  }
+
+  .head {
+    padding-top: 28px !important;
+  }
+
+  h1.title {
+    font-size: 38px !important;
+  }
+
+  .stats-dir {
+    grid-template-columns: 1fr !important;
+  }
+
+  .filters {
+    grid-template-columns: 1fr !important;
+  }
+
+  .row {
+    padding: 16px 0 !important;
+  }
+}

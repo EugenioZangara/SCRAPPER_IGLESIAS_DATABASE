@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html lang="es">
 <head>
@@ -8,37 +9,60 @@
   <link rel="apple-touch-icon" href="/static/iglesias/img/parroguia_logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@600;700&family=JetBrains+Mono:wght@500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --primary: #2a4494;
-      --primary-soft: #e8edf8;
-      --primary-dark: #1e3270;
-      --ink: #1a2a5c;
-      --muted: #6b7280;
-      --rule: #e5e7eb;
-      --rule-2: #f3f4f6;
-      --paper: #ffffff;
-      --sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-      --gold: #FFD700;
-      --gold-soft: #FFF9CC;
-      --gold-dark: #a07b00;
+      --primary: #003366;
+      --primary-soft: rgba(0, 51, 102, 0.08);
+      --primary-dark: #001e40;
+      --ink: #161e2f;
+      --muted: #5f6574;
+      --rule: rgba(255, 255, 255, 0.5);
+      --rule-2: rgba(0, 51, 102, 0.08);
+      --paper: rgba(255, 255, 255, 0.48);
+      --sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+      --display: "Epilogue", var(--sans);
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+      --gold: #ffc107;
+      --gold-soft: rgba(255, 193, 7, 0.16);
+      --gold-dark: #785900;
     }
 
     body {
       font-family: var(--sans);
-      background: var(--rule-2);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255, 193, 7, 0.18), transparent 30%),
+        radial-gradient(circle at 82% 8%, rgba(0, 51, 102, 0.12), transparent 32%),
+        radial-gradient(circle at 68% 78%, rgba(224, 231, 255, 0.52), transparent 38%),
+        linear-gradient(135deg, #fdfcf8 0%, #faf9f5 44%, #f3f0ff 100%);
       color: var(--ink);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.36;
+      background-image:
+        linear-gradient(rgba(0, 51, 102, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 51, 102, 0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(circle at 50% 20%, black, transparent 72%);
     }
 
     /* Nav */
     .pub-nav {
-      background: var(--paper);
+      background: rgba(253, 252, 248, 0.72);
+      backdrop-filter: blur(18px);
       border-bottom: 1px solid var(--rule);
       position: sticky;
       top: 0;
@@ -75,19 +99,21 @@
     /* Main content */
     .pub-main {
       flex: 1;
-      max-width: 1100px;
+      max-width: 1280px;
       margin: 0 auto;
       width: 100%;
-      padding: 32px 24px;
+      padding: 32px 24px 48px;
     }
 
     /* Sections */
     .pub-section {
       background: var(--paper);
       border: 1px solid var(--rule);
-      border-radius: 12px;
+      border-radius: 24px;
       padding: 20px;
       margin-bottom: 20px;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 24px 70px rgba(0, 51, 102, 0.07);
     }
     .pub-section-title {
       font-size: 11px;
@@ -237,7 +263,8 @@
 
     /* Footer */
     .pub-footer {
-      background: var(--paper);
+      background: rgba(253, 252, 248, 0.62);
+      backdrop-filter: blur(18px);
       border-top: 1px solid var(--rule);
       text-align: center;
       padding: 16px 24px;
@@ -245,13 +272,14 @@
       color: var(--muted);
     }
   </style>
+  <link rel="stylesheet" href="{% static 'iglesias/css/public.css' %}">
   <meta name="robots" content="index, follow">
   <meta property="og:site_name" content="ParroGuía">
   <meta name="theme-color" content="#2a4494">
   <meta name="msapplication-TileColor" content="#2a4494">
   {% block meta_extra %}{% endblock %}
 </head>
-<body>
+<body class="theme-luminous">
   <nav class="pub-nav">
     <div class="pub-nav-inner">
       <a href="{% url 'iglesias:publico_inicio' %}"

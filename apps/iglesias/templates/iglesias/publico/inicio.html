@@ -105,17 +105,91 @@
     color: var(--muted);
   }
   .htmx-request .htmx-indicator { display: inline; }
+
+  .luminous-hero {
+    position: relative;
+    isolation: isolate;
+    border-radius: 32px;
+    padding: 64px 24px 40px !important;
+  }
+  .luminous-hero::before {
+    content: "";
+    position: absolute;
+    inset: 8px 0 auto;
+    height: 360px;
+    z-index: -1;
+    border-radius: 40px;
+    background:
+      radial-gradient(circle at 35% 20%, rgba(255,193,7,.18), transparent 34%),
+      radial-gradient(circle at 70% 12%, rgba(0,51,102,.12), transparent 38%),
+      linear-gradient(135deg, rgba(255,255,255,.32), rgba(255,255,255,.06));
+  }
+  .luminous-logo {
+    box-shadow: 0 24px 60px rgba(0, 51, 102, 0.18), 0 0 0 8px rgba(255,255,255,.66) !important;
+  }
+  .luminous-title {
+    font-family: var(--display) !important;
+    color: var(--primary-dark) !important;
+    letter-spacing: 0 !important;
+  }
+  .search-input {
+    border: 1px solid rgba(255,255,255,.72) !important;
+    border-bottom-color: rgba(0,51,102,.22) !important;
+    border-radius: 16px !important;
+    background: rgba(255,255,255,.48) !important;
+    backdrop-filter: blur(18px);
+    box-shadow: 0 18px 55px rgba(0,51,102,.08), inset 0 1px 0 rgba(255,255,255,.8) !important;
+  }
+  .search-input:focus {
+    border-bottom-color: var(--gold) !important;
+    box-shadow: 0 20px 60px rgba(0,51,102,.12), 0 0 0 4px rgba(255,193,7,.14) !important;
+  }
+  .filter-pill-label {
+    border-radius: 8px !important;
+    border: 1px solid rgba(255,255,255,.7) !important;
+    background: rgba(255,255,255,.42) !important;
+    backdrop-filter: blur(14px);
+    font-weight: 600 !important;
+  }
+  .filter-pill input[type="radio"]:checked + .filter-pill-label {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: var(--gold) !important;
+    box-shadow: 0 12px 30px rgba(0,51,102,.14);
+  }
+  .luminous-select,
+  .luminous-action,
+  .luminous-favorite {
+    background: rgba(255,255,255,.46) !important;
+    border: 1px solid rgba(255,255,255,.72) !important;
+    border-bottom-color: rgba(0,51,102,.18) !important;
+    backdrop-filter: blur(14px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+  }
+  .luminous-action {
+    border-radius: 10px !important;
+    color: var(--primary) !important;
+  }
+  .luminous-action:hover {
+    background: var(--primary) !important;
+    color: var(--gold) !important;
+  }
+  .luminous-favorite {
+    border-radius: 24px !important;
+    box-shadow: 0 24px 70px rgba(0,51,102,.08);
+  }
 </style>
 
-<div style="text-align:center; padding:48px 24px 32px;">
+<div class="luminous-hero" style="text-align:center; padding:48px 24px 32px;">
   <div style="display:flex; justify-content:center; margin-bottom:20px;">
     <img src="/static/iglesias/img/parroguia_logo.png"
          alt="ParroGuía"
+         class="luminous-logo"
          style="width:96px; height:96px; border-radius:22px;
                 object-fit:cover;
                 box-shadow:0 4px 24px rgba(42,68,148,0.18);">
   </div>
-  <h1 style="font-size:clamp(28px,5vw,42px); font-weight:700;
+  <h1 class="luminous-title" style="font-size:clamp(28px,5vw,42px); font-weight:700;
               color:#1a2a5c; margin-bottom:8px; letter-spacing:-0.02em;">
     Encontrá tu parroquia
   </h1>
@@ -185,6 +259,7 @@
   {% if total_provincias > 1 %}
   <div style="margin-top:12px; text-align:center;">
     <select id="select-provincia"
+            class="luminous-select"
             onchange="filtrarProvincia(this.value)"
             style="padding:8px 14px; border-radius:8px; font-size:13px;
                    border:1.5px solid var(--rule); background:white;
@@ -199,6 +274,7 @@
 
   <div style="text-align:center; margin-top:12px;">
     <button id="btn-cerca"
+            class="luminous-action"
             style="display:inline-flex; align-items:center; gap:8px;
                    padding:9px 18px; border-radius:999px; font-size:13px;
                    font-weight:500; border:1.5px solid #2a4494;
@@ -239,7 +315,7 @@
     </div>
     <a href="{% url 'iglesias:publico_detalle' mi_parroquia.pk %}"
        style="text-decoration:none; display:block;">
-        <div style="background:#e8edf8; border:1.5px solid #2a4494;
+        <div class="luminous-favorite" style="background:#e8edf8; border:1.5px solid #2a4494;
                     border-radius:12px; padding:16px;">
             <div style="font-size:15px; font-weight:600; color:#1a2a5c;
                          margin-bottom:4px;">
