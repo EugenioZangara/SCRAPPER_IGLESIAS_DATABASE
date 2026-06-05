@@ -1346,6 +1346,35 @@ def publico_inicio(request):
     })
 
 
+def publico_favoritas(request):
+    if not request.user.is_authenticated:
+        return redirect(f"/accounts/login/?next=/publico/favoritas/")
+
+    parroquia_favorita = None
+    proxima_misa = None
+
+    try:
+        perfil = request.user.perfil
+        if perfil.parroquia_favorita:
+            p = perfil.parroquia_favorita
+            parroquia_favorita = p
+            horarios = list(p.horarios_misa.all().order_by("dia_semana"))
+            pm_raw = _proxima_misa(horarios)
+            if pm_raw:
+                proxima_misa = {
+                    "dia": pm_raw["dia_label"],
+                    "hora": pm_raw["hora"],
+                    "es_hoy": pm_raw["dia_label"] == "Hoy",
+                }
+    except Exception:
+        pass
+
+    return render(request, "iglesias/publico/favoritas.html", {
+        "parroquia_favorita": parroquia_favorita,
+        "proxima_misa": proxima_misa,
+    })
+
+
 def publico_mis_aportes(request):
     from .models import PerfilUsuario
     if not request.user.is_authenticated:

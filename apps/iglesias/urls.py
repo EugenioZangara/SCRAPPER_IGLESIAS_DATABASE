@@ -9,6 +9,7 @@ urlpatterns = [
     path("publico/", views.publico_inicio, name="publico_inicio"),
     path("publico/buscar/", views.publico_buscar, name="publico_buscar"),
     path("publico/geo/", views.parroquias_geo_json, name="parroquias_geo"),
+    path("publico/favoritas/", views.publico_favoritas, name="publico_favoritas"),
     path("publico/<int:pk>/", views.publico_detalle, name="publico_detalle"),
     path(
         "",
