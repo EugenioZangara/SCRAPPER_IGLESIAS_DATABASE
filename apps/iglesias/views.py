@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, ValidacionHorario, Banner
+from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, ValidacionHorario, Banner, VotoHorario, ComentarioParroquia, PerfilUsuario
 
 from django.views.decorators.http import require_POST
 from django.urls import reverse
@@ -1594,6 +1594,24 @@ def publico_detalle(request, pk):
 
     banner_detalle = Banner.objects.filter(posicion="detalle", activo=True).first()
 
+    comentarios = ComentarioParroquia.objects.filter(
+        parroquia=parroquia, oculto=False
+    ).select_related('usuario', 'usuario__perfil')[:30]
+
+    votos = VotoHorario.objects.filter(parroquia=parroquia)
+    votos_up = votos.filter(valor=1).count()
+    votos_down = votos.filter(valor=-1).count()
+    votos_total = votos_up + votos_down
+    pct_up = round(votos_up / votos_total * 100) if votos_total else 0
+
+    voto_usuario = None
+    if request.user.is_authenticated:
+        v = votos.filter(usuario=request.user).first()
+        voto_usuario = v.valor if v else None
+    elif request.session.session_key:
+        v = votos.filter(session_key=request.session.session_key, usuario__isnull=True).first()
+        voto_usuario = v.valor if v else None
+
     return render(request, "iglesias/publico/detalle.html", {
         "parroquia": parroquia,
         "redes": redes_verificadas,
@@ -1603,6 +1621,141 @@ def publico_detalle(request, pk):
         "ya_reporto": ya_reporto,
         "es_favorita": es_favorita,
         "banner_detalle": banner_detalle,
+        "comentarios": comentarios,
+        "votos_up": votos_up,
+        "votos_down": votos_down,
+        "votos_total": votos_total,
+        "pct_up": pct_up,
+        "voto_usuario": voto_usuario,
+    })
+
+
+@require_POST
+@csrf_exempt
+def votar_horario(request, pk):
+    from django.db import models as db_models
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+    valor = request.POST.get('valor')
+    if valor not in ('1', '-1'):
+        return JsonResponse({'error': 'Valor inválido'}, status=400)
+    valor = int(valor)
+
+    if not request.session.session_key:
+        request.session.create()
+
+    usuario = request.user if request.user.is_authenticated else None
+    session_key = '' if usuario else request.session.session_key
+
+    filtro = {'parroquia': parroquia}
+    if usuario:
+        filtro['usuario'] = usuario
+    else:
+        filtro['session_key'] = session_key
+        filtro['usuario__isnull'] = True
+
+    voto_existente = VotoHorario.objects.filter(**filtro).first()
+
+    if voto_existente:
+        if voto_existente.valor == valor:
+            voto_existente.delete()
+            voto_actual = None
+        else:
+            voto_existente.valor = valor
+            voto_existente.save(update_fields=['valor'])
+            voto_actual = valor
+    else:
+        VotoHorario.objects.create(parroquia=parroquia, usuario=usuario, session_key=session_key, valor=valor)
+        voto_actual = valor
+        if usuario:
+            PerfilUsuario.objects.filter(user=usuario).update(score=db_models.F('score') + 1)
+
+    votos = VotoHorario.objects.filter(parroquia=parroquia)
+    up = votos.filter(valor=1).count()
+    down = votos.filter(valor=-1).count()
+    total = up + down
+    pct = round(up / total * 100) if total else 0
+
+    return JsonResponse({'up': up, 'down': down, 'total': total, 'pct': pct, 'voto_actual': voto_actual})
+
+
+@require_POST
+def agregar_comentario(request, pk):
+    import threading
+    from django.db import models as db_models
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+    texto = request.POST.get('texto', '').strip()
+
+    if len(texto) < 10:
+        return JsonResponse({'error': 'El comentario es muy corto (mínimo 10 caracteres)'}, status=400)
+    if len(texto) > 500:
+        return JsonResponse({'error': 'Máximo 500 caracteres'}, status=400)
+
+    if not request.session.session_key:
+        request.session.create()
+
+    usuario = request.user if request.user.is_authenticated else None
+
+    filtro_spam = {'parroquia': parroquia, 'fecha__gte': timezone.now() - timedelta(days=7)}
+    if usuario:
+        filtro_spam['usuario'] = usuario
+    else:
+        filtro_spam['usuario__isnull'] = True
+
+    if ComentarioParroquia.objects.filter(**filtro_spam).exists():
+        return JsonResponse({'error': 'Ya comentaste en esta parroquia recientemente'}, status=429)
+
+    comentario = ComentarioParroquia.objects.create(parroquia=parroquia, usuario=usuario, texto=texto)
+
+    def generar_reporte_silencioso():
+        try:
+            from apps.iglesias.ia_horarios import procesar_reporte_horario
+            resultado = procesar_reporte_horario(parroquia, texto)
+            if resultado and resultado.get('propuesta_ia'):
+                reporte = ReporteHorario.objects.create(
+                    parroquia=parroquia,
+                    texto_usuario=texto,
+                    propuesta_ia=resultado['propuesta_ia'],
+                    resumen_cambios=resultado.get('resumen_cambios', ''),
+                    estado='pendiente',
+                    fuente='usuario',
+                    usuario=usuario,
+                )
+                ComentarioParroquia.objects.filter(pk=comentario.pk).update(reporte=reporte)
+                if usuario:
+                    PerfilUsuario.objects.filter(user=usuario).update(
+                        score=db_models.F('score') + 5,
+                        reportes_enviados=db_models.F('reportes_enviados') + 1
+                    )
+        except Exception as e:
+            print(f"Error IA comentario {comentario.pk}: {e}")
+
+    threading.Thread(target=generar_reporte_silencioso, daemon=True).start()
+
+    nivel_slug = 'explorador'
+    nivel_label = 'Explorador'
+    initials = 'AN'
+    nombre = 'Anónimo'
+    if usuario:
+        try:
+            perfil = usuario.perfil
+            nivel_slug = perfil.nivel_slug
+            nivel_label = perfil.get_nivel_display()
+        except Exception:
+            pass
+        initials = ((usuario.first_name[:1] + usuario.last_name[:1]).upper() or 'U')
+        nombre = usuario.get_full_name() or usuario.username
+
+    return JsonResponse({
+        'ok': True,
+        'comentario': {
+            'pk': comentario.pk,
+            'texto': comentario.texto,
+            'nombre': nombre,
+            'initials': initials,
+            'nivel': nivel_label,
+            'nivel_slug': nivel_slug,
+            'fecha': 'ahora mismo',
+        }
     })
 
 

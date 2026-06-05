@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import User
 
 
@@ -344,6 +345,33 @@ class PerfilUsuario(models.Model):
         }
         return colores.get(self.nivel, "#6b7280")
 
+    NIVEL_COLORES = {
+        'explorador': ('#dbeafe', '#1e40af'),
+        'vecino':     ('#dcfce7', '#166534'),
+        'sacristan':  ('#fef9c3', '#854d0e'),
+        'catequista': ('#ede9fe', '#5b21b6'),
+        'parroco':    ('#fee2e2', '#991b1b'),
+    }
+
+    @property
+    def nivel_slug(self):
+        if self.score >= 600: return 'parroco'
+        if self.score >= 300: return 'catequista'
+        if self.score >= 150: return 'sacristan'
+        if self.score >= 50:  return 'vecino'
+        return 'explorador'
+
+    @property
+    def color_avatar(self):
+        return self.NIVEL_COLORES[self.nivel_slug][0]
+
+    @property
+    def color_avatar_texto(self):
+        return self.NIVEL_COLORES[self.nivel_slug][1]
+
+    def get_nivel_display(self):
+        return self.nivel_slug.capitalize()
+
 
 class ReporteHorario(models.Model):
     ESTADO_CHOICES = [
@@ -478,3 +506,35 @@ class Banner(models.Model):
 
     def __str__(self):
         return f"{self.titulo} ({self.posicion})"
+
+
+class VotoHorario(models.Model):
+    parroquia = models.ForeignKey('Parroquia', on_delete=models.CASCADE, related_name='votos_horario')
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    session_key = models.CharField(max_length=40, blank=True)
+    valor = models.SmallIntegerField()  # +1 correcto, -1 incorrecto
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['parroquia', 'usuario'], condition=models.Q(usuario__isnull=False), name='unique_voto_usuario'),
+            models.UniqueConstraint(fields=['parroquia', 'session_key'], condition=models.Q(usuario__isnull=True), name='unique_voto_sesion'),
+        ]
+
+    def __str__(self):
+        return f"Voto {self.valor:+d} — {self.parroquia}"
+
+
+class ComentarioParroquia(models.Model):
+    parroquia = models.ForeignKey('Parroquia', on_delete=models.CASCADE, related_name='comentarios')
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='comentarios')
+    texto = models.TextField(max_length=500)
+    fecha = models.DateTimeField(auto_now_add=True)
+    reporte = models.OneToOneField('ReporteHorario', on_delete=models.SET_NULL, null=True, blank=True, related_name='comentario')
+    oculto = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f"{self.usuario or 'Anónimo'} → {self.parroquia} ({self.fecha:%d/%m/%Y})"

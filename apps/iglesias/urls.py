@@ -125,6 +125,8 @@ urlpatterns = [
     path("publico/perfil/", views.publico_perfil, name="publico_perfil"),
     path("publico/privacidad/", views.pagina_privacidad, name="privacidad"),
     path("publico/terminos/", views.pagina_terminos, name="terminos"),
+    path("publico/<int:pk>/votar-horario/", views.votar_horario, name="votar_horario"),
+    path("publico/<int:pk>/comentar/", views.agregar_comentario, name="agregar_comentario"),
     path(
         "parroquias/<int:pk>/toggle-verificacion/",
         views.toggle_verificacion,

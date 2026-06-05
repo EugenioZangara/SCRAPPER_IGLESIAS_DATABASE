@@ -1,4 +1,5 @@
 {% extends "iglesias/publico/base_publica.html" %}
+{% load humanize %}
 
 {% block page_title %}{{ parroquia.nombre }} — Horarios de misas y eventos | ParroGuía{% endblock %}
 {% block og_type %}place{% endblock %}
@@ -177,6 +178,51 @@
   .pd-evento-date-month { font: 600 9px/1 var(--font-ui); text-transform: uppercase; letter-spacing: .05em; opacity: .7; margin-bottom: 2px; }
   .pd-evento-title { font: 700 14px/1.3 var(--font-display); color: var(--ink); margin-bottom: 3px; }
   .pd-evento-meta { font: 500 12px/1 var(--font-ui); color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; }
+
+  /* ── Votes + Comments ── */
+  .sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+  .horarios-grid { display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start; }
+  @media (max-width:768px) { .horarios-grid { grid-template-columns:1fr; } }
+  .section-label { font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:8px; }
+  .card-horarios { background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px; }
+  .verified-badge { display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;background:#d1fae5;color:#065f46;padding:3px 8px;border-radius:6px;margin-bottom:12px; }
+  .horario-row { display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f3f4f6;font-size:14px; }
+  .horario-row:last-of-type { border-bottom:none; }
+  .horario-dia { font-weight:500;color:#111827; }
+  .horario-horas { color:#6b7280; }
+  .votos-bar { display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6; }
+  .voto-btn { display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:500;padding:6px 14px;border:1px solid #d1d5db;border-radius:8px;background:transparent;cursor:pointer;transition:background .15s; }
+  .voto-btn:hover { background:#f9fafb; }
+  .voto-btn.active-up { background:#d1fae5;border-color:#6ee7b7;color:#065f46; }
+  .voto-btn.active-down { background:#fee2e2;border-color:#fca5a5;color:#991b1b; }
+  .voto-pct { font-size:11px;color:#9ca3af;margin-left:auto; }
+  .pct-bar { height:4px;border-radius:2px;background:#f3f4f6;margin-top:8px;overflow:hidden; }
+  .pct-fill { height:100%;border-radius:2px;background:#34d399;transition:width .4s; }
+  .votos-label { font-size:11px;color:#9ca3af;margin-top:5px; }
+  .btn-comentar { font-size:12px;padding:4px 12px;background:#14315E;color:#fff;border:none;border-radius:6px;cursor:pointer; }
+  .form-comentario-card { background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:10px; }
+  .form-comentario-card textarea { width:100%;resize:vertical;border:1px solid #d1d5db;border-radius:6px;padding:8px;font-size:13px;background:#fff;font-family:inherit;color:#111827; }
+  .btn-enviar-comentario { font-size:12px;padding:5px 14px;background:#14315E;color:#fff;border:none;border-radius:6px;cursor:pointer; }
+  .btn-cancelar-form { font-size:12px;padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;background:transparent;color:#6b7280;cursor:pointer; }
+  .comentario-card { background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:10px; }
+  .coment-header { display:flex;align-items:center;gap:8px;margin-bottom:7px; }
+  .coment-avatar { width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0; }
+  .avatar-explorador { background:#dbeafe;color:#1e40af; }
+  .avatar-vecino { background:#dcfce7;color:#166534; }
+  .avatar-sacristan { background:#fef9c3;color:#854d0e; }
+  .avatar-catequista { background:#ede9fe;color:#5b21b6; }
+  .avatar-parroco { background:#fee2e2;color:#991b1b; }
+  .coment-nombre { font-size:13px;font-weight:500;color:#111827; }
+  .nivel-badge { font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;margin-left:5px;vertical-align:middle; }
+  .nivel-explorador { background:#dbeafe;color:#1e40af; }
+  .nivel-vecino { background:#dcfce7;color:#166534; }
+  .nivel-sacristan { background:#fef9c3;color:#854d0e; }
+  .nivel-catequista { background:#ede9fe;color:#5b21b6; }
+  .nivel-parroco { background:#fee2e2;color:#991b1b; }
+  .coment-fecha { font-size:11px;color:#9ca3af;margin-left:auto;flex-shrink:0; }
+  .coment-texto { font-size:13px;color:#374151;line-height:1.55;margin:0; }
+  .sin-datos { font-size:13px;color:#9ca3af;padding:8px 0; }
+  .hidden { display:none !important; }
 </style>
 
 <!-- Hero header -->
@@ -226,110 +272,126 @@
 
   <!-- ═══ TAB: HORARIOS ═══ -->
   <div class="pd-panel active" id="panel-horarios" role="tabpanel">
-    {% with total_validaciones=parroquia.validaciones_horario.count %}
+    <section aria-label="Horarios de misas y comentarios">
+      <div class="horarios-grid">
 
-    {% if total_validaciones > 0 %}
-    <div class="pg-valid-ok" style="margin-bottom:16px;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      {{ total_validaciones }} usuario{{ total_validaciones|pluralize }} ha{{ total_validaciones|pluralize:"n" }} confirmado esta información
-    </div>
-    {% endif %}
+        <!-- COLUMNA IZQUIERDA: Horarios + votos -->
+        <div>
+          <p class="section-label">Horarios de misas</p>
+          <div class="card-horarios">
 
-    {% if horarios %}
-      {% regroup horarios by get_dia_semana_display as dias_grouped %}
+            {% if parroquia.horarios_verificados %}
+            <div class="verified-badge" title="Horarios verificados por el equipo de ParroGuía">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Verificado
+            </div>
+            {% endif %}
 
-      <!-- Group: Laborables -->
-      {% for dia in horarios %}
-        {% if dia.dia_semana <= 4 %}{% endif %}
-      {% endfor %}
+            {% for h in horarios %}
+            <div class="horario-row">
+              <span class="horario-dia">{{ h.get_dia_semana_display }}</span>
+              <span class="horario-horas">{{ h.horarios }}</span>
+            </div>
+            {% empty %}
+            <p class="sin-datos">Horarios no disponibles aún.</p>
+            {% endfor %}
 
-      <div class="pd-sched-group">
-        <div class="pd-sched-group-label">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Semana
-        </div>
-        {% for h in horarios %}
-        {% if h.dia_semana <= 4 %}
-        <div class="pd-mass-row">
-          <span class="pd-mass-time">{{ h.get_dia_semana_display }}</span>
-          <span class="pd-mass-type">{{ h.horarios }}</span>
-        </div>
-        {% endif %}
-        {% endfor %}
-      </div>
+            <!-- Votos sobre los horarios -->
+            <div class="votos-bar" aria-label="¿Los horarios están correctos?">
+              <button class="voto-btn{% if voto_usuario == 1 %} active-up{% endif %}"
+                      id="btn-up"
+                      onclick="votarHorario({{ parroquia.pk }}, 1)"
+                      aria-label="Los horarios están correctos"
+                      title="Confirmar que los horarios son correctos">
+                👍 <span id="count-up">{{ votos_up }}</span>
+              </button>
+              <button class="voto-btn{% if voto_usuario == -1 %} active-down{% endif %}"
+                      id="btn-down"
+                      onclick="votarHorario({{ parroquia.pk }}, -1)"
+                      aria-label="Los horarios están incorrectos"
+                      title="Indicar que los horarios tienen errores">
+                👎 <span id="count-down">{{ votos_down }}</span>
+              </button>
+              <span class="voto-pct" id="voto-pct" aria-live="polite">
+                {% if votos_total > 0 %}{{ pct_up }}% confirma{% endif %}
+              </span>
+            </div>
+            {% if votos_total > 0 %}
+            <div class="pct-bar" role="progressbar" aria-valuenow="{{ pct_up }}" aria-valuemin="0" aria-valuemax="100">
+              <div class="pct-fill" id="pct-fill" style="width:{{ pct_up }}%;"></div>
+            </div>
+            <p class="votos-label">{{ votos_total }} persona{{ votos_total|pluralize }} votó estos horarios</p>
+            {% endif %}
 
-      {% for h in horarios %}{% if h.dia_semana == 5 %}
-      <div class="pd-sched-group">
-        <div class="pd-sched-group-label">Sábados</div>
-        <div class="pd-mass-row">
-          <span class="pd-mass-time">{{ h.horarios }}</span>
-        </div>
-      </div>
-      {% endif %}{% endfor %}
-
-      {% for h in horarios %}{% if h.dia_semana == 6 %}
-      <div class="pd-sched-group">
-        <div class="pd-sched-group-label">Domingos</div>
-        <div class="pd-mass-row">
-          <span class="pd-mass-time">{{ h.horarios }}</span>
-        </div>
-      </div>
-      {% endif %}{% endfor %}
-
-    {% else %}
-      <div style="text-align:center;padding:32px 0 16px;">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--line)" stroke-width="1.5" style="margin-bottom:12px;display:block;margin:0 auto 12px;">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
-        <div style="font:700 15px/1 var(--font-display);color:var(--ink);margin-bottom:6px;">Horarios no disponibles</div>
-        <div style="font:500 13px/1.5 var(--font-ui);color:var(--muted);max-width:240px;margin:0 auto;">
-          No tenemos los horarios de misas todavía. Te recomendamos contactarlos directamente.
-        </div>
-        {% if parroquia.telefonos %}
-        <a href="tel:{{ parroquia.telefonos }}" class="btn btn-ghost btn-sm" style="margin-top:16px;">
-          📞 {{ parroquia.telefonos }}
-        </a>
-        {% endif %}
-      </div>
-    {% endif %}
-
-    <!-- Feedback -->
-    <div class="pd-feedback">
-      {% if ya_valido %}
-        <div class="pg-valid-ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Ya confirmaste esta información. ¡Gracias!</div>
-      {% elif ya_reporto %}
-        <div class="pg-valid-warn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Ya enviaste un reporte. Será revisado pronto.</div>
-      {% else %}
-        <div style="font:700 13px/1 var(--font-ui);color:var(--ink);margin-bottom:12px;">¿Los horarios son correctos?</div>
-        <div class="pd-fb-btns" id="reporte-btns">
-          <button class="pd-fb-btn pd-fb-ok" onclick="confirmarHorarios({{ parroquia.pk }})">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Sí, están bien
-            {% if request.user.is_authenticated %}<span style="background:rgba(31,138,91,.2);border-radius:999px;padding:2px 7px;font-size:10px;">+1 pt</span>{% endif %}
-          </button>
-          <button class="pd-fb-btn pd-fb-err"
-                  onclick="document.getElementById('reporte-form').style.display='block';document.getElementById('reporte-btns').style.display='none';">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Reportar cambio
-          </button>
-        </div>
-        <div id="reporte-confirmado" style="display:none;" class="pg-valid-ok">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          ¡Gracias por tu confirmación!
-        </div>
-        <div id="reporte-form" style="display:none;margin-top:14px;">
-          <textarea id="reporte-texto"
-                    placeholder="Ej: Los domingos hay misa a las 9, 11 y 20."
-                    class="field" style="resize:none;min-height:80px;border-radius:var(--r-md);"></textarea>
-          <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-            <span style="font:500 12px/1.4 var(--font-ui);color:var(--muted);">Tu reporte ayuda a mantener la información actualizada</span>
-            <button onclick="enviarReporte({{ parroquia.pk }})" class="btn btn-primary btn-sm">Enviar</button>
           </div>
-          <div id="reporte-ok" style="display:none;margin-top:12px;" class="pg-valid-ok">¡Gracias! Tu reporte será revisado.</div>
         </div>
-      {% endif %}
-    </div>
-    {% endwith %}
+
+        <!-- COLUMNA DERECHA: Comentarios -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <p class="section-label" style="margin:0;">Comentarios</p>
+            <button class="btn-comentar"
+                    onclick="document.getElementById('form-comentario').classList.toggle('hidden');this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true')"
+                    aria-expanded="false"
+                    aria-controls="form-comentario">
+              + Comentar
+            </button>
+          </div>
+
+          <div id="form-comentario" class="hidden">
+            <div class="form-comentario-card">
+              <label for="texto-comentario" class="sr-only">Tu comentario sobre {{ parroquia.nombre }}</label>
+              <textarea id="texto-comentario"
+                        name="texto"
+                        rows="3"
+                        maxlength="500"
+                        placeholder="Contá tu experiencia o corregí algo que esté mal..."
+                        aria-label="Escribí tu comentario"></textarea>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+                <span id="char-count" style="font-size:11px;color:#9ca3af;" aria-live="polite">0/500</span>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn-cancelar-form"
+                          onclick="document.getElementById('form-comentario').classList.add('hidden')">
+                    Cancelar
+                  </button>
+                  <button class="btn-enviar-comentario"
+                          onclick="enviarComentario({{ parroquia.pk }})">
+                    Enviar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="lista-comentarios" aria-label="Comentarios de la comunidad">
+            {% for c in comentarios %}
+            <article class="comentario-card">
+              <div class="coment-header">
+                <div class="coment-avatar avatar-{{ c.usuario.perfil.nivel_slug|default:'explorador' }}"
+                     aria-hidden="true">
+                  {{ c.usuario.first_name|first|upper|default:"A" }}{{ c.usuario.last_name|first|upper|default:"" }}
+                </div>
+                <div style="flex:1;min-width:0;">
+                  <span class="coment-nombre">{{ c.usuario.get_full_name|default:"Anónimo" }}</span>
+                  {% if c.usuario %}
+                  <span class="nivel-badge nivel-{{ c.usuario.perfil.nivel_slug }}"
+                        title="Nivel en la comunidad ParroGuía">
+                    {{ c.usuario.perfil.get_nivel_display }}
+                  </span>
+                  {% endif %}
+                </div>
+                <time class="coment-fecha" datetime="{{ c.fecha|date:'c' }}">{{ c.fecha|naturaltime }}</time>
+              </div>
+              <p class="coment-texto">{{ c.texto }}</p>
+            </article>
+            {% empty %}
+            <p class="sin-datos">Todavía no hay comentarios. ¡Sé el primero!</p>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+    </section>
   </div>
 
   <!-- ═══ TAB: INFORMACIÓN ═══ -->
@@ -505,18 +567,76 @@ function switchTab(name) {
   document.getElementById('panel-' + name).classList.add('active');
 }
 
-function confirmarHorarios(pk) {
-  const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
-  fetch('/publico/'+pk+'/validar-horario/',{method:'POST',headers:{'X-CSRFToken':csrf}})
-  .then(r=>r.json()).then(d=>{if(d.ok){document.getElementById('reporte-btns').style.display='none';document.getElementById('reporte-confirmado').style.display='flex';}}).catch(()=>{});
+const CSRF = '{{ csrf_token }}';
+
+async function votarHorario(pk, valor) {
+  try {
+    const resp = await fetch(`/publico/${pk}/votar-horario/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': CSRF},
+      body: `valor=${valor}`,
+    });
+    const d = await resp.json();
+    if (d.up !== undefined) {
+      document.getElementById('count-up').textContent = d.up;
+      document.getElementById('count-down').textContent = d.down;
+      document.getElementById('voto-pct').textContent = d.total > 0 ? d.pct + '% confirma' : '';
+      const fill = document.getElementById('pct-fill');
+      if (fill) fill.style.width = d.pct + '%';
+      document.getElementById('btn-up').className = 'voto-btn' + (d.voto_actual === 1 ? ' active-up' : '');
+      document.getElementById('btn-down').className = 'voto-btn' + (d.voto_actual === -1 ? ' active-down' : '');
+    }
+  } catch(e) { console.error('Error votando:', e); }
 }
 
-function enviarReporte(pk) {
-  const texto = document.getElementById('reporte-texto').value.trim();
-  if (!texto||texto.length<10){alert('Por favor describí el cambio antes de enviar.');return;}
-  const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
-  fetch('/publico/'+pk+'/reportar-horario/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken':csrf},body:'texto='+encodeURIComponent(texto)})
-  .then(r=>r.json()).then(d=>{if(d.ok){document.getElementById('reporte-form').style.display='none';document.getElementById('reporte-ok').style.display='flex';}}).catch(()=>alert('Error al enviar.'));
+document.getElementById('texto-comentario')?.addEventListener('input', function() {
+  document.getElementById('char-count').textContent = this.value.length + '/500';
+});
+
+async function enviarComentario(pk) {
+  const texto = document.getElementById('texto-comentario').value.trim();
+  if (texto.length < 10) { alert('Mínimo 10 caracteres'); return; }
+  const btn = document.querySelector('.btn-enviar-comentario');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    const resp = await fetch(`/publico/${pk}/comentar/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': CSRF},
+      body: `texto=${encodeURIComponent(texto)}`,
+    });
+    const d = await resp.json();
+    if (d.ok) {
+      document.getElementById('form-comentario').classList.add('hidden');
+      document.getElementById('texto-comentario').value = '';
+      document.getElementById('char-count').textContent = '0/500';
+      const c = d.comentario;
+      const avatarColors = {
+        explorador: ['#dbeafe','#1e40af'], vecino: ['#dcfce7','#166534'],
+        sacristan: ['#fef9c3','#854d0e'], catequista: ['#ede9fe','#5b21b6'],
+        parroco: ['#fee2e2','#991b1b'],
+      };
+      const [bg, fg] = avatarColors[c.nivel_slug] || avatarColors.explorador;
+      const nivelHtml = c.nivel ? `<span class="nivel-badge nivel-${c.nivel_slug}" title="Nivel en la comunidad ParroGuía">${c.nivel}</span>` : '';
+      const html = `
+        <article class="comentario-card">
+          <div class="coment-header">
+            <div class="coment-avatar" style="background:${bg};color:${fg};" aria-hidden="true">${c.initials}</div>
+            <div style="flex:1;min-width:0;">
+              <span class="coment-nombre">${c.nombre}</span>${nivelHtml}
+            </div>
+            <time class="coment-fecha">ahora mismo</time>
+          </div>
+          <p class="coment-texto">${c.texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+        </article>`;
+      document.getElementById('lista-comentarios').insertAdjacentHTML('afterbegin', html);
+    } else {
+      alert(d.error || 'Error al enviar');
+    }
+  } catch(e) {
+    alert('Error de conexión');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Enviar';
+  }
 }
 
 function toggleFavorita(pk) {
