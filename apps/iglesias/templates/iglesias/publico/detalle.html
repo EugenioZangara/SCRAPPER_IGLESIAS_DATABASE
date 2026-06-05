@@ -1,7 +1,6 @@
 {% extends "iglesias/publico/base_publica.html" %}
 
 {% block page_title %}{{ parroquia.nombre }} — Horarios de misas y eventos | ParroGuía{% endblock %}
-
 {% block og_type %}place{% endblock %}
 {% block og_title %}{{ parroquia.nombre }} | ParroGuía{% endblock %}
 {% block og_description %}Horarios de misas y eventos de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% endif %}.{% endblock %}
@@ -12,7 +11,6 @@
 
 {% block meta_extra %}
 <meta name="description" content="Horarios de misas, eventos y contacto de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}, Buenos Aires{% endif %}. Parroquia de la Arquidiócesis de Buenos Aires.">
-
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -26,550 +24,515 @@
     "addressRegion": "{{ parroquia.provincia|default:'Buenos Aires' }}",
     "addressCountry": "AR"
   }
-  {% if parroquia.telefonos %}
-  ,"telephone": "{{ parroquia.telefonos }}"
-  {% endif %}
-  {% if parroquia.sitio_web %}
-  ,"url": "{{ parroquia.sitio_web }}"
-  {% endif %}
-  {% if parroquia.horarios_misa.exists %}
-  ,"openingHours": [
-    {% for h in parroquia.horarios_misa.all %}{% for entry in h.schema_opening_hours %}"{{ entry }}"{% if not forloop.last %},{% endif %}{% endfor %}{% if not forloop.last %},{% endif %}
-    {% endfor %}
-  ]
-  {% endif %}
+  {% if parroquia.telefonos %},"telephone": "{{ parroquia.telefonos }}"{% endif %}
+  {% if parroquia.sitio_web %},"url": "{{ parroquia.sitio_web }}"{% endif %}
+  {% if parroquia.horarios_misa.exists %},"openingHours": [{% for h in parroquia.horarios_misa.all %}{% for entry in h.schema_opening_hours %}"{{ entry }}"{% if not forloop.last %},{% endif %}{% endfor %}{% if not forloop.last %},{% endif %}{% endfor %}]{% endif %}
 }
 </script>
 {% endblock %}
 
 {% block content %}
-<a href="{% url 'iglesias:publico_inicio' %}" class="pub-back">← Volver al buscador</a>
+<style>
+  /* ── Hero header ── */
+  .pd-hero {
+    border-radius: var(--r-xl); overflow: hidden;
+    margin-bottom: 24px; position: relative;
+  }
+  .pd-hero-grad {
+    height: 140px; position: relative;
+    display: flex; align-items: flex-start; padding: 14px 20px;
+    justify-content: space-between;
+  }
+  .pd-hero-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    font: 600 12px/1 var(--font-ui); color: rgba(255,255,255,.8);
+    text-decoration: none; background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25); border-radius: 999px;
+    padding: 6px 12px; backdrop-filter: blur(6px);
+    transition: background .15s;
+  }
+  .pd-hero-back:hover { background: rgba(255,255,255,.25); }
+  .pd-hero-badge {
+    font: 800 11px/1 var(--font-ui); letter-spacing: .04em;
+    background: var(--gold); color: var(--accent-ink);
+    padding: 5px 12px; border-radius: 999px;
+  }
+  .pd-hero-info {
+    background: var(--paper); padding: 20px 24px 0;
+  }
+  .pd-hero-name {
+    font: 800 clamp(20px,3vw,28px)/1.15 var(--font-display);
+    color: var(--ink); letter-spacing: -.015em; margin-bottom: 6px;
+  }
+  .pd-hero-meta {
+    font: 500 13px/1.5 var(--font-ui); color: var(--muted);
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    padding-bottom: 0;
+  }
 
-<div style="margin-bottom:24px;">
-  <h1 style="font-size:28px; font-weight:600; color:var(--ink); letter-spacing:-0.02em; margin-bottom:6px; line-height:1.2;">
-    {{ parroquia.nombre }}
-  </h1>
-  <p style="font-size:14px; color:var(--muted);">
-    {% if parroquia.barrio %}{{ parroquia.barrio }}{% endif %}
-    {% if parroquia.barrio and parroquia.vicaria %} · {% endif %}
-    {% if parroquia.vicaria %}{{ parroquia.vicaria }}{% endif %}
-    {% if parroquia.parroco %}
-      {% if parroquia.barrio or parroquia.vicaria %} · {% endif %}
-      {{ parroquia.parroco }}
+  /* ── Tabs ── */
+  .pd-tabs {
+    display: flex; gap: 0;
+    border-bottom: 2px solid var(--line);
+    background: var(--paper);
+    padding: 0 24px;
+    position: sticky; top: var(--topbar); z-index: 20;
+  }
+  .pd-tab {
+    padding: 14px 20px;
+    font: 700 14px/1 var(--font-ui); color: var(--muted);
+    border: none; background: none; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    transition: color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .pd-tab:hover { color: var(--ink); }
+  .pd-tab.active { color: var(--navy); border-bottom-color: var(--navy); }
+
+  /* ── Tab panels ── */
+  .pd-panel { display: none; padding: 24px; background: var(--paper); }
+  .pd-panel.active { display: block; }
+
+  /* ── Schedule rows ── */
+  .pd-sched-group { margin-bottom: 20px; }
+  .pd-sched-group-label {
+    font: 700 11px/1 var(--font-ui); letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pd-mass-row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 11px 0; border-bottom: 1px solid var(--line-soft);
+  }
+  .pd-mass-row:last-child { border-bottom: none; }
+  .pd-mass-time {
+    font: 700 20px/1 var(--font-display); color: var(--navy);
+    min-width: 80px;
+  }
+  .pd-mass-type { font: 500 13px/1 var(--font-ui); color: var(--muted); }
+  .pd-mass-next {
+    margin-left: auto; font: 700 11px/1 var(--font-ui);
+    background: rgba(242,160,7,.14); color: var(--accent-deep);
+    padding: 3px 9px; border-radius: 999px;
+  }
+
+  /* ── Feedback section ── */
+  .pd-feedback { border-top: 1px solid var(--line-soft); padding-top: 20px; margin-top: 20px; }
+  .pd-fb-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pd-fb-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: 999px;
+    font: 700 13px/1 var(--font-ui); cursor: pointer;
+    border: 1.5px solid; transition: all .15s; white-space: nowrap;
+  }
+  .pd-fb-ok  { background: rgba(31,138,91,.10); border-color: rgba(31,138,91,.3); color: #1F8A5B; }
+  .pd-fb-ok:hover { background: rgba(31,138,91,.16); }
+  .pd-fb-err { background: rgba(220,38,38,.07); border-color: rgba(220,38,38,.25); color: #dc2626; }
+  .pd-fb-err:hover { background: rgba(220,38,38,.12); }
+
+  /* ── Info tab: field list ── */
+  .pd-info-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+  }
+  .pd-info-row:last-child { border-bottom: none; }
+  .pd-info-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--bg-2); display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; color: var(--muted);
+  }
+  .pd-info-label { font: 700 11px/1 var(--font-ui); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+  .pd-info-val { font: 600 14px/1.3 var(--font-ui); color: var(--ink); }
+  .pd-info-val a { color: var(--navy); text-decoration: none; }
+  .pd-info-val a:hover { text-decoration: underline; }
+
+  /* ── Social icons in info tab ── */
+  .pd-social-grid { display: flex; flex-direction: column; gap: 0; }
+
+  /* ── Favorita button ── */
+  .pd-fav-btn {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
+    padding: 13px 20px; border-radius: var(--r-md);
+    font: 700 14px/1 var(--font-ui); cursor: pointer;
+    transition: all .18s; border: 1.5px solid var(--line);
+    background: var(--paper); color: var(--muted);
+    text-decoration: none; margin-top: 20px;
+  }
+  .pd-fav-btn.active { background: var(--navy); color: var(--on-navy); border-color: var(--navy); box-shadow: 0 6px 18px rgba(20,49,94,.22); }
+  .pd-fav-btn:hover:not(.active) { background: var(--bg-2); border-color: var(--navy-300); color: var(--ink); }
+
+  /* ── Events ── */
+  .pd-evento {
+    padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+    display: flex; gap: 14px; align-items: flex-start;
+  }
+  .pd-evento:last-child { border-bottom: none; }
+  .pd-evento-date {
+    width: 44px; height: 44px; flex-shrink: 0;
+    background: var(--navy); color: var(--on-navy);
+    border-radius: var(--r-sm);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font: 800 14px/1 var(--font-display);
+  }
+  .pd-evento-date-month { font: 600 9px/1 var(--font-ui); text-transform: uppercase; letter-spacing: .05em; opacity: .7; margin-bottom: 2px; }
+  .pd-evento-title { font: 700 14px/1.3 var(--font-display); color: var(--ink); margin-bottom: 3px; }
+  .pd-evento-meta { font: 500 12px/1 var(--font-ui); color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; }
+</style>
+
+<!-- Hero header -->
+<div class="pd-hero" id="pd-hero-{{ parroquia.pk }}">
+  <div class="pd-hero-grad" id="pd-grad-{{ parroquia.pk }}"
+       style="background: linear-gradient(135deg, #1E4585, #0E2647);">
+    <a href="{% url 'iglesias:publico_inicio' %}" class="pd-hero-back">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Volver
+    </a>
+    {% if horarios %}
+    <span class="pd-hero-badge">MISA HOY</span>
     {% endif %}
-  </p>
+  </div>
+  <div class="pd-hero-info">
+    <h1 class="pd-hero-name">{{ parroquia.nombre }}</h1>
+    <div class="pd-hero-meta">
+      {% if parroquia.barrio %}
+      <span style="display:flex;align-items:center;gap:4px;">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        {{ parroquia.barrio }}
+      </span>
+      {% endif %}
+      {% if parroquia.vicaria %}<span style="color:var(--line);">·</span><span>{{ parroquia.vicaria }}</span>{% endif %}
+      {% if parroquia.parroco %}<span style="color:var(--line);">·</span><span>{{ parroquia.parroco }}</span>{% endif %}
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="pd-tabs" role="tablist">
+    <button class="pd-tab active" role="tab" onclick="switchTab('horarios')" id="tab-horarios">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:5px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Horarios
+    </button>
+    <button class="pd-tab" role="tab" onclick="switchTab('info')" id="tab-info">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:5px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      Información
+    </button>
+    <button class="pd-tab" role="tab" onclick="switchTab('eventos')" id="tab-eventos">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:5px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Eventos {% if eventos %}<span style="background:var(--accent);color:var(--accent-ink);font-size:10px;padding:1px 6px;border-radius:999px;margin-left:4px;">{{ eventos.count }}</span>{% endif %}
+    </button>
+  </div>
 </div>
 
-<div class="pub-grid">
-  <!-- Columna izquierda -->
-  <div>
-    <div class="pub-section">
-      <p class="pub-section-title">Contacto y ubicación</p>
+<div style="background:var(--paper); border-radius:0 0 var(--r-lg) var(--r-lg); box-shadow:var(--sh-card); margin-bottom:20px;">
 
+  <!-- ═══ TAB: HORARIOS ═══ -->
+  <div class="pd-panel active" id="panel-horarios" role="tabpanel">
+    {% with total_validaciones=parroquia.validaciones_horario.count %}
+
+    {% if total_validaciones > 0 %}
+    <div class="pg-valid-ok" style="margin-bottom:16px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      {{ total_validaciones }} usuario{{ total_validaciones|pluralize }} ha{{ total_validaciones|pluralize:"n" }} confirmado esta información
+    </div>
+    {% endif %}
+
+    {% if horarios %}
+      {% regroup horarios by get_dia_semana_display as dias_grouped %}
+
+      <!-- Group: Laborables -->
+      {% for dia in horarios %}
+        {% if dia.dia_semana <= 4 %}{% endif %}
+      {% endfor %}
+
+      <div class="pd-sched-group">
+        <div class="pd-sched-group-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Semana
+        </div>
+        {% for h in horarios %}
+        {% if h.dia_semana <= 4 %}
+        <div class="pd-mass-row">
+          <span class="pd-mass-time">{{ h.get_dia_semana_display }}</span>
+          <span class="pd-mass-type">{{ h.horarios }}</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+
+      {% for h in horarios %}{% if h.dia_semana == 5 %}
+      <div class="pd-sched-group">
+        <div class="pd-sched-group-label">Sábados</div>
+        <div class="pd-mass-row">
+          <span class="pd-mass-time">{{ h.horarios }}</span>
+        </div>
+      </div>
+      {% endif %}{% endfor %}
+
+      {% for h in horarios %}{% if h.dia_semana == 6 %}
+      <div class="pd-sched-group">
+        <div class="pd-sched-group-label">Domingos</div>
+        <div class="pd-mass-row">
+          <span class="pd-mass-time">{{ h.horarios }}</span>
+        </div>
+      </div>
+      {% endif %}{% endfor %}
+
+    {% else %}
+      <div style="text-align:center;padding:32px 0 16px;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--line)" stroke-width="1.5" style="margin-bottom:12px;display:block;margin:0 auto 12px;">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <div style="font:700 15px/1 var(--font-display);color:var(--ink);margin-bottom:6px;">Horarios no disponibles</div>
+        <div style="font:500 13px/1.5 var(--font-ui);color:var(--muted);max-width:240px;margin:0 auto;">
+          No tenemos los horarios de misas todavía. Te recomendamos contactarlos directamente.
+        </div>
+        {% if parroquia.telefonos %}
+        <a href="tel:{{ parroquia.telefonos }}" class="btn btn-ghost btn-sm" style="margin-top:16px;">
+          📞 {{ parroquia.telefonos }}
+        </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <!-- Feedback -->
+    <div class="pd-feedback">
+      {% if ya_valido %}
+        <div class="pg-valid-ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Ya confirmaste esta información. ¡Gracias!</div>
+      {% elif ya_reporto %}
+        <div class="pg-valid-warn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Ya enviaste un reporte. Será revisado pronto.</div>
+      {% else %}
+        <div style="font:700 13px/1 var(--font-ui);color:var(--ink);margin-bottom:12px;">¿Los horarios son correctos?</div>
+        <div class="pd-fb-btns" id="reporte-btns">
+          <button class="pd-fb-btn pd-fb-ok" onclick="confirmarHorarios({{ parroquia.pk }})">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Sí, están bien
+            {% if request.user.is_authenticated %}<span style="background:rgba(31,138,91,.2);border-radius:999px;padding:2px 7px;font-size:10px;">+1 pt</span>{% endif %}
+          </button>
+          <button class="pd-fb-btn pd-fb-err"
+                  onclick="document.getElementById('reporte-form').style.display='block';document.getElementById('reporte-btns').style.display='none';">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Reportar cambio
+          </button>
+        </div>
+        <div id="reporte-confirmado" style="display:none;" class="pg-valid-ok">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          ¡Gracias por tu confirmación!
+        </div>
+        <div id="reporte-form" style="display:none;margin-top:14px;">
+          <textarea id="reporte-texto"
+                    placeholder="Ej: Los domingos hay misa a las 9, 11 y 20."
+                    class="field" style="resize:none;min-height:80px;border-radius:var(--r-md);"></textarea>
+          <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span style="font:500 12px/1.4 var(--font-ui);color:var(--muted);">Tu reporte ayuda a mantener la información actualizada</span>
+            <button onclick="enviarReporte({{ parroquia.pk }})" class="btn btn-primary btn-sm">Enviar</button>
+          </div>
+          <div id="reporte-ok" style="display:none;margin-top:12px;" class="pg-valid-ok">¡Gracias! Tu reporte será revisado.</div>
+        </div>
+      {% endif %}
+    </div>
+    {% endwith %}
+  </div>
+
+  <!-- ═══ TAB: INFORMACIÓN ═══ -->
+  <div class="pd-panel" id="panel-info" role="tabpanel">
+
+    {% if parroquia.direccion or parroquia.barrio or parroquia.telefonos or parroquia.mail_1 or parroquia.sitio_web %}
+    <div class="pd-social-grid">
       {% if parroquia.direccion or parroquia.barrio %}
-      <div class="pub-field">
-        <span class="pub-field-lbl">Dirección</span>
-        <span class="pub-field-val">
-          {{ parroquia.direccion|default:"" }}{% if parroquia.direccion and parroquia.barrio %}, {% endif %}{{ parroquia.barrio|default:"" }}
-          {% if parroquia.ciudad or parroquia.provincia %}
-          <span style="display:block; font-size:13px; color:var(--muted); margin-top:4px;">
-            {% if parroquia.ciudad %}{{ parroquia.ciudad }}{% endif %}
-            {% if parroquia.ciudad and parroquia.provincia %} · {% endif %}
-            {% if parroquia.provincia %}{{ parroquia.provincia }}{% endif %}
-            {% if parroquia.diocesis %}
-            <span style="display:block; font-size:12px; margin-top:2px;">{{ parroquia.diocesis }}</span>
+      <div class="pd-info-row">
+        <div class="pd-info-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div>
+          <div class="pd-info-label">Dirección</div>
+          <div class="pd-info-val">{{ parroquia.direccion|default:"" }}{% if parroquia.direccion and parroquia.barrio %}, {% endif %}{{ parroquia.barrio|default:"" }}
+            {% if parroquia.ciudad or parroquia.provincia %}
+            <span style="display:block;font-size:12px;color:var(--muted);margin-top:2px;">{% if parroquia.ciudad %}{{ parroquia.ciudad }}{% endif %}{% if parroquia.ciudad and parroquia.provincia %} · {% endif %}{% if parroquia.provincia %}{{ parroquia.provincia }}{% endif %}</span>
             {% endif %}
-          </span>
-          {% endif %}
-        </span>
+          </div>
+        </div>
       </div>
       {% endif %}
 
       {% if parroquia.telefonos %}
-      <div class="pub-field">
-        <span class="pub-field-lbl">Teléfono</span>
-        <span class="pub-field-val">{{ parroquia.telefonos }}</span>
+      <div class="pd-info-row">
+        <div class="pd-info-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5 19.79 19.79 0 0 1 1.61 4.9 2 2 0 0 1 3.6 2.73h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.4a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 18z"/></svg>
+        </div>
+        <div>
+          <div class="pd-info-label">Teléfono</div>
+          <div class="pd-info-val"><a href="tel:{{ parroquia.telefonos }}">{{ parroquia.telefonos }}</a></div>
+        </div>
       </div>
       {% endif %}
 
       {% if parroquia.mail_1 or parroquia.mail_2 %}
-      <div class="pub-field">
-        <span class="pub-field-lbl">Email</span>
-        <span class="pub-field-val">
-          {% if parroquia.mail_1 %}<a href="mailto:{{ parroquia.mail_1 }}">{{ parroquia.mail_1 }}</a>{% endif %}
-          {% if parroquia.mail_1 and parroquia.mail_2 %} / {% endif %}
-          {% if parroquia.mail_2 %}<a href="mailto:{{ parroquia.mail_2 }}">{{ parroquia.mail_2 }}</a>{% endif %}
-        </span>
+      <div class="pd-info-row">
+        <div class="pd-info-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <div>
+          <div class="pd-info-label">Email</div>
+          <div class="pd-info-val">{% if parroquia.mail_1 %}<a href="mailto:{{ parroquia.mail_1 }}">{{ parroquia.mail_1 }}</a>{% endif %}{% if parroquia.mail_1 and parroquia.mail_2 %} / {% endif %}{% if parroquia.mail_2 %}<a href="mailto:{{ parroquia.mail_2 }}">{{ parroquia.mail_2 }}</a>{% endif %}</div>
+        </div>
       </div>
       {% endif %}
 
       {% if parroquia.sitio_web %}
-      <div class="pub-field">
-        <span class="pub-field-lbl">Web</span>
-        <span class="pub-field-val">
-          <a href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener">{{ parroquia.sitio_web }}</a>
-        </span>
+      <div class="pd-info-row">
+        <div class="pd-info-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <div>
+          <div class="pd-info-label">Web</div>
+          <div class="pd-info-val"><a href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener">{{ parroquia.sitio_web }}</a></div>
+        </div>
       </div>
       {% endif %}
-
-      {% if not parroquia.direccion and not parroquia.telefonos and not parroquia.mail_1 and not parroquia.sitio_web %}
-        <p class="pub-empty">Sin datos de contacto disponibles.</p>
-      {% endif %}
     </div>
+    {% else %}
+    <p class="pub-empty">Sin datos de contacto disponibles.</p>
+    {% endif %}
 
-    <div style="background:white; border:1px solid var(--rule);
-                border-radius:12px; padding:16px;">
-      <div style="font-size:11px; font-weight:500; text-transform:uppercase;
-                  letter-spacing:0.06em; color:var(--muted); margin-bottom:14px;
-                  display:flex; align-items:center; gap:8px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-        Horarios de misas
-      </div>
-
-      {% with total_validaciones=parroquia.validaciones_horario.count %}
-      {% if horarios %}
-        {% if total_validaciones > 0 %}
-        <div style="display:flex; align-items:center; gap:6px;
-                    font-size:12px; color:#16a34a; margin-bottom:12px;
-                    padding:8px 12px; background:#f0fdf4; border-radius:8px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-          {{ total_validaciones }} usuario{{ total_validaciones|pluralize }}
-          ha{{ total_validaciones|pluralize:"n" }} confirmado que
-          esta información es correcta
-        </div>
-        {% endif %}
-
-        {% for h in horarios %}
-        <div style="display:flex; justify-content:space-between; padding:8px 0;
-                    border-bottom:1px solid var(--rule-2);">
-          <span style="color:var(--muted); font-size:13px;">
-            {{ h.get_dia_semana_display }}
-          </span>
-          <span style="font-weight:500; font-size:13px; color:var(--ink);">
-            {{ h.horarios }}
-          </span>
-        </div>
-        {% endfor %}
-
-        {% with ultimo=horarios.last %}
-        <div style="font-size:11px; color:var(--muted); margin-top:12px;
-                    padding-top:10px; border-top:1px solid var(--rule-2);
-                    display:flex; align-items:center; gap:5px;">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          Actualizado
-          {% if ultimo.actualizado_en %}
-            {{ ultimo.actualizado_en|date:"d \d\e F \d\e Y" }}
-          {% elif ultimo.creado_en %}
-            {{ ultimo.creado_en|date:"d \d\e F \d\e Y" }}
-          {% else %}
-            recientemente
-          {% endif %}
-        </div>
-        {% endwith %}
-
-      {% else %}
-
-        <div style="text-align:center; padding:24px 0;">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
-               stroke="#d1d5db" stroke-width="1.5" style="margin-bottom:10px;">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          <div style="font-size:14px; font-weight:500; color:var(--ink);
-                       margin-bottom:6px;">
-            Horarios no disponibles
-          </div>
-          <div style="font-size:13px; color:var(--muted); max-width:220px;
-                       margin:0 auto; line-height:1.5;">
-            No tenemos los horarios de misas de esta parroquia todavía.
-            Te recomendamos contactarlos directamente.
-          </div>
-          {% if parroquia.telefonos %}
-          <div style="margin-top:14px;">
-            <a href="tel:{{ parroquia.telefonos }}"
-               style="display:inline-flex; align-items:center; gap:6px;
-                      font-size:13px; font-weight:500; color:#2a4494;
-                      text-decoration:none; border:1px solid #2a4494;
-                      border-radius:8px; padding:7px 14px;">
-              📞 {{ parroquia.telefonos }}
-            </a>
-          </div>
-          {% endif %}
-        </div>
-
-      {% endif %}
-      {% endwith %}
-    </div>
-
-    <div style="background:white; border:1px solid var(--rule);
-                border-radius:12px; padding:16px; margin-top:12px;"
-         id="reporte-section">
-      {% if ya_valido %}
-        <div style="display:flex; align-items:center; gap:8px; padding:12px 14px;
-                    background:#f0fdf4; border-radius:10px; margin-top:12px;
-                    font-size:13px; color:#16a34a;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-          Ya confirmaste que esta información es correcta. ¡Gracias!
-        </div>
-      {% elif ya_reporto %}
-        <div style="display:flex; align-items:center; gap:8px; padding:12px 14px;
-                    background:#fef3c7; border-radius:10px; margin-top:12px;
-                    font-size:13px; color:#92400e;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          Ya enviaste un reporte para esta parroquia. Será revisado pronto.
-        </div>
-      {% else %}
-        {% if request.user.is_authenticated %}
-        <div style="font-size:12px; color:#6b7280; margin-bottom:10px;
-                    display:flex; align-items:center; gap:6px;">
-          <span>Reportando como</span>
-          <span style="font-weight:500; color:#1e1b4b;">
-            {{ request.user.get_full_name|default:request.user.username }}
-          </span>
-          {% if request.user.perfil.score > 0 %}
-          <span style="background:#FFF9CC; color:#a07b00; font-size:11px;
-                        padding:1px 7px; border-radius:999px; font-weight:600;
-                        border:1px solid #FFD700;">
-            ★ {{ request.user.perfil.score }}
-          </span>
-          {% endif %}
-        </div>
-        {% endif %}
-        <div style="font-size:13px; font-weight:500; color:var(--ink);
-                    margin-bottom:12px;">
-          ¿Estos horarios son correctos?
-        </div>
-        <div style="display:flex; gap:8px;" id="reporte-btns">
-          <button id="btn-correcto"
-                  onclick="confirmarHorarios({{ parroquia.pk }})"
-                  style="display:inline-flex; align-items:center; gap:6px;
-                         padding:7px 14px; border-radius:8px; font-size:13px;
-                         border:1px solid #86efac; background:white;
-                         color:#16a34a; cursor:pointer;">
-            ✓ Sí, están bien
-          </button>
-          <button onclick="document.getElementById('reporte-form').style.display='block';
-                           document.getElementById('reporte-btns').style.display='none';"
-                  style="display:inline-flex; align-items:center; gap:6px;
-                         padding:7px 14px; border-radius:8px; font-size:13px;
-                         border:1px solid #fca5a5; background:white;
-                         color:#dc2626; cursor:pointer;">
-            ✕ No, están mal
-          </button>
-        </div>
-
-        <div id="reporte-confirmado" style="display:none; margin-top:10px;
-             padding:10px; border-radius:8px; background:#f0fdf4;
-             color:#16a34a; font-size:13px; align-items:center; gap:8px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-          ¡Gracias por tu confirmación!
-        </div>
-
-        <div id="reporte-form" style="display:none; margin-top:12px;">
-          <textarea id="reporte-texto"
-                    placeholder="Ej: Los domingos hay misa a las 9, 11 y 20."
-                    style="width:100%; border:1px solid #2a4494; border-radius:8px;
-                           padding:10px; font-size:13px; resize:none;
-                           min-height:80px; font-family:inherit;
-                           color:var(--ink);"></textarea>
-          <div style="margin-top:8px; display:flex; justify-content:space-between;
-                      align-items:center;">
-            <span style="font-size:12px; color:var(--muted);">
-              Tu reporte ayuda a mantener la información actualizada
-            </span>
-            <button onclick="enviarReporte({{ parroquia.pk }})"
-                    style="display:inline-flex; align-items:center; gap:6px;
-                           padding:8px 16px; border-radius:8px; font-size:13px;
-                           font-weight:500; background:#2a4494; color:white;
-                           border:none; cursor:pointer;">
-              Enviar reporte
-            </button>
-          </div>
-          <div id="reporte-ok" style="display:none; margin-top:10px; padding:10px;
-               border-radius:8px; background:#dcfce7; color:#166534; font-size:13px;">
-            ¡Gracias! Tu reporte fue enviado y será revisado por el equipo.
-          </div>
-        </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Columna derecha -->
-  <div>
-    <div class="pub-section">
-      <p class="pub-section-title">Redes sociales</p>
+    <!-- Redes sociales -->
+    {% if redes %}
+    <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--line-soft);">
+      <div style="font:700 11px/1 var(--font-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Redes sociales</div>
       {% for red in redes %}
-      <div style="display:flex; align-items:center; gap:12px; padding:10px 0;
-                  border-bottom:1px solid var(--rule);">
-        {% if red.tipo == "instagram" %}
-          <div style="width:36px; height:36px; border-radius:8px;
-                      background:#fce7f3; display:flex; align-items:center;
-                      justify-content:center;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                 stroke="#9d174d" stroke-width="1.8" stroke-linecap="round">
-              <rect x="2" y="2" width="20" height="20" rx="5"/>
-              <circle cx="12" cy="12" r="4"/>
-              <circle cx="17.5" cy="6.5" r="0.5" fill="#9d174d"/>
-            </svg>
-          </div>
-          <div style="flex:1;">
-            <div style="font-size:13px; font-weight:500; color:var(--ink);">Instagram</div>
-            <div style="font-size:12px; color:var(--muted);">{{ red.url }}</div>
-          </div>
-        {% elif red.tipo == "facebook" %}
-          <div style="width:36px; height:36px; border-radius:8px;
-                      background:#eff6ff; display:flex; align-items:center;
-                      justify-content:center;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                 stroke="#1e40af" stroke-width="1.8" stroke-linecap="round">
-              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-            </svg>
-          </div>
-          <div style="flex:1;">
-            <div style="font-size:13px; font-weight:500; color:var(--ink);">Facebook</div>
-            <div style="font-size:12px; color:var(--muted);">{{ red.url }}</div>
-          </div>
-        {% elif red.tipo == "youtube" %}
-          <div style="width:36px; height:36px; border-radius:8px;
-                      background:#fef2f2; display:flex; align-items:center;
-                      justify-content:center;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                 stroke="#dc2626" stroke-width="1.8" stroke-linecap="round">
-              <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/>
-              <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#dc2626" stroke="none"/>
-            </svg>
-          </div>
-          <div style="flex:1;">
-            <div style="font-size:13px; font-weight:500; color:var(--ink);">YouTube</div>
-            <div style="font-size:12px; color:var(--muted);">{{ red.url }}</div>
-          </div>
-        {% else %}
-          <div style="width:36px; height:36px; border-radius:8px;
-                      background:var(--rule-2); display:flex; align-items:center;
-                      justify-content:center;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                 stroke="#6b7280" stroke-width="1.8" stroke-linecap="round">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-          </div>
-          <div style="flex:1;">
-            <div style="font-size:13px; font-weight:500; color:var(--ink);">{{ red.get_tipo_display }}</div>
-            <div style="font-size:12px; color:var(--muted);">{{ red.url }}</div>
-          </div>
-        {% endif %}
-        <a href="{{ red.url }}" target="_blank" rel="noopener noreferrer"
-           style="font-size:12px; color:#2a4494; text-decoration:none; white-space:nowrap;">
-          Ver perfil →
-        </a>
+      <div class="pd-info-row">
+        <div class="pd-info-icon"
+          {% if red.tipo == 'instagram' %}style="background:#fce7f3;"
+          {% elif red.tipo == 'facebook' %}style="background:#eff6ff;"
+          {% elif red.tipo == 'youtube' %}style="background:#fef2f2;"
+          {% else %}style="background:var(--bg-2);"{% endif %}>
+          {% if red.tipo == 'instagram' %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9d174d" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="0.5" fill="#9d174d"/></svg>
+          {% elif red.tipo == 'facebook' %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e40af" stroke-width="1.8" stroke-linecap="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          {% elif red.tipo == 'youtube' %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#dc2626" stroke="none"/></svg>
+          {% else %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>{% endif %}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div class="pd-info-label">{{ red.get_tipo_display }}</div>
+          <div class="pd-info-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><a href="{{ red.url }}" target="_blank" rel="noopener noreferrer">{{ red.url }}</a></div>
+        </div>
       </div>
-      {% empty %}
-      <p class="pub-empty">Sin redes verificadas.</p>
       {% endfor %}
     </div>
+    {% endif %}
 
-    <div style="background:white; border:1px solid var(--rule);
-                border-radius:12px; padding:16px; margin-top:12px;">
-      <div style="font-size:11px; font-weight:500; text-transform:uppercase;
-                  letter-spacing:0.06em; color:var(--muted); margin-bottom:12px;">
-        Eventos
-      </div>
-      {% if eventos %}
-        <div style="font-size:14px; color:var(--ink); margin-bottom:12px;">
-          {{ eventos.count }} evento{{ eventos.count|pluralize }}
-          próximo{{ eventos.count|pluralize }} cargado{{ eventos.count|pluralize }}
-        </div>
-      {% else %}
-        <div style="font-size:14px; color:var(--muted); margin-bottom:12px;">
-          Sin eventos próximos cargados
-        </div>
-      {% endif %}
-      <a href="#"
-         style="display:inline-flex; align-items:center; gap:6px;
-                font-size:13px; font-weight:500; color:white;
-                background:#2a4494; border-radius:8px;
-                padding:8px 16px; text-decoration:none;">
-        Ver eventos de la parroquia →
-      </a>
-    </div>
-
-    <div style="background:white; border:1px solid var(--rule);
-                border-radius:12px; padding:16px; margin-top:12px;"
-         id="favorita-section">
-        {% if request.user.is_authenticated %}
-            <button id="btn-favorita"
-                    style="width:100%; display:flex; align-items:center;
-                           justify-content:center; gap:8px; padding:10px 16px;
-                           border-radius:8px; font-size:13px; font-weight:500;
-                           cursor:pointer; transition:all .15s;
-                           {% if es_favorita %}
-                           background:#e8edf8; color:#2a4494; border:1.5px solid #2a4494;
-                           {% else %}
-                           background:white; color:#6b7280; border:1px solid #e5e7eb;
-                           {% endif %}">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
-                             a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
-                             1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-                          {% if es_favorita %}fill="#2a4494"{% endif %}/>
-                </svg>
-                <span id="btn-favorita-text">
-                    {% if es_favorita %}Mi parroquia ✓{% else %}Marcar como mi parroquia{% endif %}
-                </span>
-            </button>
-        {% else %}
-            <a href="{% url 'account_login' %}?next={{ request.path }}"
-               onclick="sessionStorage.setItem('pendingFavorita', '{{ parroquia.pk }}')"
-               style="width:100%; display:flex; align-items:center;
-                      justify-content:center; gap:8px; padding:10px 16px;
-                      border-radius:8px; font-size:13px; font-weight:500;
-                      color:#6b7280; border:1px solid #e5e7eb; text-decoration:none;
-                      background:white;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                </svg>
-                Iniciar sesión para marcar mi parroquia
-            </a>
-        {% endif %}
-
-        <script>
-        function toggleFavorita(pk) {
-            const csrf = document.cookie.split(';')
-                .find(c => c.trim().startsWith('csrftoken='))
-                ?.split('=')[1] || '';
-            fetch('/publico/' + pk + '/favorita/', {
-                method: 'POST',
-                headers: { 'X-CSRFToken': csrf },
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.login_required) {
-                    sessionStorage.setItem('pendingFavorita', '{{ parroquia.pk }}');
-                    window.location.href = '/accounts/login/?next={{ request.path }}';
-                    return;
-                }
-                const btn = document.getElementById('btn-favorita');
-                const txt = document.getElementById('btn-favorita-text');
-                if (data.favorita) {
-                    btn.style.background = '#e8edf8';
-                    btn.style.color = '#2a4494';
-                    btn.style.border = '1.5px solid #2a4494';
-                    txt.textContent = 'Mi parroquia ✓';
-                } else {
-                    btn.style.background = 'white';
-                    btn.style.color = '#6b7280';
-                    btn.style.border = '1px solid #e5e7eb';
-                    txt.textContent = 'Marcar como mi parroquia';
-                }
-            })
-            .catch(() => {});
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            const btn = document.getElementById('btn-favorita');
-            if (btn) btn.addEventListener('click', function() {
-                toggleFavorita({{ parroquia.pk }});
-            });
-        });
-        </script>
-    </div>
+    <!-- Favorita -->
+    {% if request.user.is_authenticated %}
+    <button id="btn-favorita" class="pd-fav-btn {% if es_favorita %}active{% endif %}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+              {% if es_favorita %}fill="currentColor"{% endif %}/>
+      </svg>
+      <span id="btn-favorita-text">{% if es_favorita %}Mi parroquia ✓{% else %}Marcar como mi parroquia{% endif %}</span>
+    </button>
+    {% else %}
+    <a href="{% url 'account_login' %}?next={{ request.path }}"
+       onclick="sessionStorage.setItem('pendingFavorita','{{ parroquia.pk }}')"
+       class="pd-fav-btn" style="display:flex;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Iniciar sesión para marcar mi parroquia
+    </a>
+    {% endif %}
   </div>
+
+  <!-- ═══ TAB: EVENTOS ═══ -->
+  <div class="pd-panel" id="panel-eventos" role="tabpanel">
+    {% if eventos %}
+      {% for evento in eventos %}
+      <div class="pd-evento">
+        {% if evento.fecha %}
+        <div class="pd-evento-date">
+          <span class="pd-evento-date-month">{{ evento.fecha|date:"M" }}</span>
+          {{ evento.fecha|date:"d" }}
+        </div>
+        {% endif %}
+        <div style="flex:1;">
+          <div class="pd-evento-title">{{ evento.titulo }}</div>
+          <div class="pd-evento-meta">
+            {% if evento.hora %}<span>{{ evento.hora|time:"H:i" }}</span>{% endif %}
+            {% if evento.lugar %}<span>📍 {{ evento.lugar }}</span>{% endif %}
+          </div>
+          {% if evento.descripcion %}
+          <p style="font:400 13px/1.5 var(--font-ui);color:var(--muted);margin-top:6px;">{{ evento.descripcion|truncatewords:20 }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align:center;padding:40px 0;">
+        <div style="font-size:28px;margin-bottom:12px;">📅</div>
+        <div style="font:700 14px/1 var(--font-display);color:var(--ink-soft);">Sin eventos próximos</div>
+        <p style="font:500 13px/1.5 var(--font-ui);color:var(--muted);margin-top:6px;">No hay eventos cargados para esta parroquia.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div><!-- /card -->
+
+{% if banner_detalle %}
+<div style="margin-top:24px;text-align:center;" aria-label="Publicidad">
+  {% if banner_detalle.url_destino %}<a href="{{ banner_detalle.url_destino }}" target="_blank" rel="noopener sponsored" style="display:inline-block;text-decoration:none;">{% endif %}
+  {% if banner_detalle.imagen %}
+    <img src="{{ banner_detalle.imagen.url }}" alt="{{ banner_detalle.texto_alternativo|default:banner_detalle.titulo }}" loading="lazy" style="max-width:100%;height:auto;border-radius:var(--r-md);">
+  {% else %}
+    <div style="background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 20px;display:inline-block;font:500 12px/1 var(--font-ui);color:var(--muted);">Publicidad · {{ banner_detalle.titulo }}</div>
+  {% endif %}
+  {% if banner_detalle.url_destino %}</a>{% endif %}
 </div>
+{% endif %}
 
 <script>
+/* Set gradient color from pk */
+(function() {
+  const pk = {{ parroquia.pk }};
+  const c = [
+    ['#2d7d6e','#1a5c52'], ['#4a7c59','#2d5e3a'], ['#8b5e52','#6b3d33'],
+    ['#4a5568','#2d3748'], ['#7b6b3d','#5c4f2a'], ['#5b4a7a','#3d3057'],
+  ];
+  const [c1,c2] = c[pk % c.length];
+  const el = document.getElementById('pd-grad-' + pk);
+  if (el) el.style.background = `linear-gradient(135deg,${c1},${c2})`;
+})();
+
+function switchTab(name) {
+  document.querySelectorAll('.pd-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.pd-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
 function confirmarHorarios(pk) {
-    const csrf = document.cookie.split(';')
-        .find(c => c.trim().startsWith('csrftoken='))
-        ?.split('=')[1] || '';
-    fetch('/publico/' + pk + '/validar-horario/', {
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrf },
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.ok) {
-            document.getElementById('reporte-btns').style.display = 'none';
-            document.getElementById('reporte-confirmado').style.display = 'flex';
-        }
-    })
-    .catch(() => {});
+  const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
+  fetch('/publico/'+pk+'/validar-horario/',{method:'POST',headers:{'X-CSRFToken':csrf}})
+  .then(r=>r.json()).then(d=>{if(d.ok){document.getElementById('reporte-btns').style.display='none';document.getElementById('reporte-confirmado').style.display='flex';}}).catch(()=>{});
 }
 
 function enviarReporte(pk) {
-    const texto = document.getElementById('reporte-texto').value.trim();
-    if (!texto || texto.length < 10) {
-        alert('Por favor escribí los horarios correctos antes de enviar.');
-        return;
-    }
-    const csrf = document.cookie.split(';')
-        .find(c => c.trim().startsWith('csrftoken='))
-        ?.split('=')[1] || '';
-    fetch('/publico/' + pk + '/reportar-horario/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': csrf
-        },
-        body: 'texto=' + encodeURIComponent(texto)
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.ok) {
-            document.getElementById('reporte-form').style.display = 'none';
-            document.getElementById('reporte-ok').style.display = 'block';
-        }
-    })
-    .catch(() => alert('Error al enviar el reporte. Intentá de nuevo.'));
+  const texto = document.getElementById('reporte-texto').value.trim();
+  if (!texto||texto.length<10){alert('Por favor describí el cambio antes de enviar.');return;}
+  const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
+  fetch('/publico/'+pk+'/reportar-horario/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken':csrf},body:'texto='+encodeURIComponent(texto)})
+  .then(r=>r.json()).then(d=>{if(d.ok){document.getElementById('reporte-form').style.display='none';document.getElementById('reporte-ok').style.display='flex';}}).catch(()=>alert('Error al enviar.'));
 }
-</script>
 
-{% if banner_detalle %}
-<div style="margin-top:24px; text-align:center;" aria-label="Publicidad">
-  {% if banner_detalle.url_destino %}
-  <a href="{{ banner_detalle.url_destino }}" target="_blank" rel="noopener sponsored"
-     style="display:inline-block; text-decoration:none;">
-  {% endif %}
-    {% if banner_detalle.imagen %}
-      <img src="{{ banner_detalle.imagen.url }}"
-           alt="{{ banner_detalle.texto_alternativo|default:banner_detalle.titulo }}"
-           loading="lazy"
-           style="max-width:100%; height:auto; border-radius:8px;">
-    {% else %}
-      <div style="background:#f3f4f6; border:1px solid var(--rule);
-                  border-radius:8px; padding:12px 20px; display:inline-block;
-                  font-size:12px; color:var(--muted);">
-        Publicidad · {{ banner_detalle.titulo }}
-      </div>
-    {% endif %}
-  {% if banner_detalle.url_destino %}
-  </a>
-  {% endif %}
-</div>
-{% endif %}
+function toggleFavorita(pk) {
+  const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
+  fetch('/publico/'+pk+'/favorita/',{method:'POST',headers:{'X-CSRFToken':csrf}})
+  .then(r=>r.json()).then(d=>{
+    if(d.login_required){sessionStorage.setItem('pendingFavorita','{{ parroquia.pk }}');window.location.href='/accounts/login/?next={{ request.path }}';return;}
+    const btn=document.getElementById('btn-favorita');
+    const txt=document.getElementById('btn-favorita-text');
+    const path=btn.querySelector('path');
+    if(d.favorita){btn.classList.add('active');if(path)path.setAttribute('fill','currentColor');txt.textContent='Mi parroquia ✓';}
+    else{btn.classList.remove('active');if(path)path.setAttribute('fill','none');txt.textContent='Marcar como mi parroquia';}
+  }).catch(()=>{});
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  const btn=document.getElementById('btn-favorita');
+  if(btn) btn.addEventListener('click',function(){toggleFavorita({{ parroquia.pk }});});
+});
+</script>
 {% endblock %}

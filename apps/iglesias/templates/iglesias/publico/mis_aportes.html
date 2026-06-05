@@ -1,0 +1,144 @@
+{% extends "iglesias/publico/base_publica.html" %}
+
+{% block page_title %}Mis aportes | ParroGuía{% endblock %}
+{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_mis_aportes' %}{% endblock %}
+{% block meta_extra %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<style>
+  .ma-header {
+    background: linear-gradient(135deg, var(--navy-700), var(--navy-deep));
+    border-radius: var(--r-xl); padding: 28px 28px 24px;
+    margin-bottom: 24px; color: var(--on-navy);
+    position: relative; overflow: hidden;
+  }
+  .ma-header-hills { position: absolute; bottom:0; left:0; right:0; opacity:.12; pointer-events:none; }
+  .ma-eyebrow { font:700 11px/1 var(--font-ui); letter-spacing:.12em; text-transform:uppercase; color:var(--on-navy-mut); margin-bottom:6px; }
+  .ma-header h1 { font:800 26px/1.1 var(--font-display); margin-bottom:0; position:relative; letter-spacing:-.01em; }
+
+  .ma-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+  @media (max-width:600px) { .ma-stats { grid-template-columns:1fr; } }
+  .ma-stat {
+    background:var(--paper); border:1px solid var(--line-soft);
+    border-radius:var(--r-lg); padding:18px 20px;
+    box-shadow:var(--sh-card); text-align:center;
+  }
+  .ma-stat-val { font:800 32px/1 var(--font-display); color:var(--navy); letter-spacing:-.02em; }
+  .ma-stat-label { font:600 12px/1 var(--font-ui); color:var(--muted); margin-top:5px; }
+
+  .ma-activity { background:var(--paper); border:1px solid var(--line-soft); border-radius:var(--r-lg); box-shadow:var(--sh-card); overflow:hidden; }
+  .ma-activity-header { padding:16px 20px; border-bottom:1px solid var(--line-soft); font:700 13px/1 var(--font-ui); color:var(--ink); }
+  .ma-item { display:flex; align-items:flex-start; gap:14px; padding:14px 20px; border-bottom:1px solid var(--line-soft); }
+  .ma-item:last-child { border-bottom:none; }
+  .ma-item-icon {
+    width:36px; height:36px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .ma-item-icon.reporte { background:rgba(242,160,7,.14); color:var(--accent-deep); }
+  .ma-item-icon.validacion { background:rgba(31,138,91,.12); color:#1F8A5B; }
+  .ma-item-parroquia { font:700 14px/1.2 var(--font-ui); color:var(--ink); margin-bottom:3px; }
+  .ma-item-desc { font:500 12px/1.4 var(--font-ui); color:var(--muted); }
+  .ma-item-meta { margin-left:auto; text-align:right; flex-shrink:0; }
+  .ma-item-estado {
+    font:700 11px/1 var(--font-ui); padding:3px 9px; border-radius:999px;
+    display:inline-block;
+  }
+  .ma-item-estado.aprobado { background:rgba(31,138,91,.12); color:#1F8A5B; }
+  .ma-item-estado.pendiente { background:rgba(242,160,7,.14); color:var(--accent-deep); }
+  .ma-item-estado.rechazado { background:rgba(220,38,38,.10); color:#dc2626; }
+  .ma-item-date { font:500 11px/1 var(--font-ui); color:var(--muted); margin-top:4px; }
+  .ma-empty { padding:48px 20px; text-align:center; }
+  .ma-empty-icon { font-size:32px; margin-bottom:12px; }
+  .ma-empty-title { font:700 16px/1 var(--font-display); color:var(--ink-soft); margin-bottom:6px; }
+  .ma-empty-sub { font:500 13px/1.5 var(--font-ui); color:var(--muted); }
+</style>
+
+<!-- Header -->
+<div class="ma-header">
+  <svg class="ma-header-hills" viewBox="0 0 600 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M0,40 C80,15 180,50 280,25 C380,0 480,45 600,20 L600,60 L0,60 Z" fill="white"/>
+  </svg>
+  <p class="ma-eyebrow">Mis aportes</p>
+  <h1>Mis colaboraciones</h1>
+</div>
+
+<!-- Stats -->
+<div class="ma-stats">
+  <div class="ma-stat">
+    <div class="ma-stat-val">{{ total_aportes }}</div>
+    <div class="ma-stat-label">Aportes totales</div>
+  </div>
+  <div class="ma-stat">
+    <div class="ma-stat-val">{{ perfil.reportes_aprobados }}</div>
+    <div class="ma-stat-label">Validados</div>
+  </div>
+  <div class="ma-stat">
+    <div class="ma-stat-val" style="color:var(--accent-deep);">{{ perfil.score }}</div>
+    <div class="ma-stat-label">Puntos</div>
+  </div>
+</div>
+
+<!-- Activity list -->
+<div class="ma-activity">
+  <div class="ma-activity-header">Historial de actividad</div>
+
+  {% if actividad %}
+    {% for item in actividad %}
+    {% if item.parroquia %}
+    <div class="ma-item">
+      <div class="ma-item-icon {% if item.texto_usuario is not None %}reporte{% else %}validacion{% endif %}">
+        {% if item.texto_usuario is not None %}
+          <!-- ReporteHorario -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        {% else %}
+          <!-- ValidacionHorario -->
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        {% endif %}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="ma-item-parroquia">
+          <a href="{% url 'iglesias:publico_detalle' item.parroquia.pk %}"
+             style="color:var(--ink);text-decoration:none;">{{ item.parroquia.nombre }}</a>
+        </div>
+        <div class="ma-item-desc">
+          {% if item.texto_usuario is not None %}
+            Reporte de horario{% if item.texto_usuario %}: "{{ item.texto_usuario|truncatewords:8 }}"{% endif %}
+          {% else %}
+            Confirmación de horarios vigentes
+          {% endif %}
+        </div>
+      </div>
+      <div class="ma-item-meta">
+        {% if item.texto_usuario is not None %}
+          <span class="ma-item-estado {{ item.estado }}">{{ item.get_estado_display }}</span>
+        {% else %}
+          <span class="ma-item-estado aprobado">Confirmado</span>
+        {% endif %}
+        <div class="ma-item-date">{{ item.creado_en|date:"d/m/Y" }}</div>
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+  {% else %}
+    <div class="ma-empty">
+      <div class="ma-empty-icon">📊</div>
+      <div class="ma-empty-title">Aún no tenés aportes</div>
+      <div class="ma-empty-sub">Confirmá horarios o reportá cambios en cualquier parroquia para contribuir a la comunidad.</div>
+      <a href="{% url 'iglesias:publico_inicio' %}" class="btn btn-primary btn-sm" style="margin-top:16px;">
+        Explorar parroquias
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+{% if not actividad %}
+{% else %}
+<div style="text-align:center;margin-top:16px;">
+  <a href="{% url 'iglesias:publico_inicio' %}" class="btn btn-ghost btn-sm">
+    Seguir colaborando →
+  </a>
+</div>
+{% endif %}
+{% endblock %}

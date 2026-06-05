@@ -1,556 +1,530 @@
 {% extends "iglesias/publico/base_publica.html" %}
 
 {% block page_title %}ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires{% endblock %}
-
 {% block og_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_inicio' %}{% endblock %}
 {% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_inicio' %}{% endblock %}
-
 {% block meta_extra %}
 <meta name="description" content="Encontrá tu parroquia en Buenos Aires. Horarios de misas, eventos, contacto y ubicación de las {{ total }} parroquias de la Arquidiócesis de Buenos Aires.">
 {% endblock %}
 
 {% block content %}
 <style>
-  .hero {
-    text-align: center;
-    padding: 48px 0 36px;
+  /* ── Greeting ── */
+  .pg-greeting { margin-bottom: 24px; }
+  .pg-greeting-saludo {
+    font: 500 14px/1 var(--font-ui); color: var(--muted); margin-bottom: 4px;
   }
-  .hero h1 {
-    font-size: 36px;
-    font-weight: 600;
-    color: var(--ink);
-    letter-spacing: -0.02em;
-    margin-bottom: 10px;
-  }
-  .hero-sub {
-    font-size: 16px;
-    color: var(--muted);
-    margin-bottom: 28px;
-  }
-  .search-wrap {
-    position: relative;
-    max-width: 560px;
-    margin: 0 auto;
-  }
-  .search-icon {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 18px;
-    pointer-events: none;
-    opacity: 0.5;
-  }
-  .search-input {
-    width: 100%;
-    padding: 14px 14px 14px 44px;
-    font-size: 15px;
-    font-family: var(--sans);
-    border: 2px solid var(--rule);
-    border-radius: 12px;
-    background: var(--paper);
-    color: var(--ink);
-    outline: none;
-    transition: border-color .15s;
-  }
-  .search-input:focus {
-    border-color: var(--primary);
+  .pg-greeting-h1 {
+    font: 800 clamp(22px,3vw,32px)/1.1 var(--font-display);
+    color: var(--ink); letter-spacing: -.015em; margin: 0;
   }
 
-  .filters {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 20px;
+  /* ── Two-col home layout ── */
+  .pg-home-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+    align-items: start;
   }
-  .filter-pill {
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-  }
-  .filter-pill input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  .filter-pill-label {
-    font-size: 13px;
-    font-weight: 500;
-    padding: 6px 14px;
-    border-radius: 999px;
-    border: 1.5px solid var(--rule);
-    background: var(--paper);
-    color: var(--muted);
-    cursor: pointer;
-    transition: all .15s;
-    user-select: none;
-  }
-  .filter-pill input[type="radio"]:checked + .filter-pill-label {
-    background: var(--primary-soft);
-    border-color: var(--primary);
-    color: var(--primary-dark);
+  @media (max-width: 900px) {
+    .pg-home-grid { grid-template-columns: 1fr; }
   }
 
-  .results-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
+  /* ── Próxima misa hero card ── */
+  .pg-mip {
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #1E4585 0%, #0E2647 100%);
+    border-radius: var(--r-xl);
+    padding: 20px 22px 20px 24px;
+    text-decoration: none;
+    display: flex; align-items: center; gap: 20px;
+    transition: box-shadow .18s, transform .15s;
+    box-shadow: 0 14px 36px rgba(14,38,71,.32);
+    margin-bottom: 24px;
+    min-height: 90px;
   }
-  .htmx-indicator {
-    display: none;
-    font-size: 13px;
-    color: var(--muted);
+  .pg-mip:hover { box-shadow: 0 20px 48px rgba(14,38,71,.42); transform: translateY(-2px); }
+  .pg-mip-hills {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    opacity: .12; pointer-events: none;
   }
-  .htmx-request .htmx-indicator { display: inline; }
+  .pg-mip-time { font: 800 46px/.9 var(--font-display); color: #fff; letter-spacing: -.02em; flex-shrink: 0; position: relative; }
+  .pg-mip-body { flex: 1; min-width: 0; position: relative; }
+  .pg-mip-top { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
+  .pg-mip-day { font: 800 15px/1 var(--font-display); color: var(--gold); }
+  .pg-mip-countdown { font: 500 13px/1 var(--font-ui); color: var(--on-navy-mut); }
+  .pg-mip-nombre { font: 700 15px/1.25 var(--font-display); color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pg-mip-barrio { font: 500 12px/1 var(--font-ui); color: var(--on-navy-mut); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+  .pg-mip-badge {
+    position: absolute; top: 13px; left: 24px;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18);
+    border-radius: 999px; padding: 4px 10px;
+    font: 700 10px/1 var(--font-ui); letter-spacing: .08em; text-transform: uppercase;
+    color: rgba(251,244,228,.85); backdrop-filter: blur(4px);
+  }
+  .pg-mip-badge-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #4ade80;
+    animation: pulse-g 2s infinite;
+  }
+  @keyframes pulse-g {
+    0%   { box-shadow: 0 0 0 0 rgba(74,222,128,.5); }
+    70%  { box-shadow: 0 0 0 6px rgba(74,222,128,0); }
+    100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
+  }
+  .pg-mip-cta {
+    flex-shrink: 0; position: relative;
+    background: var(--gold); color: var(--accent-ink); font: 800 13px/1 var(--font-ui);
+    padding: 11px 18px; border-radius: 999px; white-space: nowrap;
+    box-shadow: 0 6px 18px rgba(242,160,7,.38); transition: background .15s;
+  }
+  .pg-mip:hover .pg-mip-cta { background: var(--gold-deep); }
+  .pg-mip.has-badge { padding-top: 38px; min-height: 100px; }
+  .pg-mip-empty {
+    background: var(--paper); border: 2px dashed var(--line);
+    border-radius: var(--r-xl); padding: 28px 24px;
+    text-align: center; margin-bottom: 24px; text-decoration: none; display: block;
+  }
+  .pg-mip-empty:hover { border-color: var(--navy-300); }
 
-  .luminous-hero {
-    position: relative;
-    isolation: isolate;
-    border-radius: 32px;
-    padding: 64px 24px 40px !important;
+  /* ── Section heading ── */
+  .pg-sh {
+    font: 700 11px/1 var(--font-ui); letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between;
   }
-  .luminous-hero::before {
-    content: "";
-    position: absolute;
-    inset: 8px 0 auto;
-    height: 360px;
-    z-index: -1;
-    border-radius: 40px;
-    background:
-      radial-gradient(circle at 35% 20%, rgba(255,193,7,.18), transparent 34%),
-      radial-gradient(circle at 70% 12%, rgba(0,51,102,.12), transparent 38%),
-      linear-gradient(135deg, rgba(255,255,255,.32), rgba(255,255,255,.06));
+  .pg-sh a { font: 600 12px/1 var(--font-ui); color: var(--navy); text-decoration: none; text-transform: none; letter-spacing: 0; }
+
+  /* ── Cerca de ti grid ── */
+  .pg-cerca-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+  @media (max-width: 640px) { .pg-cerca-grid { grid-template-columns: 1fr; } }
+
+  .pg-parish-card {
+    border-radius: var(--r-lg); overflow: hidden;
+    background: var(--paper); border: 1px solid var(--line-soft);
+    box-shadow: var(--sh-card); text-decoration: none; display: block;
+    transition: transform .16s, box-shadow .18s, border-color .16s;
   }
-  .luminous-logo {
-    box-shadow: 0 24px 60px rgba(0, 51, 102, 0.18), 0 0 0 8px rgba(255,255,255,.66) !important;
+  .pg-parish-card:hover { transform: translateY(-3px); box-shadow: var(--sh-pop); border-color: var(--navy-300); }
+  .pg-parish-card-grad {
+    height: 88px; position: relative;
+    display: flex; align-items: flex-end; padding: 8px 12px;
   }
-  .luminous-title {
-    font-family: var(--display) !important;
-    color: var(--primary-dark) !important;
-    letter-spacing: 0 !important;
+  .pg-parish-card-badge {
+    font: 800 10px/1 var(--font-ui); letter-spacing: .04em;
+    background: var(--gold); color: var(--accent-ink);
+    padding: 3px 8px; border-radius: 999px;
   }
-  .search-input {
-    border: 1px solid rgba(255,255,255,.72) !important;
-    border-bottom-color: rgba(0,51,102,.22) !important;
-    border-radius: 16px !important;
-    background: rgba(255,255,255,.48) !important;
-    backdrop-filter: blur(18px);
-    box-shadow: 0 18px 55px rgba(0,51,102,.08), inset 0 1px 0 rgba(255,255,255,.8) !important;
+  .pg-parish-card-fav {
+    position: absolute; top: 8px; right: 8px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255,255,255,.2); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: 0;
+    transition: background .15s;
   }
-  .search-input:focus {
-    border-bottom-color: var(--gold) !important;
-    box-shadow: 0 20px 60px rgba(0,51,102,.12), 0 0 0 4px rgba(255,193,7,.14) !important;
+  .pg-parish-card-fav:hover { background: rgba(255,255,255,.35); }
+  .pg-parish-card-body { padding: 12px; }
+  .pg-parish-card-name {
+    font: 700 14px/1.25 var(--font-display); color: var(--ink);
+    margin-bottom: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .filter-pill-label {
-    border-radius: 8px !important;
-    border: 1px solid rgba(255,255,255,.7) !important;
-    background: rgba(255,255,255,.42) !important;
-    backdrop-filter: blur(14px);
-    font-weight: 600 !important;
+  .pg-parish-card-loc {
+    font: 500 12px/1 var(--font-ui); color: var(--muted);
+    display: flex; align-items: center; gap: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .filter-pill input[type="radio"]:checked + .filter-pill-label {
-    background: var(--primary) !important;
-    border-color: var(--primary) !important;
-    color: var(--gold) !important;
-    box-shadow: 0 12px 30px rgba(0,51,102,.14);
+  .pg-parish-card-next {
+    font: 700 12px/1 var(--font-ui); color: var(--accent-deep);
+    margin-top: 6px;
   }
-  .luminous-select,
-  .luminous-action,
-  .luminous-favorite {
-    background: rgba(255,255,255,.46) !important;
-    border: 1px solid rgba(255,255,255,.72) !important;
-    border-bottom-color: rgba(0,51,102,.18) !important;
-    backdrop-filter: blur(14px);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+
+  /* ── Buscador ── */
+  .pg-search-section { margin-bottom: 28px; }
+  .pg-search-bar {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--paper); border: 1.5px solid var(--line);
+    border-radius: 999px; padding: 13px 20px; box-shadow: var(--sh-card);
+    transition: border-color .18s, box-shadow .18s;
+    margin-bottom: 12px;
   }
-  .luminous-action {
-    border-radius: 10px !important;
-    color: var(--primary) !important;
+  .pg-search-bar:focus-within { border-color: var(--navy); box-shadow: 0 0 0 4px rgba(20,49,94,.08); }
+  .pg-search-input {
+    border: 0; outline: 0; background: none; flex: 1;
+    font: 600 15px/1 var(--font-ui); color: var(--ink);
   }
-  .luminous-action:hover {
-    background: var(--primary) !important;
-    color: var(--gold) !important;
+  .pg-search-input::placeholder { color: var(--muted); }
+  .pg-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pg-filter-pill { display: inline-flex; align-items: center; cursor: pointer; }
+  .pg-filter-pill input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .pg-filter-label {
+    font: 700 13px/1 var(--font-ui); padding: 7px 15px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--paper); color: var(--muted);
+    cursor: pointer; transition: all .15s; user-select: none;
   }
-  .luminous-favorite {
-    border-radius: 24px !important;
-    box-shadow: 0 24px 70px rgba(0,51,102,.08);
+  .pg-filter-pill input[type="radio"]:checked + .pg-filter-label {
+    background: var(--navy); border-color: var(--navy); color: var(--on-navy);
+    box-shadow: 0 4px 14px rgba(20,49,94,.18);
   }
+  .pg-filter-label:hover { background: var(--bg-2); border-color: var(--navy-300); color: var(--ink); }
+
+  /* ── Right col: mi parroquia list item ── */
+  .pg-fav-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+    text-decoration: none;
+  }
+  .pg-fav-row:last-child { border-bottom: none; }
+  .pg-fav-row:hover .pg-fav-name { color: var(--navy); }
+  .pg-fav-dot {
+    width: 40px; height: 40px; border-radius: var(--r-sm); flex-shrink: 0;
+  }
+  .pg-fav-name { font: 700 14px/1.2 var(--font-display); color: var(--ink); margin-bottom: 2px; }
+  .pg-fav-meta { font: 500 11px/1 var(--font-ui); color: var(--muted); }
+
+  /* ── CTA colabora ── */
+  .pg-collab {
+    background: linear-gradient(135deg, var(--navy-700), var(--navy-deep));
+    border-radius: var(--r-lg); padding: 20px;
+    color: var(--on-navy); margin-top: 14px; position: relative; overflow: hidden;
+  }
+  .pg-collab h3 { font: 800 15px/1.3 var(--font-display); margin-bottom: 8px; }
+  .pg-collab p { font: 500 12px/1.5 var(--font-ui); color: var(--on-navy-mut); margin-bottom: 14px; }
 </style>
 
-<div class="luminous-hero" style="text-align:center; padding:48px 24px 32px;">
-  <div style="display:flex; justify-content:center; margin-bottom:20px;">
-    <img src="/static/iglesias/img/parroguia_logo.png"
-         alt="ParroGuía"
-         class="luminous-logo"
-         style="width:96px; height:96px; border-radius:22px;
-                object-fit:cover;
-                box-shadow:0 4px 24px rgba(42,68,148,0.18);">
-  </div>
-  <h1 class="luminous-title" style="font-size:clamp(28px,5vw,42px); font-weight:700;
-              color:#1a2a5c; margin-bottom:8px; letter-spacing:-0.02em;">
-    Encontrá tu parroquia
+<!-- ── Greeting ── -->
+<div class="pg-greeting">
+  <p class="pg-greeting-saludo" id="saludo-hora">Buenos días</p>
+  <h1 class="pg-greeting-h1">
+    {% if request.user.is_authenticated %}
+      Hola, {{ request.user.first_name|default:request.user.username }} 👋
+    {% else %}
+      ¿Dónde querés ir a misa hoy?
+    {% endif %}
   </h1>
-  <p style="font-size:15px; color:#6b7280; margin-bottom:28px;">
-    {{ total }} parroquias de la Arquidiócesis de Buenos Aires
-  </p>
-  <!-- buscador existente sin cambios -->
+</div>
 
-  <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input
-      class="search-input"
-      type="search"
-      name="q"
-      placeholder="Buscar por nombre, barrio, párroco o dirección..."
-      autocomplete="off"
-      hx-get="{% url 'iglesias:publico_buscar' %}"
-      hx-trigger="keyup changed delay:300ms, search"
-      hx-target="#resultados"
-      hx-include="[name='filtro']:checked"
-    >
-  </div>
+<div class="pg-home-grid">
+  <!-- ══ LEFT COLUMN ══ -->
+  <div>
 
-  <div class="filters">
-    <label class="filter-pill">
-      <input
-        type="radio" name="filtro" value="todas" checked
-        hx-get="{% url 'iglesias:publico_buscar' %}"
-        hx-trigger="change"
-        hx-target="#resultados"
-        hx-include="[name='q'], [name='filtro']:checked"
-      >
-      <span class="filter-pill-label">Todas</span>
-    </label>
-    <label class="filter-pill">
-      <input
-        type="radio" name="filtro" value="eventos"
-        hx-get="{% url 'iglesias:publico_buscar' %}"
-        hx-trigger="change"
-        hx-target="#resultados"
-        hx-include="[name='q'], [name='filtro']:checked"
-      >
-      <span class="filter-pill-label">Con eventos</span>
-    </label>
-    <label class="filter-pill">
-      <input
-        type="radio" name="filtro" value="horarios"
-        hx-get="{% url 'iglesias:publico_buscar' %}"
-        hx-trigger="change"
-        hx-target="#resultados"
-        hx-include="[name='q'], [name='filtro']:checked"
-      >
-      <span class="filter-pill-label">Con horarios</span>
-    </label>
-    <label class="filter-pill">
-      <input
-        type="radio" name="filtro" value="redes"
-        hx-get="{% url 'iglesias:publico_buscar' %}"
-        hx-trigger="change"
-        hx-target="#resultados"
-        hx-include="[name='q'], [name='filtro']:checked"
-      >
-      <span class="filter-pill-label">Con redes</span>
-    </label>
-  </div>
-
-  {% if total_provincias > 1 %}
-  <div style="margin-top:12px; text-align:center;">
-    <select id="select-provincia"
-            class="luminous-select"
-            onchange="filtrarProvincia(this.value)"
-            style="padding:8px 14px; border-radius:8px; font-size:13px;
-                   border:1.5px solid var(--rule); background:white;
-                   color:var(--ink); font-family:var(--sans); cursor:pointer;">
-      <option value="">Todas las provincias</option>
-      {% for p in provincias %}
-      <option value="{{ p.provincia }}">{{ p.provincia }} ({{ p.total }})</option>
-      {% endfor %}
-    </select>
-  </div>
-  {% endif %}
-
-  <div style="text-align:center; margin-top:12px;">
-    <button id="btn-cerca"
-            class="luminous-action"
-            style="display:inline-flex; align-items:center; gap:8px;
-                   padding:9px 18px; border-radius:999px; font-size:13px;
-                   font-weight:500; border:1.5px solid #2a4494;
-                   background:white; color:#2a4494; cursor:pointer;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="3"/>
-        <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-        <path d="M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12
-                 M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
+    <!-- Próxima misa card -->
+    {% if mi_parroquia %}
+    <a id="mi-parroquia"
+       href="{% url 'iglesias:publico_detalle' mi_parroquia.pk %}"
+       class="pg-mip {% if mi_parroquia.proxima_misa %}has-badge{% endif %}">
+      <svg class="pg-mip-hills" viewBox="0 0 800 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M0,50 C120,15 240,65 360,30 C480,0 600,55 720,25 C760,12 780,40 800,20 L800,80 L0,80 Z" fill="white"/>
+        <path d="M0,65 C150,35 300,75 450,50 C600,25 700,65 800,45 L800,80 L0,80 Z" fill="white" opacity=".45"/>
       </svg>
-      <span id="btn-cerca-text">Parroquias cerca mío</span>
-    </button>
-    <div id="cerca-error" style="display:none; font-size:12px;
-         color:#dc2626; margin-top:8px;"></div>
-    <div id="ver-todas-wrap" style="display:none; margin-top:8px;">
-      <button id="btn-ver-todas"
-              style="font-size:13px; color:#6b7280; background:none;
-                     border:none; cursor:pointer; text-decoration:underline;">
-          ← Ver todas las parroquias
+      {% if mi_parroquia.proxima_misa %}
+      <div class="pg-mip-badge">
+        <span class="pg-mip-badge-dot"></span>
+        PRÓXIMA MISA
+      </div>
+      <div class="pg-mip-time">{{ mi_parroquia.proxima_misa.hora }}</div>
+      {% else %}
+      <div style="position:relative;">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="rgba(242,160,7,.45)" stroke="none"/>
+        </svg>
+      </div>
+      {% endif %}
+      <div class="pg-mip-body">
+        {% if mi_parroquia.proxima_misa %}
+        <div class="pg-mip-top">
+          <span class="pg-mip-day">{{ mi_parroquia.proxima_misa.dia_label }}</span>
+          <span class="pg-mip-countdown">{{ mi_parroquia.proxima_misa.countdown }}</span>
+        </div>
+        {% else %}
+        <div style="font:700 11px/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:rgba(251,244,228,.5);margin-bottom:6px;">Mi parroquia</div>
+        {% endif %}
+        <div class="pg-mip-nombre">{{ mi_parroquia.nombre }}</div>
+        {% if mi_parroquia.barrio %}
+        <div class="pg-mip-barrio">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          {{ mi_parroquia.barrio }}
+        </div>
+        {% endif %}
+      </div>
+      <div class="pg-mip-cta">
+        {% if mi_parroquia.tiene_horarios %}Ver horarios →{% else %}Ver detalle →{% endif %}
+      </div>
+    </a>
+    {% elif request.user.is_authenticated %}
+    <a href="{% url 'iglesias:publico_inicio' %}#buscador" class="pg-mip-empty" id="mi-parroquia">
+      <div style="font-size:28px; margin-bottom:10px;">📍</div>
+      <div style="font:700 15px/1.3 var(--font-display);color:var(--ink);margin-bottom:6px;">Guardá tu parroquia favorita</div>
+      <div style="font:500 13px/1.5 var(--font-ui);color:var(--muted);">Buscá tu parroquia y marcala como favorita para ver tu próxima misa aquí.</div>
+    </a>
+    {% endif %}
+
+    <!-- Buscador -->
+    <div class="pg-search-section" id="buscador">
+      <div class="pg-sh">
+        <span>Buscar parroquias</span>
+        <span style="font:500 12px/1 var(--font-ui);color:var(--muted);">{{ total }} parroquias</span>
+      </div>
+      <div class="pg-search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          class="pg-search-input"
+          type="search"
+          name="q"
+          placeholder="Buscar por nombre, barrio, párroco..."
+          autocomplete="off"
+          hx-get="{% url 'iglesias:publico_buscar' %}"
+          hx-trigger="keyup changed delay:300ms, search"
+          hx-target="#resultados"
+          hx-include="[name='filtro']:checked"
+          id="main-search"
+        >
+      </div>
+      <div class="pg-filters">
+        <label class="pg-filter-pill">
+          <input type="radio" name="filtro" value="todas" checked
+            hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="change"
+            hx-target="#resultados" hx-include="[name='q'],[name='filtro']:checked">
+          <span class="pg-filter-label">Todas</span>
+        </label>
+        <label class="pg-filter-pill">
+          <input type="radio" name="filtro" value="eventos"
+            hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="change"
+            hx-target="#resultados" hx-include="[name='q'],[name='filtro']:checked">
+          <span class="pg-filter-label">Con eventos</span>
+        </label>
+        <label class="pg-filter-pill">
+          <input type="radio" name="filtro" value="horarios"
+            hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="change"
+            hx-target="#resultados" hx-include="[name='q'],[name='filtro']:checked">
+          <span class="pg-filter-label">Con horarios</span>
+        </label>
+        <label class="pg-filter-pill">
+          <input type="radio" name="filtro" value="redes"
+            hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="change"
+            hx-target="#resultados" hx-include="[name='q'],[name='filtro']:checked">
+          <span class="pg-filter-label">Con redes</span>
+        </label>
+        {% if total_provincias > 1 %}
+        <label class="pg-filter-pill" style="margin-left:auto;">
+          <select onchange="filtrarProvincia(this.value)"
+                  style="padding:7px 12px; border-radius:999px; font:700 13px/1 var(--font-ui);
+                         border:1px solid var(--line); background:var(--paper); color:var(--muted); cursor:pointer; outline:none;">
+            <option value="">Todas las provincias</option>
+            {% for p in provincias %}
+            <option value="{{ p.provincia }}">{{ p.provincia }} ({{ p.total }})</option>
+            {% endfor %}
+          </select>
+        </label>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Cerca de ti (geolocation grid) -->
+    <div id="cerca-section" style="margin-bottom:28px;">
+      <div class="pg-sh" id="cerca-header" style="display:none;">
+        <span>Cerca de ti</span>
+        <button id="btn-ver-todas" onclick="volverAlListado()"
+                style="font:600 12px/1 var(--font-ui);color:var(--navy);background:none;border:none;cursor:pointer;">
+          ← Ver todas
+        </button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="resultados"></div>
+    <div hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="load"
+         hx-target="#resultados" style="display:none;"></div>
+
+    <!-- SEO static list (hidden, crawlable) -->
+    <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;" aria-hidden="true">
+      <ul>{% for p in todas_parroquias %}
+        <li><a href="{% url 'iglesias:publico_detalle' p.pk %}">{{ p.nombre }}{% if p.barrio %}, {{ p.barrio }}{% endif %}</a></li>
+      {% endfor %}</ul>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT COLUMN ══ -->
+  <div>
+    {% if mi_parroquia %}
+    <div class="pub-section">
+      <div class="pg-sh">
+        <span>Mi parroquia</span>
+      </div>
+      <a href="{% url 'iglesias:publico_detalle' mi_parroquia.pk %}" class="pg-fav-row">
+        <div class="pg-fav-dot" id="fav-dot-{{ mi_parroquia.pk }}"
+             style="background:linear-gradient(135deg,#1E4585,#0E2647);"></div>
+        <div style="flex:1;min-width:0;">
+          <div class="pg-fav-name">{{ mi_parroquia.nombre }}</div>
+          <div class="pg-fav-meta">{{ mi_parroquia.barrio }}</div>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- Cerca de ti button -->
+    <div class="pub-section">
+      <div class="pg-sh"><span>Cerca de ti</span></div>
+      <button id="btn-cerca" onclick="buscarCercaMio()"
+              style="width:100%;display:flex;align-items:center;justify-content:center;gap:9px;
+                     padding:12px 18px;border-radius:var(--r-md);font:700 14px/1 var(--font-ui);
+                     background:var(--navy);color:var(--on-navy);border:none;cursor:pointer;
+                     transition:background .15s;box-shadow:0 4px 14px rgba(20,49,94,.22);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+          <path d="M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
+        </svg>
+        <span id="btn-cerca-text">Parroquias cerca mío</span>
       </button>
+      <div id="cerca-error" style="display:none;font:500 12px/1 var(--font-ui);color:#dc2626;margin-top:10px;"></div>
+    </div>
+
+    <!-- Colabora CTA -->
+    {% if not request.user.is_authenticated %}
+    <div class="pg-collab">
+      <h3>Colaborá y ganás reputación</h3>
+      <p>Confirmá horarios, reportá cambios y subí en el ranking comunitario.</p>
+      <a href="{% url 'socialaccount_signup' %}" class="btn btn-accent btn-sm">
+        Crear cuenta gratis
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- Ranking preview -->
+    <div class="pub-section" style="margin-top:14px;">
+      <div class="pg-sh">
+        <span>Colaboradores</span>
+        <a href="{% url 'iglesias:publico_ranking' %}">Ver ranking →</a>
+      </div>
+      <p style="font:500 13px/1.5 var(--font-ui);color:var(--muted);">
+        Comunidad que mantiene actualizada la información de las parroquias.
+      </p>
     </div>
   </div>
 </div>
-
-{% if mi_parroquia %}
-<div style="padding:0 0 20px;">
-    <div style="font-size:12px; font-weight:500; text-transform:uppercase;
-                letter-spacing:0.06em; color:#2a4494; margin-bottom:10px;
-                display:flex; align-items:center; gap:6px;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="#2a4494"
-             stroke="#2a4494" stroke-width="2">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
-                     a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
-                     1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-        </svg>
-        Mi parroquia
-    </div>
-    <a href="{% url 'iglesias:publico_detalle' mi_parroquia.pk %}"
-       style="text-decoration:none; display:block;">
-        <div class="luminous-favorite" style="background:#e8edf8; border:1.5px solid #2a4494;
-                    border-radius:12px; padding:16px;">
-            <div style="font-size:15px; font-weight:600; color:#1a2a5c;
-                         margin-bottom:4px;">
-                {{ mi_parroquia.nombre }}
-            </div>
-            <div style="font-size:12px; color:#6b7280; margin-bottom:10px;
-                         display:flex; align-items:center; gap:4px;">
-                📍 {{ mi_parroquia.barrio }}
-            </div>
-            <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                {% if mi_parroquia.eventos_count > 0 %}
-                <span style="font-size:11px; font-weight:500; padding:2px 8px;
-                              border-radius:999px; background:#2a4494; color:white;">
-                    {{ mi_parroquia.eventos_count }} evento{{ mi_parroquia.eventos_count|pluralize }}
-                </span>
-                {% endif %}
-                {% if mi_parroquia.tiene_horarios %}
-                <span style="font-size:11px; font-weight:500; padding:2px 8px;
-                              border-radius:999px; background:#f0fdf4; color:#166534;">
-                    Horarios
-                </span>
-                {% endif %}
-                {% if mi_parroquia.tiene_ig %}
-                <span style="font-size:11px; font-weight:500; padding:2px 8px;
-                              border-radius:999px; background:#fce7f3; color:#9d174d;">
-                    Instagram
-                </span>
-                {% endif %}
-                {% if mi_parroquia.tiene_fb %}
-                <span style="font-size:11px; font-weight:500; padding:2px 8px;
-                              border-radius:999px; background:#eff6ff; color:#1e40af;">
-                    Facebook
-                </span>
-                {% endif %}
-            </div>
-        </div>
-    </a>
-</div>
-{% endif %}
-
-<div id="resultados"></div>
-
-<div
-  hx-get="{% url 'iglesias:publico_buscar' %}"
-  hx-trigger="load"
-  hx-target="#resultados"
-  style="display:none;"
-></div>
 
 <noscript>
-<div style="padding:0 24px 32px;">
-    <h2 style="font-size:16px; font-weight:500; color:#1a2a5c;
-               margin-bottom:16px;">Todas las parroquias</h2>
-    <div style="display:grid; grid-template-columns:repeat(auto-fill,
-                minmax(200px,1fr)); gap:8px;">
-        {% for p in todas_parroquias %}
-        <a href="{% url 'iglesias:publico_detalle' p.pk %}"
-           style="display:block; padding:12px; border:1px solid #e5e7eb;
-                  border-radius:8px; text-decoration:none; color:#1a2a5c;
-                  font-size:13px; font-weight:500;">
-            {{ p.nombre }}
-            {% if p.barrio %}
-            <span style="display:block; font-size:11px; color:#6b7280;
-                          font-weight:400;">{{ p.barrio }}</span>
-            {% endif %}
-        </a>
-        {% endfor %}
-    </div>
+<h2 style="font:700 16px/1 var(--font-display);color:var(--ink);margin:20px 0 12px;">Todas las parroquias</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
+  {% for p in todas_parroquias %}
+  <a href="{% url 'iglesias:publico_detalle' p.pk %}"
+     style="display:block;padding:12px;border:1px solid var(--line);border-radius:var(--r-sm);text-decoration:none;color:var(--ink);font:600 13px/1 var(--font-ui);background:var(--paper);">
+    {{ p.nombre }}
+    {% if p.barrio %}<span style="display:block;font:400 11px/1.4 var(--font-ui);color:var(--muted);margin-top:3px;">{{ p.barrio }}</span>{% endif %}
+  </a>
+  {% endfor %}
 </div>
 </noscript>
 
-<!-- Lista indexable para bots (oculta visualmente pero legible por Google) -->
-<div style="position:absolute; width:1px; height:1px; overflow:hidden;
-            clip:rect(0,0,0,0); white-space:nowrap;" aria-hidden="true">
-    <ul>
-        {% for p in todas_parroquias %}
-        <li><a href="{% url 'iglesias:publico_detalle' p.pk %}">
-            {{ p.nombre }}{% if p.barrio %}, {{ p.barrio }}{% endif %}
-        </a></li>
-        {% endfor %}
-    </ul>
-</div>
 <script>
+/* Greeting by time */
+(function() {
+  const h = new Date().getHours();
+  const s = h < 12 ? 'Buenos días' : h < 20 ? 'Buenas tardes' : 'Buenas noches';
+  const el = document.getElementById('saludo-hora');
+  if (el) el.textContent = s;
+})();
+
+/* Gradient colors by pk */
+function gradParroquia(pk) {
+  const c = [
+    ['#2d7d6e','#1a5c52'], ['#4a7c59','#2d5e3a'], ['#8b5e52','#6b3d33'],
+    ['#4a5568','#2d3748'], ['#7b6b3d','#5c4f2a'], ['#5b4a7a','#3d3057'],
+  ];
+  return c[pk % c.length];
+}
+
 let parroquiasGeo = [];
+fetch('/publico/geo/').then(r => r.json()).then(d => { parroquiasGeo = d.parroquias; }).catch(() => {});
 
-fetch('/publico/geo/')
-    .then(r => r.json())
-    .then(data => { parroquiasGeo = data.parroquias; })
-    .catch(() => {});
-
-function calcularDistancia(lat1, lng1, lat2, lng2) {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) *
-              Math.cos(lat2 * Math.PI / 180) *
-              Math.sin(dLng/2) * Math.sin(dLng/2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+function haversine(lat1,lng1,lat2,lng2) {
+  const R=6371, dL=(lat2-lat1)*Math.PI/180, dG=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dL/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dG/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
-
-function formatDistancia(km) {
-    if (km < 1) return Math.round(km * 1000) + ' m';
-    return km.toFixed(1) + ' km';
-}
-
-function mostrarResultadosCerca(lat, lng) {
-    const conCoordenadas = parroquiasGeo.filter(p => p.lat && p.lng);
-    const conDistancia = conCoordenadas.map(p => ({
-        ...p,
-        distancia: calcularDistancia(lat, lng, p.lat, p.lng)
-    }));
-    conDistancia.sort((a, b) => a.distancia - b.distancia);
-    const cercanas = conDistancia.slice(0, 10);
-
-    let html = '<p style="font-size:13px; color:#6b7280; margin-bottom:16px;">' +
-               'Las 10 parroquias más cercanas a tu ubicación</p>';
-    html += '<div style="display:grid; grid-template-columns:repeat(auto-fill,' +
-            'minmax(220px,1fr)); gap:12px;">';
-
-    cercanas.forEach(p => {
-        let tags = '';
-        if (p.eventos_count > 0)
-            tags += `<span style="font-size:11px; font-weight:500; padding:2px 8px;
-                     border-radius:999px; background:#e8edf8; color:#2a4494;">
-                     ${p.eventos_count} evento${p.eventos_count > 1 ? 's' : ''}</span>`;
-        if (p.tiene_ig)
-            tags += `<span style="font-size:11px; font-weight:500; padding:2px 8px;
-                     border-radius:999px; background:#fce7f3; color:#9d174d;">
-                     Instagram</span>`;
-        if (p.tiene_fb)
-            tags += `<span style="font-size:11px; font-weight:500; padding:2px 8px;
-                     border-radius:999px; background:#eff6ff; color:#1e40af;">
-                     Facebook</span>`;
-        if (p.tiene_horarios)
-            tags += `<span style="font-size:11px; font-weight:500; padding:2px 8px;
-                     border-radius:999px; background:#f0fdf4; color:#166534;">
-                     Horarios</span>`;
-
-        html += `<a href="/publico/${p.pk}/" style="text-decoration:none;">
-            <div style="background:white; border:1px solid #e5e7eb;
-                        border-radius:12px; padding:16px; cursor:pointer;">
-                <div style="display:flex; justify-content:space-between;
-                            align-items:flex-start; margin-bottom:4px;">
-                    <div style="font-size:14px; font-weight:500; color:#1a2a5c;
-                                line-height:1.3; flex:1;">${p.nombre}</div>
-                    <span style="font-size:12px; font-weight:600; color:#2a4494;
-                                 margin-left:8px; flex-shrink:0; white-space:nowrap;">
-                        ${formatDistancia(p.distancia)}
-                    </span>
-                </div>
-                <div style="font-size:12px; color:#6b7280; margin-bottom:10px;
-                            display:flex; align-items:center; gap:4px;">
-                    📍 ${p.barrio || ''}
-                </div>
-                <div style="display:flex; gap:5px; flex-wrap:wrap;">${tags}</div>
-            </div>
-        </a>`;
-    });
-
-    html += '</div>';
-
-    const resultadosDiv = document.getElementById('resultados');
-    if (resultadosDiv) resultadosDiv.innerHTML = html;
-}
+function fmt(km) { return km<1 ? Math.round(km*1000)+'m' : km.toFixed(1)+'km'; }
 
 function buscarCercaMio() {
-    const btn = document.getElementById('btn-cerca');
-    const btnText = document.getElementById('btn-cerca-text');
-    const errorDiv = document.getElementById('cerca-error');
+  const btn = document.getElementById('btn-cerca');
+  const txt = document.getElementById('btn-cerca-text');
+  const err = document.getElementById('cerca-error');
+  if (!navigator.geolocation) { err.textContent='Tu navegador no soporta geolocalización.'; err.style.display='block'; return; }
+  txt.textContent = 'Obteniendo ubicación...';
+  btn.disabled = true;
+  err.style.display = 'none';
+  navigator.geolocation.getCurrentPosition(pos => {
+    txt.textContent = 'Parroquias cerca mío';
+    btn.disabled = false;
+    const {latitude:lat, longitude:lng} = pos.coords;
+    const sorted = parroquiasGeo
+      .filter(p => p.lat && p.lng)
+      .map(p => ({...p, dist: haversine(lat,lng,p.lat,p.lng)}))
+      .sort((a,b) => a.dist-b.dist).slice(0,10);
+    mostrarCercanas(sorted);
+  }, err2 => {
+    txt.textContent = 'Parroquias cerca mío';
+    btn.disabled = false;
+    err.textContent = err2.code===1 ? 'Permiso denegado.' : 'No se pudo obtener la ubicación.';
+    err.style.display = 'block';
+  }, {timeout:10000,maximumAge:60000});
+}
 
-    if (!navigator.geolocation) {
-        errorDiv.textContent = 'Tu navegador no soporta geolocalización.';
-        errorDiv.style.display = 'block';
-        return;
-    }
-
-    btnText.textContent = 'Obteniendo ubicación...';
-    btn.disabled = true;
-    errorDiv.style.display = 'none';
-
-    navigator.geolocation.getCurrentPosition(
-        (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            btnText.textContent = 'Parroquias cerca mío';
-            btn.disabled = false;
-            btn.style.background = '#2a4494';
-            btn.style.color = 'white';
-            mostrarResultadosCerca(lat, lng);
-            const verTodas = document.getElementById('ver-todas-wrap');
-            if (verTodas) verTodas.style.display = 'block';
-        },
-        (err) => {
-            btnText.textContent = 'Parroquias cerca mío';
-            btn.disabled = false;
-            errorDiv.textContent = err.code === 1
-                ? 'Permiso de ubicación denegado.'
-                : 'No se pudo obtener tu ubicación.';
-            errorDiv.style.display = 'block';
-        },
-        { timeout: 10000, maximumAge: 60000 }
-    );
+function mostrarCercanas(parroquias) {
+  const header = document.getElementById('cerca-header');
+  if (header) header.style.display='flex';
+  let html = '<div class="pg-cerca-grid">';
+  parroquias.forEach(p => {
+    const [c1,c2] = gradParroquia(p.pk);
+    html += `<a href="/publico/${p.pk}/" class="pg-parish-card">
+      <div class="pg-parish-card-grad" style="background:linear-gradient(135deg,${c1},${c2});">
+        <button class="pg-parish-card-fav" onclick="event.preventDefault();" aria-label="Favorita">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+      </div>
+      <div class="pg-parish-card-body">
+        <div class="pg-parish-card-name">${p.nombre}</div>
+        <div class="pg-parish-card-loc">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${p.barrio||''} · ${fmt(p.dist)}
+        </div>
+      </div>
+    </a>`;
+  });
+  html += '</div>';
+  const resultados = document.getElementById('resultados');
+  if (resultados) resultados.innerHTML = html;
 }
 
 function volverAlListado() {
-    const btn = document.getElementById('btn-cerca');
-    const btnText = document.getElementById('btn-cerca-text');
-    const verTodas = document.getElementById('ver-todas-wrap');
-
-    btn.style.background = 'white';
-    btn.style.color = '#2a4494';
-    btnText.textContent = 'Parroquias cerca mío';
-    if (verTodas) verTodas.style.display = 'none';
-
-    htmx.ajax('GET', '{% url "iglesias:publico_buscar" %}', {
-        target: '#resultados',
-        swap: 'innerHTML'
-    });
+  const header = document.getElementById('cerca-header');
+  if (header) header.style.display = 'none';
+  htmx.ajax('GET', '{% url "iglesias:publico_buscar" %}', {target:'#resultados',swap:'innerHTML'});
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    const btn = document.getElementById('btn-cerca');
-    if (btn) btn.addEventListener('click', buscarCercaMio);
-    const btnVer = document.getElementById('btn-ver-todas');
-    if (btnVer) btnVer.addEventListener('click', volverAlListado);
-});
 
 function filtrarProvincia(provincia) {
-    const params = new URLSearchParams();
-    if (provincia) params.set('provincia', provincia);
-    htmx.ajax('GET',
-        '{% url "iglesias:publico_buscar" %}?' + params.toString(),
-        {target: '#resultados', swap: 'innerHTML'}
-    );
+  const params = new URLSearchParams();
+  if (provincia) params.set('provincia', provincia);
+  htmx.ajax('GET', '{% url "iglesias:publico_buscar" %}?'+params.toString(), {target:'#resultados',swap:'innerHTML'});
 }
+
+/* Pre-fill search from URL ?q= */
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const q = params.get('q');
+  if (q) {
+    const inp = document.getElementById('main-search');
+    if (inp) {
+      inp.value = q;
+      setTimeout(() => inp.dispatchEvent(new Event('keyup', {bubbles:true})), 300);
+    }
+  }
+})();
 </script>
 {% endblock %}

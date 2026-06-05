@@ -13,94 +13,194 @@
 {% endblock %}
 
 {% block content %}
-<div style="max-width:600px; margin:0 auto; padding:32px 24px;">
+<style>
+  .rk-wrap { max-width: 600px; margin: 0 auto; }
 
-    <h1 style="font-size:24px; font-weight:600; color:#1a2a5c;
-               margin-bottom:6px;">Colaboradores</h1>
-    <p style="font-size:14px; color:#6b7280; margin-bottom:24px;">
-        Usuarios que ayudan a mantener actualizada la información
-        de las parroquias.
-    </p>
+  /* hero header */
+  .rk-header {
+    background: linear-gradient(135deg, var(--navy-700), var(--navy-deep));
+    border-radius: var(--r-xl);
+    padding: 36px 28px;
+    margin-bottom: 24px;
+    color: var(--on-navy);
+    text-align: center;
+    box-shadow: 0 12px 32px rgba(20,49,94,.20);
+    position: relative; overflow: hidden;
+  }
+  .rk-header-hills {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    opacity: .14; pointer-events: none;
+  }
+  .rk-header h1 {
+    font: 800 26px/1.1 var(--font-display);
+    margin-bottom: 6px; position: relative; letter-spacing: -.01em;
+  }
+  .rk-header p {
+    font: 500 14px/1.5 var(--font-ui);
+    color: var(--on-navy-mut);
+    position: relative;
+  }
 
-    {% if mi_perfil %}
-    <div style="background:#e8edf8; border-radius:12px; padding:16px;
-                margin-bottom:24px; display:flex; align-items:center;
-                gap:14px;">
-        <div style="width:44px; height:44px; border-radius:50%;
-                     background:#2a4494; display:flex; align-items:center;
-                     justify-content:center; color:white; font-size:18px;
-                     font-weight:600; flex-shrink:0;">
-            {{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
-        </div>
-        <div style="flex:1;">
-            <div style="font-size:14px; font-weight:500; color:#1a2a5c;">
-                {{ request.user.get_full_name|default:request.user.username }}
-            </div>
-            <div style="font-size:12px; color:#2a4494;">
-                Score: {{ mi_perfil.score }} ·
-                Nivel: {{ mi_perfil.nivel }} ·
-                {{ mi_perfil.reportes_aprobados }} reportes aprobados
-            </div>
-        </div>
-        <div style="font-size:22px; font-weight:700; color:#a07b00;
-                    background:#FFF9CC; border:1px solid #FFD700;
-                    border-radius:8px; padding:4px 12px; line-height:1.2;">
-            ★ {{ mi_perfil.score }}
-        </div>
+  /* my profile card */
+  .rk-mine {
+    background: var(--paper);
+    border: 2px solid var(--navy);
+    border-radius: var(--r-lg);
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: var(--sh-card);
+  }
+  .rk-mine-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--on-navy); font: 700 20px/1 var(--font-display);
+    flex-shrink: 0;
+    /* gold ring */
+    box-shadow: 0 0 0 3px rgba(242,160,7,.5), 0 0 0 5px rgba(242,160,7,.15);
+  }
+  .rk-mine-info { flex: 1; min-width: 0; }
+  .rk-mine-name { font: 700 14px/1.2 var(--font-display); color: var(--ink); }
+  .rk-mine-meta { font: 500 12px/1.4 var(--font-ui); color: var(--muted); margin-top:3px; }
+  .rk-score-badge {
+    font: 800 18px/1 var(--font-display);
+    color: var(--accent-deep);
+    background: rgba(242,160,7,.14);
+    border: 1px solid rgba(242,160,7,.4);
+    border-radius: var(--r-sm);
+    padding: 6px 14px;
+    flex-shrink: 0;
+  }
+
+  /* ranking list */
+  .rk-list {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    box-shadow: var(--sh-card);
+  }
+  .rk-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line-soft);
+    transition: background .12s;
+  }
+  .rk-row:last-child { border-bottom: none; }
+  .rk-row:hover { background: var(--bg); }
+  .rk-row.is-me { background: rgba(20,49,94,.05); }
+  .rk-rank {
+    font: 700 13px/1 var(--font-ui); color: var(--muted);
+    width: 24px; text-align: center; flex-shrink: 0;
+  }
+  .rk-rank.top { color: var(--accent-deep); font-size: 15px; }
+  .rk-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--bg-2); border: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+    font: 700 15px/1 var(--font-display); color: var(--muted); flex-shrink: 0;
+    overflow: hidden;
+  }
+  .rk-info { flex: 1; min-width: 0; }
+  .rk-name { font: 700 14px/1.2 var(--font-ui); color: var(--ink); }
+  .rk-stats { font: 500 11px/1.4 var(--font-ui); color: var(--muted); margin-top:3px; }
+  .rk-score {
+    font: 800 15px/1 var(--font-display);
+    color: var(--accent-deep);
+    background: rgba(242,160,7,.12);
+    border: 1px solid rgba(242,160,7,.28);
+    border-radius: 8px;
+    padding: 4px 11px;
+    flex-shrink: 0;
+  }
+
+  .rk-footnote {
+    font: 500 12px/1.5 var(--font-ui); color: var(--muted);
+    text-align: center; margin-top: 16px;
+  }
+  .rk-empty {
+    padding: 40px 20px; text-align: center;
+    font: 500 14px/1.5 var(--font-ui); color: var(--muted);
+  }
+</style>
+
+<div class="rk-wrap">
+
+  <!-- Header -->
+  <div class="rk-header">
+    <svg class="rk-header-hills" viewBox="0 0 600 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M0,50 C80,20 160,60 240,35 C320,10 400,55 480,30 C540,12 570,45 600,25 L600,80 L0,80 Z" fill="white"/>
+    </svg>
+    <div style="font-size:32px; margin-bottom:10px; position:relative;">🏆</div>
+    <h1>Colaboradores</h1>
+    <p>Usuarios que ayudan a mantener actualizada la información de las parroquias</p>
+  </div>
+
+  <!-- My profile -->
+  {% if mi_perfil %}
+  <div class="rk-mine">
+    <div class="rk-mine-avatar">
+      {{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
     </div>
-    {% endif %}
-
-    <div style="background:white; border:1px solid #e5e7eb;
-                border-radius:12px; overflow:hidden;">
-        {% for perfil in perfiles %}
-        <div style="display:flex; align-items:center; gap:14px;
-                     padding:14px 16px;
-                     border-bottom:{% if not forloop.last %}1px solid #f3f4f6{% else %}none{% endif %};
-                     {% if request.user.is_authenticated and perfil.user == request.user %}background:#f0f3fa;{% endif %}">
-            <div style="font-size:13px; font-weight:600; color:#9ca3af;
-                          width:24px; text-align:center;">
-                {{ forloop.counter }}
-            </div>
-            <div style="width:36px; height:36px; border-radius:50%;
-                          background:#e5e7eb; display:flex; align-items:center;
-                          justify-content:center; font-size:14px;
-                          font-weight:600; color:#6b7280; flex-shrink:0;">
-                {% if perfil.avatar_url %}
-                    <img src="{{ perfil.avatar_url }}" alt="{{ perfil.user.username }}"
-                         style="width:36px; height:36px; border-radius:50%; object-fit:cover;">
-                {% else %}
-                    {{ perfil.user.first_name|slice:":1"|upper|default:perfil.user.username|slice:":1"|upper }}
-                {% endif %}
-            </div>
-            <div style="flex:1;">
-                <div style="font-size:14px; font-weight:500; color:#1a2a5c;">
-                    {{ perfil.user.get_full_name|default:perfil.user.username }}
-                </div>
-                <div style="font-size:11px; margin-top:2px;">
-                    <span style="color:{{ perfil.nivel_color }};
-                                  font-weight:500;">{{ perfil.nivel }}</span>
-                    · {{ perfil.reportes_aprobados }} reportes ·
-                    {{ perfil.validaciones_enviadas }} validaciones
-                </div>
-            </div>
-            <div style="font-size:16px; font-weight:700; color:#a07b00;
-                        background:#FFF9CC; border:1px solid #FFD700;
-                        border-radius:6px; padding:3px 10px; line-height:1.2;">
-                {{ perfil.score }}
-            </div>
-        </div>
-        {% empty %}
-        <div style="padding:32px; text-align:center; color:#6b7280;
-                     font-size:14px;">
-            Aún no hay colaboradores. ¡Sé el primero!
-        </div>
-        {% endfor %}
+    <div class="rk-mine-info">
+      <div class="rk-mine-name">
+        {{ request.user.get_full_name|default:request.user.username }}
+      </div>
+      <div class="rk-mine-meta">
+        Nivel: <strong style="color:var(--ink);">{{ mi_perfil.nivel }}</strong> ·
+        {{ mi_perfil.reportes_aprobados }} reportes aprobados ·
+        {{ mi_perfil.validaciones_enviadas }} validaciones
+      </div>
     </div>
+    <div class="rk-score-badge">★ {{ mi_perfil.score }}</div>
+  </div>
+  {% endif %}
 
-    <p style="font-size:12px; color:#9ca3af; text-align:center;
-               margin-top:16px;">
-        El score se calcula según la cantidad de reportes aprobados
-        y validaciones realizadas.
-    </p>
+  <!-- Ranking list -->
+  <div class="rk-list">
+    {% for perfil in perfiles %}
+    <div class="rk-row {% if request.user.is_authenticated and perfil.user == request.user %}is-me{% endif %}">
+
+      <div class="rk-rank {% if forloop.counter <= 3 %}top{% endif %}">
+        {% if forloop.counter == 1 %}🥇
+        {% elif forloop.counter == 2 %}🥈
+        {% elif forloop.counter == 3 %}🥉
+        {% else %}{{ forloop.counter }}{% endif %}
+      </div>
+
+      <div class="rk-avatar">
+        {% if perfil.avatar_url %}
+          <img src="{{ perfil.avatar_url }}" alt="{{ perfil.user.username }}"
+               style="width:38px; height:38px; object-fit:cover;">
+        {% else %}
+          {{ perfil.user.first_name|slice:":1"|upper|default:perfil.user.username|slice:":1"|upper }}
+        {% endif %}
+      </div>
+
+      <div class="rk-info">
+        <div class="rk-name">
+          {{ perfil.user.get_full_name|default:perfil.user.username }}
+        </div>
+        <div class="rk-stats">
+          <span style="color:{{ perfil.nivel_color }}; font-weight:700;">{{ perfil.nivel }}</span>
+          · {{ perfil.reportes_aprobados }} reportes
+          · {{ perfil.validaciones_enviadas }} validaciones
+        </div>
+      </div>
+
+      <div class="rk-score">{{ perfil.score }}</div>
+    </div>
+    {% empty %}
+    <div class="rk-empty">
+      Aún no hay colaboradores. ¡Sé el primero!
+    </div>
+    {% endfor %}
+  </div>
+
+  <p class="rk-footnote">
+    El score se calcula según la cantidad de reportes aprobados y validaciones realizadas.
+  </p>
+
 </div>
 {% endblock %}

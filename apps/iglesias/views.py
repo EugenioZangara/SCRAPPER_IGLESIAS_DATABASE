@@ -1,5 +1,5 @@
 import os
-from datetime import date
+from datetime import date, datetime, time as dtime, timedelta
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login as auth_login
 from django.db.models import Count, Q
@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, Banner
+from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, ValidacionHorario, Banner
 
 from django.views.decorators.http import require_POST
 from django.urls import reverse
@@ -1189,6 +1189,103 @@ def crear_tipo_evento(request):
     return JsonResponse({"pk": tipo.pk, "nombre": tipo.nombre, "tipos": tipos})
 
 
+_NIVELES_NUEVO = [
+    (0,   "Explorador", "#76859C"),
+    (50,  "Vecino",     "#D98A00"),
+    (150, "Sacristán",  "#1F8A5B"),
+    (300, "Catequista", "#14315E"),
+    (600, "Párroco",    "#F2A007"),
+]
+
+def _nivel_nuevo(score):
+    tier = _NIVELES_NUEVO[0]
+    for t in _NIVELES_NUEVO:
+        if score >= t[0]:
+            tier = t
+    idx = _NIVELES_NUEVO.index(tier)
+    if idx < len(_NIVELES_NUEVO) - 1:
+        next_t = _NIVELES_NUEVO[idx + 1]
+        to_next = next_t[0] - score
+        pct = max(0, min(100, int((score - tier[0]) / (next_t[0] - tier[0]) * 100)))
+        next_name = next_t[1]
+    else:
+        to_next = 0
+        pct = 100
+        next_name = None
+    return {"nivel": tier[1], "color": tier[2], "pct": pct,
+            "to_next": to_next, "next_nivel": next_name}
+
+
+def _insignias(perfil, ranking_pos):
+    INSIGNIAS = [
+        ("Verificador",  "25 datos confirmados",   perfil.validaciones_enviadas >= 25),
+        ("Constante",    "Racha de 5 semanas",      False),
+        ("Primer aporte","Tu primera colaboración", (perfil.reportes_enviados + perfil.validaciones_enviadas) >= 1),
+        ("Vecino fiel",  "50 confirmaciones",       perfil.validaciones_enviadas >= 50),
+        ("Pilar",        "Top 10 del mes",          1 <= ranking_pos <= 10 if ranking_pos else False),
+        ("Misionero",    "5 parroquias nuevas",     False),
+    ]
+    return [{"nombre": n, "desc": d, "desbloqueada": ok} for n, d, ok in INSIGNIAS]
+
+
+def _gradiente_parroquia(pk):
+    colores = [
+        ("#2d7d6e", "#1a5c52"),
+        ("#4a7c59", "#2d5e3a"),
+        ("#8b5e52", "#6b3d33"),
+        ("#4a5568", "#2d3748"),
+        ("#7b6b3d", "#5c4f2a"),
+        ("#5b4a7a", "#3d3057"),
+    ]
+    return colores[pk % len(colores)]
+
+
+def _proxima_misa(p_horarios):
+    """Return {hora, dia_label, mins_until} for the next upcoming mass, or None."""
+    if not p_horarios:
+        return None
+    schedule = {}
+    for h in p_horarios:
+        times = []
+        for t_str in h.horarios.split('·'):
+            t_str = t_str.strip()
+            try:
+                parts = t_str.split(':')
+                times.append(dtime(int(parts[0]), int(parts[1]) if len(parts) > 1 else 0))
+            except (ValueError, IndexError):
+                pass
+        if times:
+            schedule[h.dia_semana] = sorted(times)
+    if not schedule:
+        return None
+    now = datetime.now()
+    hoy = now.date()
+    DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    for offset in range(8):
+        target = hoy + timedelta(days=offset)
+        dia = target.weekday()
+        if dia not in schedule:
+            continue
+        for t in schedule[dia]:
+            target_dt = datetime.combine(target, t)
+            if target_dt > now:
+                mins = int((target_dt - now).total_seconds() / 60)
+                if offset == 0:
+                    label = "Hoy"
+                elif offset == 1:
+                    label = "Mañana"
+                else:
+                    label = DIAS[dia]
+                h_restantes = mins // 60
+                m_restantes = mins % 60
+                if h_restantes > 0:
+                    countdown = f"en {h_restantes} h {m_restantes:02d} min"
+                else:
+                    countdown = f"en {m_restantes} min"
+                return {"hora": t.strftime("%H:%M"), "dia_label": label, "countdown": countdown}
+    return None
+
+
 def publico_inicio(request):
     from .models import PerfilUsuario
     hoy = date.today()
@@ -1214,6 +1311,7 @@ def publico_inicio(request):
                     "tiene_ig": any(r.tipo == "instagram" for r in redes_v),
                     "tiene_fb": any(r.tipo == "facebook" for r in redes_v),
                     "eventos_count": len(eventos_p),
+                    "proxima_misa": _proxima_misa(p_horarios),
                 }
         except Exception:
             pass
@@ -1226,6 +1324,13 @@ def publico_inicio(request):
         .order_by("-total")
     )
 
+    nivel_info = None
+    if request.user.is_authenticated:
+        try:
+            nivel_info = _nivel_nuevo(request.user.perfil.score)
+        except Exception:
+            pass
+
     return render(request, "iglesias/publico/inicio.html", {
         "total": Parroquia.objects.count(),
         "con_eventos": Parroquia.objects.filter(
@@ -1237,6 +1342,74 @@ def publico_inicio(request):
         "mi_parroquia": mi_parroquia,
         "provincias": provincias,
         "total_provincias": provincias.count(),
+        "nivel_info": nivel_info,
+    })
+
+
+def publico_mis_aportes(request):
+    from .models import PerfilUsuario
+    if not request.user.is_authenticated:
+        from django.contrib.auth.views import redirect_to_login
+        return redirect_to_login(request.get_full_path())
+
+    perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
+    reportes = list(
+        ReporteHorario.objects.filter(usuario=request.user)
+        .select_related("parroquia").order_by("-creado_en")[:20]
+    )
+    validaciones = list(
+        ValidacionHorario.objects.filter(usuario=request.user)
+        .select_related("parroquia").order_by("-creado_en")[:20]
+    )
+    from itertools import chain
+    from operator import attrgetter
+    actividad = sorted(
+        chain(reportes, validaciones),
+        key=attrgetter("creado_en"),
+        reverse=True,
+    )[:30]
+
+    return render(request, "iglesias/publico/mis_aportes.html", {
+        "perfil": perfil,
+        "actividad": actividad,
+        "total_aportes": perfil.reportes_enviados + perfil.validaciones_enviadas,
+        "nivel_info": _nivel_nuevo(perfil.score),
+    })
+
+
+def publico_perfil(request):
+    from .models import PerfilUsuario
+    if not request.user.is_authenticated:
+        from django.contrib.auth.views import redirect_to_login
+        return redirect_to_login(request.get_full_path())
+
+    perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
+    nivel_info = _nivel_nuevo(perfil.score)
+
+    ranking = list(
+        PerfilUsuario.objects.select_related("user").order_by("-score")[:10]
+    )
+    ranking_pos = next(
+        (i + 1 for i, p in enumerate(ranking) if p.user_id == request.user.pk), None
+    )
+    if ranking_pos is None:
+        pos_total = PerfilUsuario.objects.filter(score__gt=perfil.score).count() + 1
+        ranking_pos = pos_total
+
+    insignias = _insignias(perfil, ranking_pos)
+
+    actividad = list(
+        ReporteHorario.objects.filter(usuario=request.user)
+        .select_related("parroquia").order_by("-creado_en")[:10]
+    )
+
+    return render(request, "iglesias/publico/perfil.html", {
+        "perfil": perfil,
+        "nivel_info": nivel_info,
+        "ranking": ranking,
+        "ranking_pos": ranking_pos,
+        "insignias": insignias,
+        "actividad": actividad,
     })
 
 
@@ -1577,7 +1750,6 @@ def aplicar_reporte(request, pk):
         else:
             HorarioMisa.objects.filter(parroquia=parroquia, dia_semana=dia).delete()
 
-    from .models import ValidacionHorario
     ValidacionHorario.objects.filter(parroquia=parroquia).delete()
 
     reporte.estado = "aplicado"
@@ -1637,7 +1809,6 @@ def validar_horario(request, pk):
         total = parroquia.validaciones_horario.count()
         return JsonResponse({"ok": True, "total": total, "ya_validado": True})
 
-    from .models import ValidacionHorario
     validacion = ValidacionHorario.objects.create(
         parroquia=parroquia,
         usuario=request.user if request.user.is_authenticated else None,

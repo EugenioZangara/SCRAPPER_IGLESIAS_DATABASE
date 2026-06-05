@@ -208,7 +208,9 @@ Perfil extendido de usuario para scoring de colaboradores. OneToOne con User.
 - `reportes_enviados`, `reportes_aprobados`, `reportes_rechazados`, `validaciones_enviadas`
 - `parroquia_favorita`: FK → Parroquia, SET_NULL — "Mi Parroquia" del usuario
 - Ordering: `["-score"]`
-- Niveles: Nuevo (0–10) / Confiable (11–50) / Experto (51–99) / Verificado (100+)
+- Niveles legacy (modelo): Nuevo / Confiable / Experto / Verificado
+- Niveles nuevo diseño public (_nivel_nuevo en views.py): Explorador (0) / Vecino (50) / Sacristán (150) / Catequista (300) / Párroco (600)
+- Helpers en views.py: `_nivel_nuevo(score)` → dict con nivel, color, pct, to_next, next_nivel; `_insignias(perfil, ranking_pos)` → lista de insignias; `_gradiente_parroquia(pk)` → (c1, c2)
 - Se crea automáticamente via signal `post_save` en `User`
 - Score se actualiza en `reportar_horario`, `validar_horario`, `aplicar_reporte`, `descartar_reporte`
 
@@ -307,8 +309,10 @@ y el mismo formato de separación `·` que `HorarioMisa.horarios`.
 ## Panel web
 
 ### URLs públicas (sin login)
-- `/publico/` → inicio con buscador HTMX de parroquias + botón "Cerca mío" (geolocalización JS con Haversine, top 10, requiere coordenadas en DB)
+- `/publico/` → inicio con sidebar layout: saludo, card próxima misa (favorita), buscador HTMX + "Cerca mío" (Haversine JS), grid cerca-de-ti con gradientes por pk
 - `/publico/buscar/` → endpoint HTMX de búsqueda (partial `resultados.html`)
+- `/publico/mis-aportes/` → historial de aportes del usuario (requiere login, redirige si no)
+- `/publico/perfil/` → perfil con nivel, insignias, ranking y actividad (requiere login, redirige si no)
 - `/publico/<pk>/` → detalle de parroquia pública
 - `/publico/<pk>/reportar-horario/` → POST — crea ReporteHorario y procesa con IA en background
 - `/publico/<pk>/validar-horario/` → POST — crea ValidacionHorario; devuelve `{ok, total}`

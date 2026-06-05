@@ -1,145 +1,157 @@
 {% if query %}
-  <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">
-    {{ total }} parroquia{{ total|pluralize }} encontrada{{ total|pluralize }}
-    para "{{ query }}"
+  <p style="font:500 13px/1 var(--font-ui);color:var(--muted);margin-bottom:16px;">
+    {{ total }} parroquia{{ total|pluralize }} encontrada{{ total|pluralize }} para "{{ query }}"
   </p>
 {% endif %}
 
 <style>
-  .luminous-results-grid {
+  .pg-results-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
   }
-  .luminous-card {
-    min-height: 122px;
-    background: rgba(255,255,255,.48) !important;
-    border: 1px solid rgba(255,255,255,.72) !important;
-    border-bottom-color: rgba(0,51,102,.14) !important;
-    border-radius: 24px !important;
-    padding: 18px !important;
-    cursor: pointer;
-    backdrop-filter: blur(18px);
-    box-shadow: 0 24px 70px rgba(0,51,102,.07), inset 0 1px 0 rgba(255,255,255,.78) !important;
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  .pg-rcard {
+    background: var(--paper);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    box-shadow: var(--sh-card);
+    text-decoration: none;
+    display: block;
+    transition: transform .16s, box-shadow .18s, border-color .16s;
   }
-  .luminous-card:hover {
-    transform: translateY(-3px);
-    border-bottom-color: var(--gold) !important;
-    box-shadow: 0 30px 80px rgba(0,51,102,.12), 0 0 0 4px rgba(255,193,7,.10) !important;
+  .pg-rcard:hover { transform: translateY(-3px); box-shadow: var(--sh-pop); border-color: var(--navy-300); }
+  .pg-rcard-top {
+    height: 90px; position: relative;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 8px 10px;
   }
-  .luminous-card-title {
-    font-family: var(--display);
-    font-size: 15px !important;
-    font-weight: 700 !important;
-    color: var(--primary-dark) !important;
-    letter-spacing: 0 !important;
+  .pg-rcard-badge {
+    font: 800 10px/1 var(--font-ui); letter-spacing: .04em;
+    background: var(--gold); color: var(--accent-ink);
+    padding: 3px 8px; border-radius: 999px;
   }
-  .luminous-chip {
-    border-radius: 8px !important;
-    background: rgba(255,255,255,.5) !important;
-    border: 1px solid rgba(255,255,255,.62);
-    color: var(--primary) !important;
+  .pg-rcard-fav {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(255,255,255,.2); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: 0; transition: background .15s;
+    position: absolute; top: 8px; right: 8px;
   }
-  .luminous-chip-hours {
-    background: var(--gold-soft) !important;
-    color: var(--gold-dark) !important;
-    border-color: rgba(255,193,7,.38);
+  .pg-rcard-fav:hover { background: rgba(255,255,255,.35); }
+  .pg-rcard-body { padding: 12px; }
+  .pg-rcard-name {
+    font: 700 14px/1.25 var(--font-display); color: var(--ink);
+    margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  .pg-rcard-loc {
+    font: 500 12px/1 var(--font-ui); color: var(--muted);
+    display: flex; align-items: center; gap: 3px; margin-bottom: 7px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pg-rcard-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pg-rcard-next {
+    font: 700 11px/1 var(--font-ui); color: var(--accent-deep);
+    margin-top: 6px;
+  }
+
+  .pg-empty-state { text-align: center; padding: 56px 0; color: var(--muted); }
+  .pg-empty-icon { font-size: 36px; margin-bottom: 14px; display: block; }
+  .pg-empty-title { font: 700 16px/1 var(--font-display); color: var(--ink-soft); margin-bottom: 6px; }
+  .pg-empty-sub { font: 500 13px/1.4 var(--font-ui); color: var(--muted); }
 </style>
 
+<!-- Gradient helper (reusable) -->
+<script>
+if (!window.pgGrad) {
+  window.pgGrad = function(pk) {
+    var c=[['#2d7d6e','#1a5c52'],['#4a7c59','#2d5e3a'],['#8b5e52','#6b3d33'],['#4a5568','#2d3748'],['#7b6b3d','#5c4f2a'],['#5b4a7a','#3d3057']];
+    return c[pk % c.length];
+  };
+  document.addEventListener('htmx:afterSwap', function() {
+    document.querySelectorAll('[data-pk-grad]').forEach(function(el) {
+      var pk = parseInt(el.getAttribute('data-pk-grad'));
+      var col = window.pgGrad(pk);
+      el.style.background = 'linear-gradient(135deg,' + col[0] + ',' + col[1] + ')';
+    });
+  });
+}
+</script>
+
 {% if resultados %}
-<div class="luminous-results-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:12px;">
+<div class="pg-results-grid" id="resultados-grid">
   {% for item in resultados %}
-  <a href="{% url 'iglesias:publico_detalle' item.parroquia.pk %}"
-     style="text-decoration:none;">
-    <div class="luminous-card" style="background:white; border:1px solid var(--rule);
-                border-radius:12px; padding:16px; cursor:pointer;
-                transition:border-color .15s, box-shadow .15s;"
-         onmouseenter="this.style.borderColor='var(--primary)';this.style.boxShadow='0 2px 8px rgba(42,68,148,.08)'"
-         onmouseleave="this.style.borderColor='var(--rule)';this.style.boxShadow='none'">
-      <div class="luminous-card-title" style="font-size:14px; font-weight:500; color:var(--ink);
-                   margin-bottom:4px; line-height:1.3;">
-        {{ item.parroquia.nombre }}
+  <a href="{% url 'iglesias:publico_detalle' item.parroquia.pk %}" class="pg-rcard">
+    <div class="pg-rcard-top" data-pk-grad="{{ item.parroquia.pk }}"
+         style="background:linear-gradient(135deg,#1E4585,#0E2647);">
+      {% if item.tiene_horarios %}
+      <span class="pg-rcard-badge">HOY</span>
+      {% else %}
+      <span></span>
+      {% endif %}
+      <button class="pg-rcard-fav" onclick="event.preventDefault();" aria-label="Favorita">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      </button>
+    </div>
+    <div class="pg-rcard-body">
+      <div class="pg-rcard-name">{{ item.parroquia.nombre }}</div>
+      <div class="pg-rcard-loc">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+        </svg>
+        {{ item.parroquia.barrio|default:"—" }}
       </div>
-      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;
-                   display:flex; align-items:center; gap:4px;">
-        📍 {{ item.parroquia.barrio|default:"—" }}
-      </div>
-      <div style="display:flex; gap:5px; flex-wrap:wrap;">
+      <div class="pg-rcard-tags">
         {% if item.eventos_count > 0 %}
-          <span class="luminous-chip" style="font-size:11px; font-weight:500; padding:2px 8px;
-                       border-radius:999px; background:#e8edf8; color:#2a4494;">
-            {{ item.eventos_count }} evento{{ item.eventos_count|pluralize }}
-          </span>
+          <span class="tag tag-navy">{{ item.eventos_count }} evento{{ item.eventos_count|pluralize }}</span>
         {% endif %}
-        {% if item.tiene_ig %}
-          <span class="luminous-chip" style="font-size:11px; font-weight:500; padding:2px 8px;
-                       border-radius:999px; background:#fce7f3; color:#9d174d;">
-            Instagram
-          </span>
-        {% endif %}
-        {% if item.tiene_fb %}
-          <span class="luminous-chip" style="font-size:11px; font-weight:500; padding:2px 8px;
-                       border-radius:999px; background:#eff6ff; color:#1e40af;">
-            Facebook
-          </span>
-        {% endif %}
-        {% if item.tiene_horarios %}
-          <span class="luminous-chip luminous-chip-hours" style="font-size:11px; font-weight:500; padding:2px 8px;
-                       border-radius:999px; background:#f0fdf4; color:#166534;">
-            Horarios
-          </span>
-        {% endif %}
+        {% if item.tiene_ig %}<span class="tag tag-ig">IG</span>{% endif %}
+        {% if item.tiene_fb %}<span class="tag tag-fb">FB</span>{% endif %}
+        {% if item.tiene_horarios %}<span class="tag tag-green">Horarios</span>{% endif %}
       </div>
     </div>
   </a>
 
   {% if forloop.counter|divisibleby:6 and banners and not forloop.last %}
-  <div style="grid-column:1/-1; margin:4px 0;" aria-label="Publicidad">
+  <div style="grid-column:1/-1;margin:4px 0;" aria-label="Publicidad">
     {% with banner=banners.0 %}
-    {% if banner.url_destino %}
-    <a href="{{ banner.url_destino }}" target="_blank" rel="noopener sponsored"
-       style="display:block; text-decoration:none;">
-    {% endif %}
+    {% if banner.url_destino %}<a href="{{ banner.url_destino }}" target="_blank" rel="noopener sponsored" style="display:block;text-decoration:none;">{% endif %}
       {% if banner.imagen_static %}
         {% load static %}
         <picture>
-          <source media="(max-width: 640px)"
-                  srcset="{% static 'iglesias/img/ad_gaudium2.jpg' %}">
-          <img src="{% static banner.imagen_static %}"
-               alt="{{ banner.texto_alternativo }}"
-               style="width:100%; max-height:160px; object-fit:cover;
-                      object-position:center; border-radius:8px;
-                      border:1px solid var(--rule);">
+          <source media="(max-width:640px)" srcset="{% static 'iglesias/img/ad_gaudium2.jpg' %}">
+          <img src="{% static banner.imagen_static %}" alt="{{ banner.texto_alternativo }}" style="width:100%;max-height:140px;object-fit:cover;object-position:center;border-radius:var(--r-md);border:1px solid var(--line);">
         </picture>
       {% elif banner.imagen %}
-        <img src="{{ banner.imagen.url }}"
-             alt="{{ banner.texto_alternativo }}"
-             style="width:100%; max-height:160px; object-fit:cover;
-                    object-position:center; border-radius:8px;
-                    border:1px solid var(--rule);">
+        <img src="{{ banner.imagen.url }}" alt="{{ banner.texto_alternativo }}" style="width:100%;max-height:140px;object-fit:cover;object-position:center;border-radius:var(--r-md);border:1px solid var(--line);">
       {% else %}
-        <div style="width:100%; height:80px; background:#f0fdf4;
-                    border:1px dashed #86efac; border-radius:8px;
-                    display:flex; align-items:center; justify-content:center;
-                    color:#16a34a; font-size:13px; font-weight:500;">
-          {{ banner.titulo }}
-        </div>
+        <div style="width:100%;height:60px;background:var(--bg-2);border:1px dashed var(--line);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font:500 13px/1 var(--font-ui);color:var(--muted);">{{ banner.titulo }}</div>
       {% endif %}
-    {% if banner.url_destino %}
-    </a>
-    {% endif %}
+    {% if banner.url_destino %}</a>{% endif %}
     {% endwith %}
   </div>
   {% endif %}
 
   {% endfor %}
 </div>
+<script>
+/* Apply gradients after render */
+(function() {
+  document.querySelectorAll('[data-pk-grad]').forEach(function(el) {
+    var pk = parseInt(el.getAttribute('data-pk-grad'));
+    if (window.pgGrad) {
+      var col = window.pgGrad(pk);
+      el.style.background = 'linear-gradient(135deg,' + col[0] + ',' + col[1] + ')';
+    }
+  });
+})();
+</script>
 {% else %}
-<div style="text-align:center; padding:48px 0; color:var(--muted);">
-  <div style="font-size:32px; margin-bottom:12px;">🔍</div>
-  <div style="font-size:15px;">No se encontraron parroquias</div>
-  <div style="font-size:13px; margin-top:6px;">Intentá con otro término</div>
+<div class="pg-empty-state">
+  <span class="pg-empty-icon">🔍</span>
+  <div class="pg-empty-title">No se encontraron parroquias</div>
+  <div class="pg-empty-sub">Intentá con otro término de búsqueda</div>
 </div>
 {% endif %}
