@@ -420,20 +420,22 @@
 
     <!-- Favorita -->
     {% if request.user.is_authenticated %}
-    <button id="btn-favorita" class="pd-fav-btn {% if es_favorita %}active{% endif %}">
+    <button id="btn-favorita"
+            onclick="toggleFavorita({{ parroquia.pk }})"
+            style="width:100%; display:flex; align-items:center; justify-content:center;
+                   gap:8px; padding:10px 16px; border-radius:8px;
+                   font:700 13px/1 var(--font-ui); cursor:pointer; transition:all .15s;
+                   {% if es_favorita %}background:#eeedfe; color:#4f46e5; border:1.5px solid #4f46e5;
+                   {% else %}background:white; color:#6b7280; border:1px solid #e5e7eb;{% endif %}
+                   margin-top:20px;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-              {% if es_favorita %}fill="currentColor"{% endif %}/>
+              {% if es_favorita %}fill="#4f46e5"{% endif %}/>
       </svg>
-      <span id="btn-favorita-text">{% if es_favorita %}Mi parroquia ✓{% else %}Marcar como mi parroquia{% endif %}</span>
+      <span id="btn-favorita-text">
+        {% if es_favorita %}Mi parroquia ✓{% else %}Marcar como mi parroquia{% endif %}
+      </span>
     </button>
-    {% else %}
-    <a href="{% url 'account_login' %}?next={{ request.path }}"
-       onclick="sessionStorage.setItem('pendingFavorita','{{ parroquia.pk }}')"
-       class="pd-fav-btn" style="display:flex;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-      Iniciar sesión para marcar mi parroquia
-    </a>
     {% endif %}
   </div>
 
@@ -525,14 +527,16 @@ function toggleFavorita(pk) {
     const btn=document.getElementById('btn-favorita');
     const txt=document.getElementById('btn-favorita-text');
     const path=btn.querySelector('path');
-    if(d.favorita){btn.classList.add('active');if(path)path.setAttribute('fill','currentColor');txt.textContent='Mi parroquia ✓';}
-    else{btn.classList.remove('active');if(path)path.setAttribute('fill','none');txt.textContent='Marcar como mi parroquia';}
+    if(d.favorita){
+      btn.style.background='#eeedfe'; btn.style.color='#4f46e5'; btn.style.border='1.5px solid #4f46e5';
+      if(path) path.setAttribute('fill','#4f46e5');
+      txt.textContent='Mi parroquia ✓';
+    } else {
+      btn.style.background='white'; btn.style.color='#6b7280'; btn.style.border='1px solid #e5e7eb';
+      if(path) path.setAttribute('fill','none');
+      txt.textContent='Marcar como mi parroquia';
+    }
   }).catch(()=>{});
 }
-
-document.addEventListener('DOMContentLoaded',function(){
-  const btn=document.getElementById('btn-favorita');
-  if(btn) btn.addEventListener('click',function(){toggleFavorita({{ parroquia.pk }});});
-});
 </script>
 {% endblock %}

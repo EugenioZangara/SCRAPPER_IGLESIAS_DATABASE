@@ -1383,7 +1383,9 @@ def publico_perfil(request):
         from django.contrib.auth.views import redirect_to_login
         return redirect_to_login(request.get_full_path())
 
-    perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
+    perfil, _ = PerfilUsuario.objects.select_related(
+        "parroquia_favorita"
+    ).get_or_create(user=request.user)
     nivel_info = _nivel_nuevo(perfil.score)
 
     ranking = list(

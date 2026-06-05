@@ -19,17 +19,6 @@
     color: var(--ink); letter-spacing: -.015em; margin: 0;
   }
 
-  /* ── Two-col home layout ── */
-  .pg-home-grid {
-    display: grid;
-    grid-template-columns: 1.6fr 1fr;
-    gap: 24px;
-    align-items: start;
-  }
-  @media (max-width: 900px) {
-    .pg-home-grid { grid-template-columns: 1fr; }
-  }
-
   /* ── Próxima misa hero card ── */
   .pg-mip {
     position: relative; overflow: hidden;
@@ -80,65 +69,6 @@
   }
   .pg-mip:hover .pg-mip-cta { background: var(--gold-deep); }
   .pg-mip.has-badge { padding-top: 38px; min-height: 100px; }
-  .pg-mip-empty {
-    background: var(--paper); border: 2px dashed var(--line);
-    border-radius: var(--r-xl); padding: 28px 24px;
-    text-align: center; margin-bottom: 24px; text-decoration: none; display: block;
-  }
-  .pg-mip-empty:hover { border-color: var(--navy-300); }
-
-  /* ── Section heading ── */
-  .pg-sh {
-    font: 700 11px/1 var(--font-ui); letter-spacing: .12em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 14px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .pg-sh a { font: 600 12px/1 var(--font-ui); color: var(--navy); text-decoration: none; text-transform: none; letter-spacing: 0; }
-
-  /* ── Cerca de ti grid ── */
-  .pg-cerca-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
-  @media (max-width: 640px) { .pg-cerca-grid { grid-template-columns: 1fr; } }
-
-  .pg-parish-card {
-    border-radius: var(--r-lg); overflow: hidden;
-    background: var(--paper); border: 1px solid var(--line-soft);
-    box-shadow: var(--sh-card); text-decoration: none; display: block;
-    transition: transform .16s, box-shadow .18s, border-color .16s;
-  }
-  .pg-parish-card:hover { transform: translateY(-3px); box-shadow: var(--sh-pop); border-color: var(--navy-300); }
-  .pg-parish-card-grad {
-    height: 88px; position: relative;
-    display: flex; align-items: flex-end; padding: 8px 12px;
-  }
-  .pg-parish-card-badge {
-    font: 800 10px/1 var(--font-ui); letter-spacing: .04em;
-    background: var(--gold); color: var(--accent-ink);
-    padding: 3px 8px; border-radius: 999px;
-  }
-  .pg-parish-card-fav {
-    position: absolute; top: 8px; right: 8px;
-    width: 28px; height: 28px; border-radius: 50%;
-    background: rgba(255,255,255,.2); backdrop-filter: blur(6px);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; border: 0;
-    transition: background .15s;
-  }
-  .pg-parish-card-fav:hover { background: rgba(255,255,255,.35); }
-  .pg-parish-card-body { padding: 12px; }
-  .pg-parish-card-name {
-    font: 700 14px/1.25 var(--font-display); color: var(--ink);
-    margin-bottom: 3px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .pg-parish-card-loc {
-    font: 500 12px/1 var(--font-ui); color: var(--muted);
-    display: flex; align-items: center; gap: 3px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .pg-parish-card-next {
-    font: 700 12px/1 var(--font-ui); color: var(--accent-deep);
-    margin-top: 6px;
-  }
 
   /* ── Buscador ── */
   .pg-search-section { margin-bottom: 28px; }
@@ -169,28 +99,54 @@
   }
   .pg-filter-label:hover { background: var(--bg-2); border-color: var(--navy-300); color: var(--ink); }
 
-  /* ── Right col: mi parroquia list item ── */
-  .pg-fav-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 0; border-bottom: 1px solid var(--line-soft);
-    text-decoration: none;
-  }
-  .pg-fav-row:last-child { border-bottom: none; }
-  .pg-fav-row:hover .pg-fav-name { color: var(--navy); }
-  .pg-fav-dot {
-    width: 40px; height: 40px; border-radius: var(--r-sm); flex-shrink: 0;
-  }
-  .pg-fav-name { font: 700 14px/1.2 var(--font-display); color: var(--ink); margin-bottom: 2px; }
-  .pg-fav-meta { font: 500 11px/1 var(--font-ui); color: var(--muted); }
+  /* ── Cerca de ti (results grid) ── */
+  .pg-cerca-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+  @media (max-width: 640px) { .pg-cerca-grid { grid-template-columns: 1fr; } }
 
-  /* ── CTA colabora ── */
-  .pg-collab {
-    background: linear-gradient(135deg, var(--navy-700), var(--navy-deep));
-    border-radius: var(--r-lg); padding: 20px;
-    color: var(--on-navy); margin-top: 14px; position: relative; overflow: hidden;
+  .pg-parish-card {
+    border-radius: var(--r-lg); overflow: hidden;
+    background: var(--paper); border: 1px solid var(--line-soft);
+    box-shadow: var(--sh-card); text-decoration: none; display: block;
+    transition: transform .16s, box-shadow .18s, border-color .16s;
   }
-  .pg-collab h3 { font: 800 15px/1.3 var(--font-display); margin-bottom: 8px; }
-  .pg-collab p { font: 500 12px/1.5 var(--font-ui); color: var(--on-navy-mut); margin-bottom: 14px; }
+  .pg-parish-card:hover { transform: translateY(-3px); box-shadow: var(--sh-pop); border-color: var(--navy-300); }
+  .pg-parish-card-grad {
+    height: 88px; position: relative;
+    display: flex; align-items: flex-end; padding: 8px 12px;
+  }
+  .pg-parish-card-fav {
+    position: absolute; top: 8px; right: 8px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255,255,255,.2); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: 0; transition: background .15s;
+  }
+  .pg-parish-card-fav:hover { background: rgba(255,255,255,.35); }
+  .pg-parish-card-body { padding: 12px; }
+  .pg-parish-card-name {
+    font: 700 14px/1.25 var(--font-display); color: var(--ink);
+    margin-bottom: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pg-parish-card-loc {
+    font: 500 12px/1 var(--font-ui); color: var(--muted);
+    display: flex; align-items: center; gap: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* ── Section heading ── */
+  .pg-sh {
+    font: 700 11px/1 var(--font-ui); letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .pg-sh a { font: 600 12px/1 var(--font-ui); color: var(--navy); text-decoration: none; text-transform: none; letter-spacing: 0; }
+
+  /* ── Responsive grid ── */
+  @media (max-width: 768px) {
+    .inicio-grid { grid-template-columns: 1fr !important; }
+    .inicio-sidebar { order: -1; }
+  }
 </style>
 
 <!-- ── Greeting ── -->
@@ -205,14 +161,16 @@
   </h1>
 </div>
 
-<div class="pg-home-grid">
-  <!-- ══ LEFT COLUMN ══ -->
+<div class="inicio-grid"
+     style="display:grid; grid-template-columns:1fr 320px; gap:24px; align-items:start;">
+
+  <!-- ══ COLUMNA PRINCIPAL ══ -->
   <div>
 
-    <!-- Próxima misa card -->
     {% if mi_parroquia %}
-    <a id="mi-parroquia"
-       href="{% url 'iglesias:publico_detalle' mi_parroquia.pk %}"
+    <!-- Card próxima misa -->
+    <div id="mi-parroquia">
+    <a href="{% url 'iglesias:publico_detalle' mi_parroquia.pk %}"
        class="pg-mip {% if mi_parroquia.proxima_misa %}has-badge{% endif %}">
       <svg class="pg-mip-hills" viewBox="0 0 800 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M0,50 C120,15 240,65 360,30 C480,0 600,55 720,25 C760,12 780,40 800,20 L800,80 L0,80 Z" fill="white"/>
@@ -254,12 +212,7 @@
         {% if mi_parroquia.tiene_horarios %}Ver horarios →{% else %}Ver detalle →{% endif %}
       </div>
     </a>
-    {% elif request.user.is_authenticated %}
-    <a href="{% url 'iglesias:publico_inicio' %}#buscador" class="pg-mip-empty" id="mi-parroquia">
-      <div style="font-size:28px; margin-bottom:10px;">📍</div>
-      <div style="font:700 15px/1.3 var(--font-display);color:var(--ink);margin-bottom:6px;">Guardá tu parroquia favorita</div>
-      <div style="font:500 13px/1.5 var(--font-ui);color:var(--muted);">Buscá tu parroquia y marcala como favorita para ver tu próxima misa aquí.</div>
-    </a>
+    </div><!-- /mi-parroquia anchor -->
     {% endif %}
 
     <!-- Buscador -->
@@ -325,18 +278,7 @@
       </div>
     </div>
 
-    <!-- Cerca de ti (geolocation grid) -->
-    <div id="cerca-section" style="margin-bottom:28px;">
-      <div class="pg-sh" id="cerca-header" style="display:none;">
-        <span>Cerca de ti</span>
-        <button id="btn-ver-todas" onclick="volverAlListado()"
-                style="font:600 12px/1 var(--font-ui);color:var(--navy);background:none;border:none;cursor:pointer;">
-          ← Ver todas
-        </button>
-      </div>
-    </div>
-
-    <!-- Results -->
+    <!-- Resultados -->
     <div id="resultados"></div>
     <div hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="load"
          hx-target="#resultados" style="display:none;"></div>
@@ -347,66 +289,86 @@
         <li><a href="{% url 'iglesias:publico_detalle' p.pk %}">{{ p.nombre }}{% if p.barrio %}, {{ p.barrio }}{% endif %}</a></li>
       {% endfor %}</ul>
     </div>
-  </div>
 
-  <!-- ══ RIGHT COLUMN ══ -->
-  <div>
-    {% if mi_parroquia %}
-    <div class="pub-section">
-      <div class="pg-sh">
-        <span>Mi parroquia</span>
+  </div><!-- /columna principal -->
+
+  <!-- ══ COLUMNA DERECHA ══ -->
+  <div class="inicio-sidebar" style="display:flex; flex-direction:column; gap:16px;">
+
+    {% if not mi_parroquia %}
+    <!-- Guardá tu parroquia favorita -->
+    <div style="background:var(--paper); border:1.5px dashed var(--line);
+                border-radius:var(--r-lg); padding:20px; text-align:center;">
+      <div style="font-size:24px; margin-bottom:8px;">📍</div>
+      <div style="font:700 14px/1.3 var(--font-display); color:var(--ink); margin-bottom:6px;">
+        Guardá tu parroquia favorita
       </div>
-      <a href="{% url 'iglesias:publico_detalle' mi_parroquia.pk %}" class="pg-fav-row">
-        <div class="pg-fav-dot" id="fav-dot-{{ mi_parroquia.pk }}"
-             style="background:linear-gradient(135deg,#1E4585,#0E2647);"></div>
-        <div style="flex:1;min-width:0;">
-          <div class="pg-fav-name">{{ mi_parroquia.nombre }}</div>
-          <div class="pg-fav-meta">{{ mi_parroquia.barrio }}</div>
+      <div style="font:500 12px/1.5 var(--font-ui); color:var(--muted);">
+        Buscá tu parroquia y marcala como favorita para ver tu próxima misa aquí.
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Cerca de ti -->
+    <div style="background:var(--paper); border:1px solid var(--line-soft);
+                border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--sh-card);">
+      <div style="padding:14px 16px; border-bottom:1px solid var(--line-soft);
+                  font:700 11px/1 var(--font-ui); text-transform:uppercase;
+                  letter-spacing:.06em; color:var(--muted);">
+        Cerca de ti
+      </div>
+      <div style="padding:14px 16px;">
+        <button id="btn-cerca" onclick="buscarCercaMio()"
+                style="width:100%; display:flex; align-items:center; justify-content:center;
+                       gap:8px; padding:10px 16px; border-radius:var(--r-sm);
+                       font:700 13px/1 var(--font-ui); border:1.5px solid var(--navy);
+                       background:var(--navy); color:var(--on-navy); cursor:pointer;
+                       transition:background .15s; box-shadow:0 4px 14px rgba(20,49,94,.18);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+            <path d="M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
+          </svg>
+          <span id="btn-cerca-text">Parroquias cerca mío</span>
+        </button>
+        <div id="cerca-error"
+             style="display:none; font:500 12px/1 var(--font-ui); color:#dc2626; margin-top:8px;"></div>
+        <div id="ver-todas-wrap" style="display:none; margin-top:8px; text-align:center;">
+          <button onclick="volverAlListado()"
+                  style="font:600 13px/1 var(--font-ui); color:var(--muted);
+                         background:none; border:none; cursor:pointer; text-decoration:underline;">
+            ← Ver todas las parroquias
+          </button>
         </div>
-      </a>
-    </div>
-    {% endif %}
-
-    <!-- Cerca de ti button -->
-    <div class="pub-section">
-      <div class="pg-sh"><span>Cerca de ti</span></div>
-      <button id="btn-cerca" onclick="buscarCercaMio()"
-              style="width:100%;display:flex;align-items:center;justify-content:center;gap:9px;
-                     padding:12px 18px;border-radius:var(--r-md);font:700 14px/1 var(--font-ui);
-                     background:var(--navy);color:var(--on-navy);border:none;cursor:pointer;
-                     transition:background .15s;box-shadow:0 4px 14px rgba(20,49,94,.22);">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-          <path d="M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
-        </svg>
-        <span id="btn-cerca-text">Parroquias cerca mío</span>
-      </button>
-      <div id="cerca-error" style="display:none;font:500 12px/1 var(--font-ui);color:#dc2626;margin-top:10px;"></div>
-    </div>
-
-    <!-- Colabora CTA -->
-    {% if not request.user.is_authenticated %}
-    <div class="pg-collab">
-      <h3>Colaborá y ganás reputación</h3>
-      <p>Confirmá horarios, reportá cambios y subí en el ranking comunitario.</p>
-      <a href="{% url 'socialaccount_signup' %}" class="btn btn-accent btn-sm">
-        Crear cuenta gratis
-      </a>
-    </div>
-    {% endif %}
-
-    <!-- Ranking preview -->
-    <div class="pub-section" style="margin-top:14px;">
-      <div class="pg-sh">
-        <span>Colaboradores</span>
-        <a href="{% url 'iglesias:publico_ranking' %}">Ver ranking →</a>
       </div>
-      <p style="font:500 13px/1.5 var(--font-ui);color:var(--muted);">
+    </div>
+
+    <!-- Colaboradores -->
+    <div style="background:var(--paper); border:1px solid var(--line-soft);
+                border-radius:var(--r-lg); padding:16px; box-shadow:var(--sh-card);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="font:700 11px/1 var(--font-ui); text-transform:uppercase;
+                    letter-spacing:.06em; color:var(--muted);">
+          Colaboradores
+        </div>
+        <a href="{% url 'iglesias:publico_ranking' %}"
+           style="font:600 12px/1 var(--font-ui); color:var(--navy); text-decoration:none;">
+          Ver ranking →
+        </a>
+      </div>
+      <p style="font:500 13px/1.5 var(--font-ui); color:var(--muted); margin:0;">
         Comunidad que mantiene actualizada la información de las parroquias.
       </p>
+      {% if not request.user.is_authenticated %}
+      <a href="{% url 'socialaccount_signup' %}" class="btn btn-accent btn-sm"
+         style="margin-top:14px; width:100%; justify-content:center;">
+        Crear cuenta gratis
+      </a>
+      {% endif %}
     </div>
-  </div>
-</div>
+
+  </div><!-- /columna derecha -->
+
+</div><!-- /inicio-grid -->
 
 <noscript>
 <h2 style="font:700 16px/1 var(--font-display);color:var(--ink);margin:20px 0 12px;">Todas las parroquias</h2>
@@ -475,8 +437,8 @@ function buscarCercaMio() {
 }
 
 function mostrarCercanas(parroquias) {
-  const header = document.getElementById('cerca-header');
-  if (header) header.style.display='flex';
+  const wrap = document.getElementById('ver-todas-wrap');
+  if (wrap) wrap.style.display = 'block';
   let html = '<div class="pg-cerca-grid">';
   parroquias.forEach(p => {
     const [c1,c2] = gradParroquia(p.pk);
@@ -503,8 +465,8 @@ function mostrarCercanas(parroquias) {
 }
 
 function volverAlListado() {
-  const header = document.getElementById('cerca-header');
-  if (header) header.style.display = 'none';
+  const wrap = document.getElementById('ver-todas-wrap');
+  if (wrap) wrap.style.display = 'none';
   htmx.ajax('GET', '{% url "iglesias:publico_buscar" %}', {target:'#resultados',swap:'innerHTML'});
 }
 

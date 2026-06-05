@@ -628,6 +628,37 @@
 
 <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 <script>
+{% if request.user.is_authenticated %}
+function toggleFavorita(pk) {
+  const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
+  fetch('/publico/'+pk+'/favorita/', {method:'POST', headers:{'X-CSRFToken':csrf}})
+  .then(r=>r.json()).then(data=>{
+    if (data.login_required) {
+      sessionStorage.setItem('pendingFavorita', pk);
+      window.location.href = '/accounts/login/?next=' + window.location.pathname;
+      return;
+    }
+    document.querySelectorAll('[data-favorita-pk="'+pk+'"]').forEach(btn=>{
+      if (data.favorita) {
+        btn.style.background = 'rgba(79,70,229,.15)';
+        btn.querySelector('path').setAttribute('fill','#4f46e5');
+        btn.querySelector('path').setAttribute('stroke','#4f46e5');
+      } else {
+        btn.style.background = 'rgba(255,255,255,.2)';
+        btn.querySelector('path').setAttribute('fill','none');
+        btn.querySelector('path').setAttribute('stroke','white');
+      }
+    });
+  }).catch(()=>{});
+}
+{% else %}
+function toggleFavorita(pk) {
+  sessionStorage.setItem('pendingFavorita', pk);
+  window.location.href = '/accounts/login/?next=' + window.location.pathname;
+}
+{% endif %}
+</script>
+<script>
 /* Topbar search: focus main search on home page, else navigate */
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.querySelector('.pg-top-search');
