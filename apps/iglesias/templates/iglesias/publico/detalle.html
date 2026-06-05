@@ -1,17 +1,23 @@
 {% extends "iglesias/publico/base_publica.html" %}
 
+{% block page_title %}{{ parroquia.nombre }} — Horarios de misas y eventos | ParroGuía{% endblock %}
+
+{% block og_type %}place{% endblock %}
+{% block og_title %}{{ parroquia.nombre }} | ParroGuía{% endblock %}
+{% block og_description %}Horarios de misas y eventos de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% endif %}.{% endblock %}
+{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_detalle' parroquia.pk %}{% endblock %}
+{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_detalle' parroquia.pk %}{% endblock %}
+{% block twitter_title %}{{ parroquia.nombre }} | ParroGuía{% endblock %}
+{% block twitter_description %}Horarios de misas y eventos de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% endif %}.{% endblock %}
+
 {% block meta_extra %}
-<title>{{ parroquia.nombre }} — Horarios de misas y eventos | ParroGuía</title>
 <meta name="description" content="Horarios de misas, eventos y contacto de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}, Buenos Aires{% endif %}. Parroquia de la Arquidiócesis de Buenos Aires.">
-<meta property="og:title" content="{{ parroquia.nombre }} | ParroGuía">
-<meta property="og:description" content="Horarios de misas y eventos de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% endif %}.">
-<meta property="og:url" content="https://scrapper-iglesias-database.onrender.com/publico/{{ parroquia.pk }}/">
-<link rel="canonical" href="https://scrapper-iglesias-database.onrender.com/publico/{{ parroquia.pk }}/">
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Church",
+  "@id": "{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_detalle' parroquia.pk %}",
   "name": "{{ parroquia.nombre }}",
   "address": {
     "@type": "PostalAddress",
@@ -28,9 +34,7 @@
   {% endif %}
   {% if parroquia.horarios_misa.exists %}
   ,"openingHours": [
-    {% for h in parroquia.horarios_misa.all %}
-    "{{ h.get_dia_semana_display|slice:':2'|upper }} {{ h.horarios }}"
-    {% if not forloop.last %},{% endif %}
+    {% for h in parroquia.horarios_misa.all %}{% for entry in h.schema_opening_hours %}"{{ entry }}"{% if not forloop.last %},{% endif %}{% endfor %}{% if not forloop.last %},{% endif %}
     {% endfor %}
   ]
   {% endif %}

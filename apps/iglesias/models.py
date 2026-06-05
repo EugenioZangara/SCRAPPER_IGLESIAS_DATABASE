@@ -260,6 +260,14 @@ class HorarioMisa(models.Model):
         ordering = ["dia_semana"]
         unique_together = ("parroquia", "dia_semana")
 
+    _SCHEMA_DAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+
+    @property
+    def schema_opening_hours(self):
+        day = self._SCHEMA_DAYS[self.dia_semana]
+        times = [t.strip() for t in self.horarios.split("·") if t.strip()]
+        return [f"{day} {t}-{t}" for t in times]
+
     def __str__(self):
         return f"{self.get_dia_semana_display()}: {self.horarios} — {self.parroquia.nombre}"
 

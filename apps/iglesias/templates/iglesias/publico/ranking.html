@@ -1,7 +1,14 @@
 {% extends "iglesias/publico/base_publica.html" %}
 
+{% block page_title %}Ranking de colaboradores | ParroGuía{% endblock %}
+{% block og_title %}Ranking de colaboradores | ParroGuía{% endblock %}
+{% block og_description %}Los usuarios más activos que ayudan a mantener actualizada la información de las parroquias de Buenos Aires.{% endblock %}
+{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_ranking' %}{% endblock %}
+{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_ranking' %}{% endblock %}
+{% block twitter_title %}Ranking de colaboradores | ParroGuía{% endblock %}
+{% block twitter_description %}Los usuarios más activos que ayudan a mantener actualizada la información de las parroquias de Buenos Aires.{% endblock %}
+
 {% block meta_extra %}
-<title>Ranking de colaboradores | ParroGuía</title>
 <meta name="description" content="Los usuarios más activos que ayudan a mantener actualizada la información de las parroquias de Buenos Aires.">
 {% endblock %}
 

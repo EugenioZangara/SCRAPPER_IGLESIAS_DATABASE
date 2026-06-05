@@ -1,12 +1,12 @@
 {% extends "iglesias/publico/base_publica.html" %}
 
+{% block page_title %}ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires{% endblock %}
+
+{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_inicio' %}{% endblock %}
+{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_inicio' %}{% endblock %}
+
 {% block meta_extra %}
-<title>ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires</title>
 <meta name="description" content="Encontrá tu parroquia en Buenos Aires. Horarios de misas, eventos, contacto y ubicación de las {{ total }} parroquias de la Arquidiócesis de Buenos Aires.">
-<meta property="og:title" content="ParroGuía — Parroquias de Buenos Aires">
-<meta property="og:description" content="Directorio de parroquias católicas de la Arquidiócesis de Buenos Aires con horarios de misas y eventos.">
-<meta property="og:url" content="https://scrapper-iglesias-database.onrender.com/publico/">
-<link rel="canonical" href="https://scrapper-iglesias-database.onrender.com/publico/">
 {% endblock %}
 
 {% block content %}

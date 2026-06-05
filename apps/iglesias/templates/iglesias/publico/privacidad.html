@@ -1,9 +1,10 @@
 {% extends "iglesias/publico/base_publica.html" %}
 
+{% block page_title %}Política de Privacidad — ParroGuía{% endblock %}
+{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:privacidad' %}{% endblock %}
+
 {% block meta_extra %}
-<title>Política de Privacidad — ParroGuía</title>
 <meta name="description" content="Política de privacidad de ParroGuía. Información sobre el tratamiento de datos personales, cookies y publicidad en nuestro sitio.">
-<link rel="canonical" href="https://scrapper-iglesias-database.onrender.com/publico/privacidad/">
 {% endblock %}
 
 {% block content %}

@@ -1668,22 +1668,28 @@ def reporte_card(request, pk):
 
 
 def sitemap(request):
+    from datetime import date as _date
     parroquias = Parroquia.objects.all().order_by("id")
+    base_url = f"{request.scheme}://{request.get_host()}"
     return render(request, "iglesias/publico/sitemap.xml",
-                  {"parroquias": parroquias},
+                  {"parroquias": parroquias, "base_url": base_url,
+                   "today": _date.today().isoformat()},
                   content_type="application/xml")
 
 
 def robots_txt(request):
+    base_url = f"{request.scheme}://{request.get_host()}"
     content = (
         "User-agent: *\n"
         "Allow: /publico/\n"
         "Disallow: /admin/\n"
+        "Disallow: /accounts/\n"
+        "Disallow: /api/\n"
         "Disallow: /eventos/\n"
         "Disallow: /parroquias/\n"
         "Disallow: /scraper/\n"
         "Disallow: /horarios/\n"
-        "Sitemap: https://scrapper-iglesias-database.onrender.com/sitemap.xml\n"
+        f"Sitemap: {base_url}/sitemap.xml\n"
     )
     from django.http import HttpResponse
     return HttpResponse(content, content_type="text/plain")

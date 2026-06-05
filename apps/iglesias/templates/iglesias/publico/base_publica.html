@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Parroquias BA</title>
+  <title>{% block page_title %}ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires{% endblock %}</title>
   <link rel="icon" type="image/png" href="/static/iglesias/img/parroguia_logo.png">
   <link rel="apple-touch-icon" href="/static/iglesias/img/parroguia_logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -275,6 +275,18 @@
   <link rel="stylesheet" href="{% static 'iglesias/css/public.css' %}">
   <meta name="robots" content="index, follow">
   <meta property="og:site_name" content="ParroGuía">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Directorio de parroquias católicas de la Arquidiócesis de Buenos Aires con horarios de misas y eventos.{% endblock %}">
+  <meta property="og:url" content="{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}/static/iglesias/img/parroguia_logo.png{% endblock %}">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{% block twitter_title %}ParroGuía — Parroquias de Buenos Aires{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}Directorio de parroquias católicas de la Arquidiócesis de Buenos Aires.{% endblock %}">
+  <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}/static/iglesias/img/parroguia_logo.png{% endblock %}">
+  <link rel="canonical" href="{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
   <meta name="theme-color" content="#2a4494">
   <meta name="msapplication-TileColor" content="#2a4494">
   {% block meta_extra %}{% endblock %}
