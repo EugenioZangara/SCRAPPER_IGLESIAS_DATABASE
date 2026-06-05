@@ -276,6 +276,7 @@
   <meta name="robots" content="index, follow">
   <meta property="og:site_name" content="ParroGuía">
   <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  {% if FACEBOOK_APP_ID %}<meta property="fb:app_id" content="{{ FACEBOOK_APP_ID }}">{% endif %}
   <meta property="og:title" content="{% block og_title %}ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires{% endblock %}">
   <meta property="og:description" content="{% block og_description %}Directorio de parroquias católicas de la Arquidiócesis de Buenos Aires con horarios de misas y eventos.{% endblock %}">
   <meta property="og:url" content="{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">

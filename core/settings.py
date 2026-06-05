@@ -74,6 +74,8 @@ LOGIN_REDIRECT_URL = "/publico/"
 LOGOUT_REDIRECT_URL = "/publico/"
 LOGIN_URL = "/accounts/login/"
 
+FACEBOOK_APP_ID = env("FACEBOOK_APP_ID", default="")
+
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "APP": {
@@ -120,6 +122,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.iglesias.context_processors.seo_context",
             ],
         },
     },
