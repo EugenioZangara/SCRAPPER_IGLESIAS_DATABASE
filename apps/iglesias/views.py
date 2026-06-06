@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, ValidacionHorario, Banner, VotoHorario, ComentarioParroquia, PerfilUsuario
+from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, ValidacionHorario, Banner, VotoHorario, ComentarioParroquia, PerfilUsuario, HorarioPropuestoAgregado
 
 from django.views.decorators.http import require_POST
 from django.urls import reverse
@@ -1611,6 +1611,15 @@ def publico_detalle(request, pk):
         v = votos.filter(session_key=request.session.session_key, usuario__isnull=True).first()
         voto_usuario = v.valor if v else None
 
+    horarios_propuestos = HorarioPropuestoAgregado.objects.filter(
+        parroquia=parroquia
+    ).order_by('dia_semana')
+
+    import logging as _logging
+    _logging.getLogger(__name__).info(
+        f"[detalle] parroquia {parroquia.pk}: horarios_propuestos count={horarios_propuestos.count()}"
+    )
+
     return render(request, "iglesias/publico/detalle.html", {
         "parroquia": parroquia,
         "redes": redes_verificadas,
@@ -1627,6 +1636,8 @@ def publico_detalle(request, pk):
         "pct_up": pct_up,
         "voto_usuario": voto_usuario,
         "hoy_dia": date.today().weekday(),
+        "horarios_propuestos": horarios_propuestos,
+        "UMBRAL_CONFIANZA_ALTA": 1.5,
     })
 
 
@@ -1712,6 +1723,10 @@ def agregar_comentario(request, pk):
                     usuario=usuario,
                 )
                 ComentarioParroquia.objects.filter(pk=comentario.pk).update(reporte=reporte)
+                import logging as _log
+                _log.getLogger(__name__).info(
+                    f"[comentar] reporte creado pk={reporte.pk} fuente={reporte.fuente} propuesta_ia={reporte.propuesta_ia}"
+                )
                 if usuario:
                     PerfilUsuario.objects.filter(user=usuario).update(
                         score=db_models.F('score') + 5,

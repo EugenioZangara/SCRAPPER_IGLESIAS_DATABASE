@@ -544,3 +544,32 @@ class ComentarioParroquia(models.Model):
 
     def __str__(self):
         return f"{self.usuario or 'Anónimo'} → {self.parroquia} ({self.fecha:%d/%m/%Y})"
+
+
+class HorarioPropuestoAgregado(models.Model):
+    parroquia = models.ForeignKey(
+        'Parroquia', on_delete=models.CASCADE,
+        related_name='horarios_propuestos'
+    )
+    dia_semana = models.IntegerField(
+        choices=[(i, d) for i, d in enumerate(
+            ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+        )]
+    )
+    # JSON: [{"hora": "18:30", "peso": 1.4, "estado": "nuevo"}, ...]
+    # estado: "coincide" | "nuevo" | "eliminado"
+    horarios_json = models.JSONField(default=list)
+    confianza = models.FloatField(default=0.0)  # 0.0 a 1.0
+    total_aportes = models.IntegerField(default=0)
+    aportes_con_historial = models.IntegerField(default=0)
+    ultima_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('parroquia', 'dia_semana')
+        ordering = ['dia_semana']
+        verbose_name = 'Horario propuesto agregado'
+        verbose_name_plural = 'Horarios propuestos agregados'
+
+    def __str__(self):
+        dia = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'][self.dia_semana]
+        return f"{self.parroquia} — {dia}"

@@ -63,3 +63,20 @@ def actualizar_score_validacion(validacion):
         perfil.save()
     except Exception:
         pass
+
+
+@receiver(post_save, sender='iglesias.ReporteHorario')
+def actualizar_propuestos_on_reporte(sender, instance, **kwargs):
+    import logging
+    logging.getLogger(__name__).info(
+        f"[signal] ReporteHorario {instance.pk} saved — fuente={instance.fuente} parroquia={instance.parroquia_id}"
+    )
+    if instance.fuente == 'usuario' and instance.parroquia_id:
+        try:
+            from .ia_propuestas import reconstruir_propuestos
+            reconstruir_propuestos(instance.parroquia)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(
+                f"[signal] Error reconstruyendo propuestos: {e}"
+            )

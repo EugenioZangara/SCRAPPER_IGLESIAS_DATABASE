@@ -1,5 +1,5 @@
 {% extends "iglesias/publico/base_publica.html" %}
-{% load humanize static %}
+{% load humanize static horario_filters %}
 
 {% block page_title %}{{ parroquia.nombre }} — Horarios de misas y eventos | ParroGuía{% endblock %}
 {% block og_type %}place{% endblock %}
@@ -252,7 +252,36 @@
   .pg-sin-datos { padding:28px; text-align:center; color:var(--muted); font:500 14px/1.5 var(--font-ui); }
 
   /* Avatar hero fallback */
-  .pd-hero-avatar-img { position:absolute; inset:0; z-index:0; width:100%; height:100%; object-fit:contain; opacity:.20; padding:24px; }
+  .pd-hero-avatar-img { position:absolute; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; }
+
+  /* ── El prójimo dice ── */
+  .horarios-section { margin-bottom: 0; }
+  .horarios-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+  @media (max-width: 600px) { .horarios-grid { grid-template-columns: 1fr; } }
+  .col-horarios { border-radius: 12px; border: 1px solid var(--line-soft); overflow: hidden; }
+  .col-header-oficial { background: var(--navy); color: var(--gold); padding: 10px 14px; font: 600 13px/1 var(--font-ui); display: flex; align-items: center; gap: 8px; }
+  .col-header-projimo { background: #fdf8ec; color: #b8860b; padding: 10px 14px; font: 600 13px/1 var(--font-ui); display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line-soft); }
+  .badge-verificado-col { background: rgba(242,160,7,.22); color: var(--gold); font: 700 10px/1 var(--font-ui); padding: 2px 7px; border-radius: 20px; }
+  .badge-aportes-col { background: #fde9a0; color: #7a5800; font: 700 10px/1 var(--font-ui); padding: 2px 7px; border-radius: 20px; }
+  .col-body { padding: 10px 14px; }
+  .dia-row-prop { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--rule-2, #f3f4f6); }
+  .dia-row-prop:last-of-type { border-bottom: none; }
+  .dia-label-prop { font: 600 12px/1 var(--font-ui); color: var(--muted); min-width: 32px; padding-top: 4px; }
+  .times-prop { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pill-prop { font: 600 12px/1 var(--font-ui); padding: 3px 8px; border-radius: 20px; }
+  .pill-oficial-col { background: #e8eef7; color: var(--navy); }
+  .pill-coincide { background: #fdf3dc; color: #7a5800; }
+  .pill-nuevo { background: #e6f7ee; color: #1a6b3c; }
+  .pill-conf { background: #ede9fb; color: #3c2e8a; }
+  .pill-eliminado { background: #fceaea; color: #991f1f; text-decoration: line-through; font-size: 11px; }
+  .sin-horarios-prop { font: 500 13px/1.4 var(--font-ui); color: var(--muted); font-style: italic; padding: 8px 0; }
+  .confianza-footer { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
+  .confianza-label { font: 600 11px/1 var(--font-ui); color: var(--muted); }
+  .confianza-bar-wrap { flex: 1; height: 4px; background: var(--line-soft); border-radius: 2px; }
+  .confianza-bar-fill { height: 4px; border-radius: 2px; background: #7c6ac0; }
+  .confianza-pct { font: 700 11px/1 var(--font-ui); color: #7c6ac0; min-width: 32px; text-align: right; }
+  .confianza-detalle { font: 500 11px/1.4 var(--font-ui); color: var(--muted); margin: 4px 0 0; }
+  .horarios-leyenda { font: 500 11px/1.4 var(--font-ui); color: var(--muted); margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 </style>
 
 <!-- Hero header -->
@@ -312,40 +341,128 @@
     <section aria-label="Horarios de misas y comentarios">
       <div class="pg-horarios-grid">
 
-        <!-- COLUMNA IZQUIERDA: Horarios + votos -->
+        <!-- COLUMNA IZQUIERDA: Horarios oficiales + El prójimo dice + votos -->
         <div>
-          <div class="pg-eyebrow-row">
-            <h3 class="pg-eyebrow">Horarios de misas</h3>
-            {% if parroquia.horarios_verificados %}
-            <span class="tag tag-green">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Verificado
-            </span>
-            {% else %}
-            <span class="tag tag-gold">Por verificar</span>
-            {% endif %}
-          </div>
+          <section class="horarios-section" aria-label="Horarios de misa">
+            {% if horarios_propuestos %}
+            <div class="horarios-grid">
 
-          <div class="pg-card pg-sched">
-            {% for h in horarios %}
-            <div class="pg-dayrow{% if h.dia_semana == hoy_dia %} is-today{% endif %}{% if h.dia_semana >= 5 %} is-finde{% endif %}">
-              <span class="pg-dayname">
-                {{ h.get_dia_semana_display }}
-                {% if h.dia_semana == hoy_dia %}<span class="pg-todaytag">hoy</span>{% endif %}
-              </span>
-              <span class="pg-daytimes">
-                {% if h.horarios %}
-                <span class="pg-time">{{ h.horarios }}</span>
-                {% else %}
-                <span class="pg-notimes">Sin misas</span>
-                {% endif %}
-              </span>
+              <!-- Columna oficial -->
+              <div class="col-horarios col-oficial">
+                <div class="col-header-oficial">
+                  <span>Horarios oficiales</span>
+                  {% if parroquia.horarios_verificados %}
+                  <span class="badge-verificado-col">verificado</span>
+                  {% endif %}
+                </div>
+                <div class="col-body">
+                  {% for h in horarios %}
+                  <div class="dia-row-prop{% if h.dia_semana == hoy_dia %} is-today{% endif %}">
+                    <span class="dia-label-prop">{{ h.get_dia_semana_display|slice:":3" }}</span>
+                    <div class="times-prop">
+                      {% if h.horarios %}
+                        {% for hora in h.horarios|split_horarios %}
+                        <span class="pill-prop pill-oficial-col">{{ hora }}</span>
+                        {% endfor %}
+                      {% else %}
+                        <span class="sin-horarios-prop">Sin misas</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                  {% empty %}
+                  <p class="sin-horarios-prop">Sin horarios oficiales cargados aún.</p>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <!-- Columna prójimo -->
+              <div class="col-horarios col-projimo">
+                <div class="col-header-projimo">
+                  <span>El prójimo dice</span>
+                  <span class="badge-aportes-col">{{ horarios_propuestos|length }} día{% if horarios_propuestos|length != 1 %}s{% endif %} con aportes</span>
+                </div>
+                <div class="col-body">
+                  {% for hp in horarios_propuestos %}
+                  <div class="dia-row-prop">
+                    <span class="dia-label-prop">{{ hp.get_dia_semana_display|slice:":3" }}</span>
+                    <div class="times-prop">
+                      {% for item in hp.horarios_json %}
+                        {% if item.estado == 'coincide' %}
+                        <span class="pill-prop pill-coincide" title="Confirma horario oficial">{{ item.hora }}</span>
+                        {% elif item.estado == 'nuevo' %}
+                          {% if item.peso >= 1.5 %}
+                          <span class="pill-prop pill-conf" title="Varios usuarios coinciden">{{ item.hora }}</span>
+                          {% else %}
+                          <span class="pill-prop pill-nuevo" title="Horario propuesto">{{ item.hora }}</span>
+                          {% endif %}
+                        {% elif item.estado == 'eliminado' %}
+                        <span class="pill-prop pill-eliminado" title="Reportado como ya no vigente">{{ item.hora }}</span>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  </div>
+                  {% endfor %}
+
+                  {% with pct=horarios_propuestos|confianza_promedio %}
+                  <div class="confianza-footer">
+                    <span class="confianza-label">Confianza</span>
+                    <div class="confianza-bar-wrap">
+                      <div class="confianza-bar-fill" style="width:{{ pct }}%;"></div>
+                    </div>
+                    <span class="confianza-pct">{{ pct }}%</span>
+                  </div>
+                  {% endwith %}
+                  <p class="confianza-detalle">{{ horarios_propuestos|total_aportes }} aporte{% if horarios_propuestos|total_aportes != 1 %}s{% endif %} · {{ horarios_propuestos|aportes_historial }} con historial aprobado</p>
+                </div>
+              </div>
+
             </div>
-            {% empty %}
-            <p class="pg-notimes" style="padding:20px 0;text-align:center;">Horarios no disponibles aún.</p>
-            {% endfor %}
 
-            <!-- Votos sobre los horarios -->
+            <!-- Leyenda -->
+            <div class="horarios-leyenda" aria-label="Leyenda de colores">
+              <span class="pill-prop pill-oficial-col leg">8:00</span> oficial &nbsp;
+              <span class="pill-prop pill-coincide leg">8:00</span> confirmado &nbsp;
+              <span class="pill-prop pill-nuevo leg">18:30</span> propuesto &nbsp;
+              <span class="pill-prop pill-conf leg">19:00</span> alta coincidencia
+            </div>
+
+            {% else %}
+            <!-- Sin aportes: solo horarios oficiales -->
+            <div class="pg-eyebrow-row">
+              <h3 class="pg-eyebrow">Horarios de misas</h3>
+              {% if parroquia.horarios_verificados %}
+              <span class="tag tag-green">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Verificado
+              </span>
+              {% else %}
+              <span class="tag tag-gold">Por verificar</span>
+              {% endif %}
+            </div>
+            <div class="pg-card pg-sched">
+              {% for h in horarios %}
+              <div class="pg-dayrow{% if h.dia_semana == hoy_dia %} is-today{% endif %}{% if h.dia_semana >= 5 %} is-finde{% endif %}">
+                <span class="pg-dayname">
+                  {{ h.get_dia_semana_display }}
+                  {% if h.dia_semana == hoy_dia %}<span class="pg-todaytag">hoy</span>{% endif %}
+                </span>
+                <span class="pg-daytimes">
+                  {% if h.horarios %}
+                  <span class="pg-time">{{ h.horarios }}</span>
+                  {% else %}
+                  <span class="pg-notimes">Sin misas</span>
+                  {% endif %}
+                </span>
+              </div>
+              {% empty %}
+              <p class="pg-notimes" style="padding:20px 0;text-align:center;">Horarios no disponibles aún.</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </section>
+
+          <!-- Votos sobre los horarios -->
+          <div class="pg-card pg-sched" style="margin-top:12px;">
             <div class="pg-vote" aria-label="¿Los horarios están correctos?">
               <div class="pg-vote-btns">
                 <button class="pg-votebtn{% if voto_usuario == 1 %} on-up{% endif %}"
@@ -422,7 +539,7 @@
 
           <div id="lista-comentarios" aria-label="Comentarios de la comunidad" class="pg-comment-list">
             {% for c in comentarios %}
-            <article class="pg-card pg-comment">
+            <article class="pg-card pg-comment{% if forloop.counter > 3 %} pg-comment-extra hidden{% endif %}">
               <header class="pg-comment-head">
                 <div class="pg-avatar"
                      style="background:{{ c.usuario.perfil.color_avatar|default:'#dbeafe' }};color:{{ c.usuario.perfil.color_avatar_texto|default:'#1e40af' }};"
@@ -450,6 +567,14 @@
             </div>
             {% endfor %}
           </div>
+          {% if comentarios|length > 3 %}
+          <button id="btn-mostrar-mas-comentarios"
+                  class="btn btn-soft btn-sm"
+                  style="width:100%;margin-top:10px;border-radius:var(--r-md);"
+                  onclick="mostrarMasComentarios(this)">
+            Mostrar más ({{ comentarios|length|add:"-3" }})
+          </button>
+          {% endif %}
         </div>
 
       </div>
@@ -719,6 +844,13 @@ function toggleFavorita(pk) {
       txt.textContent='Marcar como mi parroquia';
     }
   }).catch(()=>{});
+}
+
+function mostrarMasComentarios(btn) {
+  document.querySelectorAll('.pg-comment-extra').forEach(function(el) {
+    el.classList.remove('hidden');
+  });
+  btn.remove();
 }
 </script>
 {% endblock %}
