@@ -252,7 +252,7 @@
   .pg-sin-datos { padding:28px; text-align:center; color:var(--muted); font:500 14px/1.5 var(--font-ui); }
 
   /* Avatar hero fallback */
-  .pd-hero-avatar-img { position:absolute; inset:0; z-index:0; width:100%; height:100%; object-fit:cover; }
+  .pd-hero-avatar-img { position:absolute; inset:0; z-index:0; width:100%; height:100%; object-fit:contain; }
 
   /* ── El prójimo dice ── */
   .horarios-section { margin-bottom: 0; }
@@ -291,9 +291,9 @@
        style="background: linear-gradient(135deg, #1E4585, #0E2647);">
     {% if parroquia.imagen_url %}
     <img src="{{ parroquia.imagen_url }}" alt="{{ parroquia.nombre }}" loading="eager"
-         onerror="this.src='{% static 'iglesias/img/avatar-parroquia.png' %}';this.className='pd-hero-avatar-img'">
+         onerror="this.src='{% static 'iglesias/img/parroquia-header-detalle.png' %}';this.className='pd-hero-avatar-img'">
     {% else %}
-    <img src="{% static 'iglesias/img/avatar-parroquia.png' %}" alt="" class="pd-hero-avatar-img" aria-hidden="true" loading="lazy">
+    <img src="{% static 'iglesias/img/parroquia-header-detalle.png' %}" alt="" class="pd-hero-avatar-img" aria-hidden="true" loading="lazy">
     {% endif %}
     <a href="{% url 'iglesias:publico_inicio' %}" class="pd-hero-back">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
