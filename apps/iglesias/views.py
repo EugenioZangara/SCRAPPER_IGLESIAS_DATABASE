@@ -1626,6 +1626,7 @@ def publico_detalle(request, pk):
         "votos_total": votos_total,
         "pct_up": pct_up,
         "voto_usuario": voto_usuario,
+        "hoy_dia": date.today().weekday(),
     })
 
 
@@ -1693,15 +1694,6 @@ def agregar_comentario(request, pk):
         request.session.create()
 
     usuario = request.user if request.user.is_authenticated else None
-
-    filtro_spam = {'parroquia': parroquia, 'fecha__gte': timezone.now() - timedelta(days=7)}
-    if usuario:
-        filtro_spam['usuario'] = usuario
-    else:
-        filtro_spam['usuario__isnull'] = True
-
-    if ComentarioParroquia.objects.filter(**filtro_spam).exists():
-        return JsonResponse({'error': 'Ya comentaste en esta parroquia recientemente'}, status=429)
 
     comentario = ComentarioParroquia.objects.create(parroquia=parroquia, usuario=usuario, texto=texto)
 
@@ -2032,18 +2024,24 @@ def sitemap(request):
 
 
 def robots_txt(request):
-    base_url = f"{request.scheme}://{request.get_host()}"
     content = (
         "User-agent: *\n"
         "Allow: /publico/\n"
+        "Allow: /sitemap.xml\n"
+        "\n"
         "Disallow: /admin/\n"
+        "Disallow: /admin-login/\n"
+        "Disallow: /admin-logout/\n"
         "Disallow: /accounts/\n"
-        "Disallow: /api/\n"
-        "Disallow: /eventos/\n"
         "Disallow: /parroquias/\n"
-        "Disallow: /scraper/\n"
+        "Disallow: /eventos/\n"
         "Disallow: /horarios/\n"
-        f"Sitemap: {base_url}/sitemap.xml\n"
+        "Disallow: /scraper/\n"
+        "Disallow: /posts/\n"
+        "Disallow: /debug/\n"
+        "Disallow: /api/\n"
+        "\n"
+        "Sitemap: https://scrapper-iglesias-database.onrender.com/sitemap.xml\n"
     )
     from django.http import HttpResponse
     return HttpResponse(content, content_type="text/plain")

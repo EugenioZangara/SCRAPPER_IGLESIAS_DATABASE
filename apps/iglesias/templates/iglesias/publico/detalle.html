@@ -1,5 +1,5 @@
 {% extends "iglesias/publico/base_publica.html" %}
-{% load humanize %}
+{% load humanize static %}
 
 {% block page_title %}{{ parroquia.nombre }} — Horarios de misas y eventos | ParroGuía{% endblock %}
 {% block og_type %}place{% endblock %}
@@ -103,7 +103,7 @@
   .pd-tab.active { color: var(--navy); border-bottom-color: var(--navy); }
 
   /* ── Tab panels ── */
-  .pd-panel { display: none; padding: 24px; background: var(--paper); }
+  .pd-panel { display: none; padding: 24px; background: var(--bg-2); }
   .pd-panel.active { display: block; }
 
   /* ── Schedule rows ── */
@@ -191,50 +191,68 @@
   .pd-evento-title { font: 700 14px/1.3 var(--font-display); color: var(--ink); margin-bottom: 3px; }
   .pd-evento-meta { font: 500 12px/1 var(--font-ui); color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; }
 
-  /* ── Votes + Comments ── */
+  /* ── Horarios + Comentarios — ParroGuía Design ── */
   .sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
-  .horarios-grid { display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start; }
-  @media (max-width:768px) { .horarios-grid { grid-template-columns:1fr; } }
-  .section-label { font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6b7280;margin-bottom:8px; }
-  .card-horarios { background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px; }
-  .verified-badge { display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;background:#d1fae5;color:#065f46;padding:3px 8px;border-radius:6px;margin-bottom:12px; }
-  .horario-row { display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f3f4f6;font-size:14px; }
-  .horario-row:last-of-type { border-bottom:none; }
-  .horario-dia { font-weight:500;color:#111827; }
-  .horario-horas { color:#6b7280; }
-  .votos-bar { display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6; }
-  .voto-btn { display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:500;padding:6px 14px;border:1px solid #d1d5db;border-radius:8px;background:transparent;cursor:pointer;transition:background .15s; }
-  .voto-btn:hover { background:#f9fafb; }
-  .voto-btn.active-up { background:#d1fae5;border-color:#6ee7b7;color:#065f46; }
-  .voto-btn.active-down { background:#fee2e2;border-color:#fca5a5;color:#991b1b; }
-  .voto-pct { font-size:11px;color:#9ca3af;margin-left:auto; }
-  .pct-bar { height:4px;border-radius:2px;background:#f3f4f6;margin-top:8px;overflow:hidden; }
-  .pct-fill { height:100%;border-radius:2px;background:#34d399;transition:width .4s; }
-  .votos-label { font-size:11px;color:#9ca3af;margin-top:5px; }
-  .btn-comentar { font-size:12px;padding:4px 12px;background:#14315E;color:#fff;border:none;border-radius:6px;cursor:pointer; }
-  .form-comentario-card { background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:10px; }
-  .form-comentario-card textarea { width:100%;resize:vertical;border:1px solid #d1d5db;border-radius:6px;padding:8px;font-size:13px;background:#fff;font-family:inherit;color:#111827; }
-  .btn-enviar-comentario { font-size:12px;padding:5px 14px;background:#14315E;color:#fff;border:none;border-radius:6px;cursor:pointer; }
-  .btn-cancelar-form { font-size:12px;padding:5px 10px;border:1px solid #d1d5db;border-radius:6px;background:transparent;color:#6b7280;cursor:pointer; }
-  .comentario-card { background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:10px; }
-  .coment-header { display:flex;align-items:center;gap:8px;margin-bottom:7px; }
-  .coment-avatar { width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0; }
-  .avatar-explorador { background:#dbeafe;color:#1e40af; }
-  .avatar-vecino { background:#dcfce7;color:#166534; }
-  .avatar-sacristan { background:#fef9c3;color:#854d0e; }
-  .avatar-catequista { background:#ede9fe;color:#5b21b6; }
-  .avatar-parroco { background:#fee2e2;color:#991b1b; }
-  .coment-nombre { font-size:13px;font-weight:500;color:#111827; }
-  .nivel-badge { font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;margin-left:5px;vertical-align:middle; }
-  .nivel-explorador { background:#dbeafe;color:#1e40af; }
-  .nivel-vecino { background:#dcfce7;color:#166534; }
-  .nivel-sacristan { background:#fef9c3;color:#854d0e; }
-  .nivel-catequista { background:#ede9fe;color:#5b21b6; }
-  .nivel-parroco { background:#fee2e2;color:#991b1b; }
-  .coment-fecha { font-size:11px;color:#9ca3af;margin-left:auto;flex-shrink:0; }
-  .coment-texto { font-size:13px;color:#374151;line-height:1.55;margin:0; }
-  .sin-datos { font-size:13px;color:#9ca3af;padding:8px 0; }
   .hidden { display:none !important; }
+
+  .pg-horarios-grid { display:grid; grid-template-columns:1fr 1.12fr; gap:28px; align-items:start; }
+  @media (max-width:768px) { .pg-horarios-grid { grid-template-columns:1fr; } }
+
+  .pg-card { background:var(--paper); border:1px solid var(--line-soft); border-radius:var(--r-lg); box-shadow:var(--sh-card); }
+
+  .pg-eyebrow-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; min-height:38px; }
+  .pg-eyebrow { margin:0; font:800 13px/1 var(--font-ui); letter-spacing:.12em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:9px; }
+  .pg-count { font:800 12px/1 var(--font-ui); color:var(--navy); background:var(--bg-2); border:1px solid var(--line); border-radius:999px; padding:4px 9px; }
+
+  .pg-sched { padding:8px 22px 20px; }
+  .pg-dayrow { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px; margin:0 -8px; border-radius:12px; border-bottom:1px solid var(--line-soft); }
+  .pg-dayrow:last-of-type { border-bottom:0; }
+  .pg-dayname { font:800 16px/1 var(--font-ui); color:var(--ink); display:flex; align-items:center; gap:9px; }
+  .pg-dayrow.is-finde .pg-dayname { color:var(--navy); }
+  .pg-todaytag { font:800 10px/1 var(--font-ui); letter-spacing:.06em; text-transform:uppercase; color:var(--accent-ink); background:var(--accent); border-radius:999px; padding:4px 8px; }
+  .pg-daytimes { display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+  .pg-time { font:700 16px/1 var(--font-display); color:var(--ink-soft); letter-spacing:.01em; }
+  .pg-dayrow.is-today { background:linear-gradient(90deg,rgba(242,160,7,.10),transparent); box-shadow:inset 3px 0 0 var(--accent); }
+  .pg-dayrow.is-today .pg-time { color:var(--gold-deep); font-weight:800; }
+  .pg-notimes { font:600 14px/1 var(--font-ui); color:var(--muted); font-style:italic; }
+
+  .pg-vote { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
+  .pg-vote-btns { display:flex; gap:10px; }
+  .pg-votebtn { display:inline-flex; align-items:center; gap:8px; cursor:pointer; border:1px solid var(--line); background:var(--bg-2); color:var(--ink-soft); border-radius:12px; padding:10px 16px; font:800 15px/1 var(--font-ui); transition:all .15s ease; }
+  .pg-votebtn:hover { border-color:var(--navy-300); transform:translateY(-1px); }
+  .pg-votebtn.on-up   { background:rgba(31,138,91,.14);  border-color:rgba(31,138,91,.4);  color:#1F8A5B; }
+  .pg-votebtn.on-down { background:rgba(194,65,12,.12); border-color:rgba(194,65,12,.35); color:#C2410C; }
+  .pg-vote-pct { font:600 14px/1 var(--font-ui); color:var(--muted); white-space:nowrap; }
+  .pg-vote-pct b { font:800 16px/1 var(--font-display); color:#1F8A5B; }
+  .pg-vote-bar { height:8px; border-radius:999px; background:var(--line); overflow:hidden; margin-top:14px; }
+  .pg-vote-bar > i { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,#2BA89A,#1F8A5B); transition:width .4s cubic-bezier(.22,1,.36,1); }
+  .pg-vote-caption { font:600 13px/1.4 var(--font-ui); color:var(--muted); margin-top:9px; }
+
+  .pg-comment-list { display:flex; flex-direction:column; gap:14px; }
+  .pg-comment { padding:18px 20px; transition:box-shadow .18s,border-color .18s; }
+  .pg-comment:hover { box-shadow:var(--sh-pop); border-color:var(--line); }
+  .pg-comment-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .pg-comment-id { flex:1; min-width:0; }
+  .pg-comment-name { display:flex; align-items:center; gap:9px; flex-wrap:wrap; font:800 16px/1.1 var(--font-ui); color:var(--ink); }
+  .pg-comment-when { font:600 13px/1 var(--font-ui); color:var(--muted); white-space:nowrap; flex-shrink:0; }
+  .pg-comment-text { margin:0; font:500 15.5px/1.55 var(--font-ui); color:var(--ink-soft); }
+
+  .pg-role { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:999px; font:800 11px/1 var(--font-ui); }
+  .pg-role-explorador { color:#2A6FDB; background:rgba(42,111,219,.13); }
+  .pg-role-vecino     { color:#1F8A5B; background:rgba(31,138,91,.15); }
+  .pg-role-sacristan  { color:#0F857F; background:rgba(15,133,127,.15); }
+  .pg-role-catequista { color:#7C4DC4; background:rgba(124,77,196,.14); }
+  .pg-role-parroco    { color:var(--gold-deep); background:rgba(242,160,7,.18); }
+
+  .pg-avatar { width:40px; height:40px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font:700 14px/1 var(--font-display); }
+
+  .pg-form-card { background:var(--bg-2); border:1px solid var(--line); border-radius:var(--r-md); padding:14px; margin-bottom:14px; }
+  .pg-form-card textarea { width:100%; resize:vertical; border:1.5px solid var(--line); border-radius:var(--r-sm); padding:10px 14px; font:500 14px/1.5 var(--font-ui); color:var(--ink); background:var(--paper); outline:none; transition:border-color .15s; box-sizing:border-box; }
+  .pg-form-card textarea:focus { border-color:var(--navy); }
+  .pg-sin-datos { padding:28px; text-align:center; color:var(--muted); font:500 14px/1.5 var(--font-ui); }
+
+  /* Avatar hero fallback */
+  .pd-hero-avatar-img { position:absolute; inset:0; z-index:0; width:100%; height:100%; object-fit:contain; opacity:.20; padding:24px; }
 </style>
 
 <!-- Hero header -->
@@ -243,7 +261,10 @@
        id="pd-grad-{{ parroquia.pk }}"
        style="background: linear-gradient(135deg, #1E4585, #0E2647);">
     {% if parroquia.imagen_url %}
-    <img src="{{ parroquia.imagen_url }}" alt="{{ parroquia.nombre }}" loading="eager" onerror="this.style.display='none'">
+    <img src="{{ parroquia.imagen_url }}" alt="{{ parroquia.nombre }}" loading="eager"
+         onerror="this.src='{% static 'iglesias/img/avatar-parroquia.png' %}';this.className='pd-hero-avatar-img'">
+    {% else %}
+    <img src="{% static 'iglesias/img/avatar-parroquia.png' %}" alt="" class="pd-hero-avatar-img" aria-hidden="true" loading="lazy">
     {% endif %}
     <a href="{% url 'iglesias:publico_inicio' %}" class="pd-hero-back">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
@@ -284,78 +305,98 @@
   </div>
 </div>
 
-<div style="background:var(--paper); border-radius:0 0 var(--r-lg) var(--r-lg); box-shadow:var(--sh-card); margin-bottom:20px;">
+<div style="background:var(--bg-2); border-radius:0 0 var(--r-lg) var(--r-lg); box-shadow:var(--sh-card); margin-bottom:20px;">
 
   <!-- ═══ TAB: HORARIOS ═══ -->
   <div class="pd-panel active" id="panel-horarios" role="tabpanel">
     <section aria-label="Horarios de misas y comentarios">
-      <div class="horarios-grid">
+      <div class="pg-horarios-grid">
 
         <!-- COLUMNA IZQUIERDA: Horarios + votos -->
         <div>
-          <p class="section-label">Horarios de misas</p>
-          <div class="card-horarios">
-
+          <div class="pg-eyebrow-row">
+            <h3 class="pg-eyebrow">Horarios de misas</h3>
             {% if parroquia.horarios_verificados %}
-            <div class="verified-badge" title="Horarios verificados por el equipo de ParroGuía">
+            <span class="tag tag-green">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               Verificado
-            </div>
+            </span>
+            {% else %}
+            <span class="tag tag-gold">Por verificar</span>
             {% endif %}
+          </div>
 
+          <div class="pg-card pg-sched">
             {% for h in horarios %}
-            <div class="horario-row">
-              <span class="horario-dia">{{ h.get_dia_semana_display }}</span>
-              <span class="horario-horas">{{ h.horarios }}</span>
+            <div class="pg-dayrow{% if h.dia_semana == hoy_dia %} is-today{% endif %}{% if h.dia_semana >= 5 %} is-finde{% endif %}">
+              <span class="pg-dayname">
+                {{ h.get_dia_semana_display }}
+                {% if h.dia_semana == hoy_dia %}<span class="pg-todaytag">hoy</span>{% endif %}
+              </span>
+              <span class="pg-daytimes">
+                {% if h.horarios %}
+                <span class="pg-time">{{ h.horarios }}</span>
+                {% else %}
+                <span class="pg-notimes">Sin misas</span>
+                {% endif %}
+              </span>
             </div>
             {% empty %}
-            <p class="sin-datos">Horarios no disponibles aún.</p>
+            <p class="pg-notimes" style="padding:20px 0;text-align:center;">Horarios no disponibles aún.</p>
             {% endfor %}
 
             <!-- Votos sobre los horarios -->
-            <div class="votos-bar" aria-label="¿Los horarios están correctos?">
-              <button class="voto-btn{% if voto_usuario == 1 %} active-up{% endif %}"
-                      id="btn-up"
-                      onclick="votarHorario({{ parroquia.pk }}, 1)"
-                      aria-label="Los horarios están correctos"
-                      title="Confirmar que los horarios son correctos">
-                👍 <span id="count-up">{{ votos_up }}</span>
-              </button>
-              <button class="voto-btn{% if voto_usuario == -1 %} active-down{% endif %}"
-                      id="btn-down"
-                      onclick="votarHorario({{ parroquia.pk }}, -1)"
-                      aria-label="Los horarios están incorrectos"
-                      title="Indicar que los horarios tienen errores">
-                👎 <span id="count-down">{{ votos_down }}</span>
-              </button>
-              <span class="voto-pct" id="voto-pct" aria-live="polite">
-                {% if votos_total > 0 %}{{ pct_up }}% confirma{% endif %}
-              </span>
+            <div class="pg-vote" aria-label="¿Los horarios están correctos?">
+              <div class="pg-vote-btns">
+                <button class="pg-votebtn{% if voto_usuario == 1 %} on-up{% endif %}"
+                        id="btn-up"
+                        onclick="votarHorario({{ parroquia.pk }}, 1)"
+                        aria-label="Los horarios están correctos"
+                        title="Confirmar que los horarios son correctos">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                  <span id="count-up">{{ votos_up }}</span>
+                </button>
+                <button class="pg-votebtn{% if voto_usuario == -1 %} on-down{% endif %}"
+                        id="btn-down"
+                        onclick="votarHorario({{ parroquia.pk }}, -1)"
+                        aria-label="Los horarios están incorrectos"
+                        title="Indicar que los horarios tienen errores">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(180deg)" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                  <span id="count-down">{{ votos_down }}</span>
+                </button>
+              </div>
+              <div class="pg-vote-pct" id="voto-pct" aria-live="polite">
+                {% if votos_total > 0 %}<b>{{ pct_up }}%</b> confirma{% endif %}
+              </div>
+            </div>
+            <div class="pg-vote-bar" role="progressbar" aria-valuenow="{{ pct_up }}" aria-valuemin="0" aria-valuemax="100">
+              <i id="pct-fill" style="width:{{ pct_up }}%;"></i>
             </div>
             {% if votos_total > 0 %}
-            <div class="pct-bar" role="progressbar" aria-valuenow="{{ pct_up }}" aria-valuemin="0" aria-valuemax="100">
-              <div class="pct-fill" id="pct-fill" style="width:{{ pct_up }}%;"></div>
-            </div>
-            <p class="votos-label">{{ votos_total }} persona{{ votos_total|pluralize }} votó estos horarios</p>
+            <p class="pg-vote-caption">{{ votos_total }} persona{{ votos_total|pluralize }} votó estos horarios</p>
             {% endif %}
-
           </div>
         </div>
 
         <!-- COLUMNA DERECHA: Comentarios -->
         <div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <p class="section-label" style="margin:0;">Comentarios</p>
-            <button class="btn-comentar"
-                    onclick="document.getElementById('form-comentario').classList.toggle('hidden');this.setAttribute('aria-expanded', this.getAttribute('aria-expanded')==='true'?'false':'true')"
+          <div class="pg-eyebrow-row">
+            <h3 class="pg-eyebrow">
+              Comentarios
+              {% if comentarios %}<span class="pg-count">{{ comentarios|length }}</span>{% endif %}
+            </h3>
+            <button class="btn btn-soft btn-sm"
+                    style="border-radius:999px;"
+                    onclick="document.getElementById('form-comentario').classList.toggle('hidden');this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true')"
                     aria-expanded="false"
                     aria-controls="form-comentario">
-              + Comentar
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Comentar
             </button>
           </div>
 
           <div id="form-comentario" class="hidden">
-            <div class="form-comentario-card">
+            <div class="pg-form-card">
               <label for="texto-comentario" class="sr-only">Tu comentario sobre {{ parroquia.nombre }}</label>
               <textarea id="texto-comentario"
                         name="texto"
@@ -363,14 +404,14 @@
                         maxlength="500"
                         placeholder="Contá tu experiencia o corregí algo que esté mal..."
                         aria-label="Escribí tu comentario"></textarea>
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
-                <span id="char-count" style="font-size:11px;color:#9ca3af;" aria-live="polite">0/500</span>
-                <div style="display:flex;gap:6px;">
-                  <button class="btn-cancelar-form"
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                <span id="char-count" style="font:600 11px/1 var(--font-ui);color:var(--muted);" aria-live="polite">0/500</span>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn btn-ghost btn-sm"
                           onclick="document.getElementById('form-comentario').classList.add('hidden')">
                     Cancelar
                   </button>
-                  <button class="btn-enviar-comentario"
+                  <button class="btn btn-primary btn-sm"
                           onclick="enviarComentario({{ parroquia.pk }})">
                     Enviar
                   </button>
@@ -379,29 +420,34 @@
             </div>
           </div>
 
-          <div id="lista-comentarios" aria-label="Comentarios de la comunidad">
+          <div id="lista-comentarios" aria-label="Comentarios de la comunidad" class="pg-comment-list">
             {% for c in comentarios %}
-            <article class="comentario-card">
-              <div class="coment-header">
-                <div class="coment-avatar avatar-{{ c.usuario.perfil.nivel_slug|default:'explorador' }}"
+            <article class="pg-card pg-comment">
+              <header class="pg-comment-head">
+                <div class="pg-avatar"
+                     style="background:{{ c.usuario.perfil.color_avatar|default:'#dbeafe' }};color:{{ c.usuario.perfil.color_avatar_texto|default:'#1e40af' }};"
                      aria-hidden="true">
                   {{ c.usuario.first_name|first|upper|default:"A" }}{{ c.usuario.last_name|first|upper|default:"" }}
                 </div>
-                <div style="flex:1;min-width:0;">
-                  <span class="coment-nombre">{{ c.usuario.get_full_name|default:"Anónimo" }}</span>
-                  {% if c.usuario %}
-                  <span class="nivel-badge nivel-{{ c.usuario.perfil.nivel_slug }}"
-                        title="Nivel en la comunidad ParroGuía">
-                    {{ c.usuario.perfil.get_nivel_display }}
-                  </span>
-                  {% endif %}
+                <div class="pg-comment-id">
+                  <div class="pg-comment-name">
+                    {{ c.usuario.get_full_name|default:"Anónimo" }}
+                    {% if c.usuario.perfil %}
+                    <span class="pg-role pg-role-{{ c.usuario.perfil.nivel_slug }}">
+                      {{ c.usuario.perfil.get_nivel_display }}
+                    </span>
+                    {% endif %}
+                  </div>
                 </div>
-                <time class="coment-fecha" datetime="{{ c.fecha|date:'c' }}">{{ c.fecha|naturaltime }}</time>
-              </div>
-              <p class="coment-texto">{{ c.texto }}</p>
+                <time class="pg-comment-when" datetime="{{ c.fecha|date:'c' }}">{{ c.fecha|naturaltime }}</time>
+              </header>
+              <p class="pg-comment-text">{{ c.texto }}</p>
             </article>
             {% empty %}
-            <p class="sin-datos">Todavía no hay comentarios. ¡Sé el primero!</p>
+            <div class="pg-card pg-sin-datos">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--line)" stroke-width="1.5" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <p style="margin-top:10px;">Todavía no hay comentarios. ¡Sé el primero!</p>
+            </div>
             {% endfor %}
           </div>
         </div>
@@ -599,8 +645,8 @@ async function votarHorario(pk, valor) {
       document.getElementById('voto-pct').textContent = d.total > 0 ? d.pct + '% confirma' : '';
       const fill = document.getElementById('pct-fill');
       if (fill) fill.style.width = d.pct + '%';
-      document.getElementById('btn-up').className = 'voto-btn' + (d.voto_actual === 1 ? ' active-up' : '');
-      document.getElementById('btn-down').className = 'voto-btn' + (d.voto_actual === -1 ? ' active-down' : '');
+      document.getElementById('btn-up').className = 'pg-votebtn' + (d.voto_actual === 1 ? ' on-up' : '');
+      document.getElementById('btn-down').className = 'pg-votebtn' + (d.voto_actual === -1 ? ' on-down' : '');
     }
   } catch(e) { console.error('Error votando:', e); }
 }
@@ -612,8 +658,8 @@ document.getElementById('texto-comentario')?.addEventListener('input', function(
 async function enviarComentario(pk) {
   const texto = document.getElementById('texto-comentario').value.trim();
   if (texto.length < 10) { alert('Mínimo 10 caracteres'); return; }
-  const btn = document.querySelector('.btn-enviar-comentario');
-  btn.disabled = true; btn.textContent = 'Enviando...';
+  const btn = document.querySelector('#form-comentario .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
   try {
     const resp = await fetch(`/publico/${pk}/comentar/`, {
       method: 'POST',
@@ -632,17 +678,17 @@ async function enviarComentario(pk) {
         parroco: ['#fee2e2','#991b1b'],
       };
       const [bg, fg] = avatarColors[c.nivel_slug] || avatarColors.explorador;
-      const nivelHtml = c.nivel ? `<span class="nivel-badge nivel-${c.nivel_slug}" title="Nivel en la comunidad ParroGuía">${c.nivel}</span>` : '';
+      const roleHtml = c.nivel ? `<span class="pg-role pg-role-${c.nivel_slug}">${c.nivel}</span>` : '';
       const html = `
-        <article class="comentario-card">
-          <div class="coment-header">
-            <div class="coment-avatar" style="background:${bg};color:${fg};" aria-hidden="true">${c.initials}</div>
-            <div style="flex:1;min-width:0;">
-              <span class="coment-nombre">${c.nombre}</span>${nivelHtml}
+        <article class="pg-card pg-comment">
+          <header class="pg-comment-head">
+            <div class="pg-avatar" style="background:${bg};color:${fg};" aria-hidden="true">${c.initials}</div>
+            <div class="pg-comment-id">
+              <div class="pg-comment-name">${c.nombre.replace(/</g,'&lt;').replace(/>/g,'&gt;')}${roleHtml}</div>
             </div>
-            <time class="coment-fecha">ahora mismo</time>
-          </div>
-          <p class="coment-texto">${c.texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+            <time class="pg-comment-when">ahora mismo</time>
+          </header>
+          <p class="pg-comment-text">${c.texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
         </article>`;
       document.getElementById('lista-comentarios').insertAdjacentHTML('afterbegin', html);
     } else {
@@ -651,7 +697,7 @@ async function enviarComentario(pk) {
   } catch(e) {
     alert('Error de conexión');
   } finally {
-    btn.disabled = false; btn.textContent = 'Enviar';
+    if (btn) { btn.disabled = false; btn.textContent = 'Enviar'; }
   }
 }
 

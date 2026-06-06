@@ -1,3 +1,4 @@
+{% load static %}
 {% if query %}
   <p style="font:500 13px/1 var(--font-ui);color:var(--muted);margin-bottom:16px;">
     {{ total }} parroquia{{ total|pluralize }} encontrada{{ total|pluralize }} para "{{ query }}"
@@ -31,6 +32,11 @@
     position: absolute; inset: 0; z-index: 0;
     width: 100%; height: 100%; object-fit: cover; object-position: center;
     display: block;
+  }
+  .pg-rcard-top-avatar {
+    position: absolute; inset: 0; z-index: 0;
+    width: 100%; height: 100%; object-fit: contain;
+    padding: 14px; opacity: .22;
   }
   .pg-rcard-top-overlay {
     position: absolute; inset: 0; z-index: 1; pointer-events: none;
@@ -101,8 +107,14 @@ if (!window.pgGrad) {
            src="{{ item.parroquia.imagen_url }}"
            alt="{{ item.parroquia.nombre }}"
            loading="lazy"
-           onerror="this.style.display='none'">
+           onerror="this.className='pg-rcard-top-avatar';this.src='{% static 'iglesias/img/avatar-parroquia.png' %}'">
       <div class="pg-rcard-top-overlay"></div>
+      {% else %}
+      <img class="pg-rcard-top-avatar"
+           src="{% static 'iglesias/img/avatar-parroquia.png' %}"
+           alt=""
+           loading="lazy"
+           aria-hidden="true">
       {% endif %}
       {% if item.tiene_horarios %}
       <span class="pg-rcard-badge">HOY</span>
