@@ -27,6 +27,7 @@
   }
   {% if parroquia.telefonos %},"telephone": "{{ parroquia.telefonos }}"{% endif %}
   {% if parroquia.sitio_web %},"url": "{{ parroquia.sitio_web }}"{% endif %}
+  {% if parroquia.imagen_url %},"image": "{{ parroquia.imagen_url }}"{% endif %}
   {% if parroquia.horarios_misa.exists %},"openingHours": [{% for h in parroquia.horarios_misa.all %}{% for entry in h.schema_opening_hours %}"{{ entry }}"{% if not forloop.last %},{% endif %}{% endfor %}{% if not forloop.last %},{% endif %}{% endfor %}]{% endif %}
 }
 </script>
@@ -42,8 +43,19 @@
   .pd-hero-grad {
     height: 140px; position: relative;
     display: flex; align-items: flex-start; padding: 14px 20px;
-    justify-content: space-between;
+    justify-content: space-between; overflow: hidden;
   }
+  .pd-hero-grad-has-img { height: 220px; }
+  .pd-hero-grad-has-img > img {
+    position: absolute; inset: 0; z-index: 0;
+    width: 100%; height: 100%; object-fit: cover; object-position: center;
+  }
+  .pd-hero-grad-has-img::after {
+    content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(14,38,71,.55) 0%, rgba(30,69,133,.35) 100%);
+  }
+  .pd-hero-grad-has-img .pd-hero-back,
+  .pd-hero-grad-has-img .pd-hero-badge { position: relative; z-index: 2; }
   .pd-hero-back {
     display: inline-flex; align-items: center; gap: 6px;
     font: 600 12px/1 var(--font-ui); color: rgba(255,255,255,.8);
@@ -227,8 +239,12 @@
 
 <!-- Hero header -->
 <div class="pd-hero" id="pd-hero-{{ parroquia.pk }}">
-  <div class="pd-hero-grad" id="pd-grad-{{ parroquia.pk }}"
+  <div class="pd-hero-grad{% if parroquia.imagen_url %} pd-hero-grad-has-img{% endif %}"
+       id="pd-grad-{{ parroquia.pk }}"
        style="background: linear-gradient(135deg, #1E4585, #0E2647);">
+    {% if parroquia.imagen_url %}
+    <img src="{{ parroquia.imagen_url }}" alt="{{ parroquia.nombre }}" loading="eager" onerror="this.style.display='none'">
+    {% endif %}
     <a href="{% url 'iglesias:publico_inicio' %}" class="pd-hero-back">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
       Volver

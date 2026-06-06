@@ -52,8 +52,14 @@ def obtener_urls_parroquias():
     print(f"  {len(urls)} parroquias encontradas")
     return list(urls)
 
+EXCLUIR_IMGS = [
+    'Logo-HorariosMisaArgentina',
+    'cropped-Favicon',
+    'wp-content/uploads/2024/01/Logo',
+]
+
 def scrapear_horarios(url):
-    """Scrapea los horarios de una parroquia."""
+    """Scrapea los horarios y la imagen og:image de una parroquia."""
     resp = httpx.get(url, timeout=15,
                      headers={"User-Agent": "ParroGuia/1.0"})
     soup = BeautifulSoup(resp.text, 'html.parser')
@@ -63,6 +69,10 @@ def scrapear_horarios(url):
     nombre = h1.get_text(strip=True) if h1 else ""
     # Limpiar sufijo " - Buenos Aires..."
     nombre = re.sub(r'\s*-\s*Buenos Aires.*$', '', nombre, flags=re.IGNORECASE)
+
+    # og:image
+    og_tag = soup.find('meta', property='og:image')
+    og_image = og_tag['content'].strip() if og_tag and og_tag.get('content') else ''
 
     # Buscar tabla de horarios
     horarios = {}
@@ -80,7 +90,7 @@ def scrapear_horarios(url):
                     horario_formateado = ' · '.join(horas)
                     horarios[dia_num] = horario_formateado
 
-    return nombre, horarios
+    return nombre, horarios, og_image
 
 def main():
     parroquias_db = list(Parroquia.objects.all())
@@ -93,10 +103,15 @@ def main():
     matches_dudosos = 0
     sin_match = 0
     reportes_creados = 0
+    imgs_nuevas = 0
+    imgs_ya_tenian = 0
+    imgs_sin = 0
+
+    from django.utils import timezone
 
     for i, url in enumerate(urls, 1):
         try:
-            nombre_externo, horarios = scrapear_horarios(url)
+            nombre_externo, horarios, og_image = scrapear_horarios(url)
             if not nombre_externo or not horarios:
                 continue
 
@@ -121,8 +136,19 @@ def main():
 
             matches_buenos += 1
 
+            # Guardar og:image si no tiene una ya
+            if parroquia.imagen_url:
+                print(f"  [IMG-SKIP] imagen ya existente, no sobreescrita")
+                imgs_ya_tenian += 1
+            elif og_image and not any(excl in og_image for excl in EXCLUIR_IMGS):
+                Parroquia.objects.filter(pk=parroquia.pk).update(imagen_url=og_image)
+                print(f"  [IMG] {og_image[:80]}")
+                imgs_nuevas += 1
+            else:
+                print(f"  [IMG-NONE] sin og:image válida")
+                imgs_sin += 1
+
             # Verificar si ya hay reporte pendiente de esta fuente
-            from django.utils import timezone
             hace_30dias = timezone.now() - timezone.timedelta(days=30)
             ya_existe = ReporteHorario.objects.filter(
                 parroquia=parroquia, fuente="scraper_web", creado_en__gte=hace_30dias
@@ -170,6 +196,7 @@ def main():
     print(f"Dudosos       : {matches_dudosos}")
     print(f"Sin match     : {sin_match}")
     print(f"Reportes      : {reportes_creados}")
+    print(f"IMÁGENES      : {imgs_nuevas} nuevas asignadas, {imgs_ya_tenian} ya tenían, {imgs_sin} sin imagen")
 
 if __name__ == "__main__":
     main()

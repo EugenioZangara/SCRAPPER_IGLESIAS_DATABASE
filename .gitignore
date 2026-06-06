@@ -8,3 +8,5 @@ instagram_cookies.json
 staticfiles/
 reconocimiento_web_resultados.json
 google_credentials.json
+/imagenes_parroquias/
+/imagenes_rechazadas/

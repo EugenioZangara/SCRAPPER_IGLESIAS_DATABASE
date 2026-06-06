@@ -1348,7 +1348,7 @@ def publico_inicio(request):
 
 def publico_favoritas(request):
     if not request.user.is_authenticated:
-        return redirect(f"/accounts/login/?next=/publico/favoritas/")
+        return render(request, "iglesias/publico/favoritas.html", {"login_required": True})
 
     parroquia_favorita = None
     proxima_misa = None
@@ -1378,8 +1378,7 @@ def publico_favoritas(request):
 def publico_mis_aportes(request):
     from .models import PerfilUsuario
     if not request.user.is_authenticated:
-        from django.contrib.auth.views import redirect_to_login
-        return redirect_to_login(request.get_full_path())
+        return render(request, "iglesias/publico/mis_aportes.html", {"login_required": True})
 
     perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
     reportes = list(

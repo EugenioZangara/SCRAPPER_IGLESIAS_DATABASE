@@ -26,17 +26,28 @@
     display: flex; align-items: flex-end; justify-content: space-between;
     padding: 8px 10px;
   }
+  .pg-rcard-top-has-img { height: 160px; }
+  .pg-rcard-top-img-el {
+    position: absolute; inset: 0; z-index: 0;
+    width: 100%; height: 100%; object-fit: cover; object-position: center;
+    display: block;
+  }
+  .pg-rcard-top-overlay {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(0,0,0,.4) 0%, rgba(0,0,0,.1) 100%);
+  }
   .pg-rcard-badge {
     font: 800 10px/1 var(--font-ui); letter-spacing: .04em;
     background: var(--gold); color: var(--accent-ink);
     padding: 3px 8px; border-radius: 999px;
+    position: relative; z-index: 2;
   }
   .pg-rcard-fav {
     width: 26px; height: 26px; border-radius: 50%;
     background: rgba(255,255,255,.2); backdrop-filter: blur(4px);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; border: 0; transition: background .15s;
-    position: absolute; top: 8px; right: 8px;
+    position: absolute; top: 8px; right: 8px; z-index: 2;
   }
   .pg-rcard-fav:hover { background: rgba(255,255,255,.35); }
   .pg-rcard-body { padding: 12px; }
@@ -82,8 +93,17 @@ if (!window.pgGrad) {
 <div class="pg-results-grid" id="resultados-grid">
   {% for item in resultados %}
   <a href="{% url 'iglesias:publico_detalle' item.parroquia.pk %}" class="pg-rcard">
-    <div class="pg-rcard-top" data-pk-grad="{{ item.parroquia.pk }}"
+    <div class="pg-rcard-top{% if item.parroquia.imagen_url %} pg-rcard-top-has-img{% endif %}"
+         data-pk-grad="{{ item.parroquia.pk }}"
          style="background:linear-gradient(135deg,#1E4585,#0E2647);">
+      {% if item.parroquia.imagen_url %}
+      <img class="pg-rcard-top-img-el"
+           src="{{ item.parroquia.imagen_url }}"
+           alt="{{ item.parroquia.nombre }}"
+           loading="lazy"
+           onerror="this.style.display='none'">
+      <div class="pg-rcard-top-overlay"></div>
+      {% endif %}
       {% if item.tiene_horarios %}
       <span class="pg-rcard-badge">HOY</span>
       {% else %}
@@ -117,23 +137,19 @@ if (!window.pgGrad) {
     </div>
   </a>
 
-  {% if forloop.counter|divisibleby:6 and banners and not forloop.last %}
-  <div style="grid-column:1/-1;margin:4px 0;" aria-label="Publicidad">
-    {% with banner=banners.0 %}
-    {% if banner.url_destino %}<a href="{{ banner.url_destino }}" target="_blank" rel="noopener sponsored" style="display:block;text-decoration:none;">{% endif %}
-      {% if banner.imagen_static %}
-        {% load static %}
-        <picture>
-          <source media="(max-width:640px)" srcset="{% static 'iglesias/img/ad_gaudium2.jpg' %}">
-          <img src="{% static banner.imagen_static %}" alt="{{ banner.texto_alternativo }}" style="width:100%;max-height:140px;object-fit:cover;object-position:center;border-radius:var(--r-md);border:1px solid var(--line);">
-        </picture>
-      {% elif banner.imagen %}
-        <img src="{{ banner.imagen.url }}" alt="{{ banner.texto_alternativo }}" style="width:100%;max-height:140px;object-fit:cover;object-position:center;border-radius:var(--r-md);border:1px solid var(--line);">
-      {% else %}
-        <div style="width:100%;height:60px;background:var(--bg-2);border:1px dashed var(--line);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font:500 13px/1 var(--font-ui);color:var(--muted);">{{ banner.titulo }}</div>
-      {% endif %}
-    {% if banner.url_destino %}</a>{% endif %}
-    {% endwith %}
+  {% if forloop.counter|divisibleby:6 and not forloop.last %}
+  {% load static %}
+  <div style="grid-column:1/-1;margin:6px 0;" aria-label="Publicidad">
+    <a href="https://www.gaudium.com" target="_blank" rel="noopener sponsored"
+       style="display:block;text-decoration:none;border-radius:var(--r-md);overflow:hidden;
+              border:1px solid var(--line);box-shadow:var(--sh-card);">
+      <picture>
+        <source media="(max-width:600px)" srcset="{% static 'iglesias/img/ad_gaudium2.jpg' %}">
+        <img src="{% static 'iglesias/img/ad_gaudium1.jpeg' %}"
+             alt="Gaudium — Todos los eventos católicos en un solo lugar"
+             style="width:100%;height:auto;display:block;">
+      </picture>
+    </a>
   </div>
   {% endif %}
 

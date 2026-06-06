@@ -16,6 +16,12 @@ class Parroquia(models.Model):
     mail_1 = models.EmailField(max_length=255, blank=True, null=True)
     mail_2 = models.EmailField(max_length=255, blank=True, null=True)
     sitio_web = models.URLField(max_length=500, blank=True, null=True)
+    imagen_url = models.URLField(
+        max_length=2000,
+        blank=True,
+        default='',
+        help_text='URL de imagen de la fachada o interior. Obtenida por scraping.'
+    )
 
     # Organización Eclesiástica
     vicaria = models.CharField(max_length=100, blank=True, null=True)

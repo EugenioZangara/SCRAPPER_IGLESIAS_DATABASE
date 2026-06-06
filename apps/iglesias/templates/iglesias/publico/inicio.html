@@ -1,10 +1,162 @@
 {% extends "iglesias/publico/base_publica.html" %}
+{% load static %}
 
 {% block page_title %}ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires{% endblock %}
 {% block og_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_inicio' %}{% endblock %}
 {% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_inicio' %}{% endblock %}
 {% block meta_extra %}
 <meta name="description" content="Encontrá tu parroquia en Buenos Aires. Horarios de misas, eventos, contacto y ubicación de las {{ total }} parroquias de la Arquidiócesis de Buenos Aires.">
+{% endblock %}
+
+{% block fullbleed %}
+<style>
+  .hero-banner {
+    background-color: #14315E;
+    padding: 36px 32px 32px;
+    width: 100%;
+  }
+  .hero-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 36px;
+  }
+  .hero-logo-link {
+    flex-shrink: 0;
+    text-decoration: none;
+    display: block;
+  }
+  .hero-logo {
+    width: 180px;
+    height: 180px;
+    border-radius: 18px;
+    object-fit: cover;
+    display: block;
+  }
+  .hero-content {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 14px;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 999px; padding: 5px 14px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.85); text-transform: uppercase;
+  }
+  .hero-badge-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #4ade80; flex-shrink: 0; box-shadow: 0 0 6px #4ade80;
+  }
+  .hero-title {
+    font-size: clamp(22px, 3vw, 40px); font-weight: 800;
+    color: #fff; line-height: 1.15; margin: 0; letter-spacing: -0.5px;
+  }
+  .hero-title-gold { color: #F2A007; font-style: italic; font-weight: 800; }
+  .hero-subtitle {
+    font-size: 15px; color: rgba(255,255,255,0.68);
+    line-height: 1.5; margin: 0; max-width: 460px;
+  }
+  .hero-search-form { width: 100%; max-width: 560px; }
+  .hero-search-box {
+    display: flex; align-items: center;
+    background: #fff; border-radius: 999px;
+    padding: 5px 5px 5px 16px; gap: 8px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  }
+  .hero-search-icon { color: #9ca3af; flex-shrink: 0; }
+  .hero-search-input {
+    flex: 1; border: none; outline: none; font-size: 14px;
+    color: #111827; background: transparent; min-width: 0; font-family: inherit;
+  }
+  .hero-search-input::placeholder { color: #9ca3af; }
+  .hero-search-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #F2A007; color: #fff;
+    font-size: 13px; font-weight: 700; padding: 9px 20px;
+    border: none; border-radius: 999px; cursor: pointer;
+    flex-shrink: 0; transition: background .15s; font-family: inherit;
+  }
+  .hero-search-btn:hover { background: #d98f06; }
+  @media (max-width: 640px) {
+    .hero-banner { padding: 28px 16px 24px; }
+    .hero-inner { gap: 18px; }
+    .hero-logo { width: 100px; height: 100px; border-radius: 14px; }
+    .hero-title { font-size: clamp(18px, 5vw, 26px); }
+    .hero-search-box { flex-direction: column; border-radius: 12px; padding: 12px; gap: 10px; }
+    .hero-search-input { width: 100%; font-size: 16px; }
+    .hero-search-btn { width: 100%; justify-content: center; padding: 11px; }
+  }
+  @media (max-width: 420px) {
+    .hero-inner { flex-direction: column; align-items: flex-start; }
+    .hero-logo { width: 56px; height: 56px; border-radius: 10px; }
+  }
+</style>
+
+<section class="hero-banner" aria-label="Buscador de parroquias">
+  <div class="hero-inner">
+
+    <a href="{% url 'iglesias:publico_inicio' %}" class="hero-logo-link" aria-label="ParroGuía - Inicio">
+      <img src="{% static 'iglesias/img/parroguia_logo.png' %}" alt="Logo ParroGuía" class="hero-logo">
+    </a>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-dot" aria-hidden="true"></span>
+        HORARIOS VERIFICADOS POR LA COMUNIDAD
+      </div>
+
+      <h1 class="hero-title">
+        Encontrá tu próxima misa
+        <em class="hero-title-gold">en segundos</em>
+      </h1>
+
+      <p class="hero-subtitle">
+        Todas las parroquias cerca tuyo, con horarios reales y siempre a mano.
+      </p>
+
+      <form class="hero-search-form"
+            action="{% url 'iglesias:publico_buscar' %}"
+            method="get"
+            role="search"
+            aria-label="Buscar parroquias por nombre, barrio o calle">
+        <div class="hero-search-box">
+          <svg class="hero-search-icon" width="17" height="17" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            type="search"
+            name="q"
+            id="main-search"
+            class="hero-search-input"
+            placeholder="Buscar parroquia, barrio o calle..."
+            autocomplete="off"
+            aria-label="Buscar parroquia, barrio o calle"
+            hx-get="{% url 'iglesias:publico_buscar' %}"
+            hx-trigger="keyup changed delay:400ms, search"
+            hx-target="#resultados"
+            hx-swap="innerHTML"
+            hx-include="[name='q']"
+          />
+          <button type="submit" class="hero-search-btn" aria-label="Buscar">
+            <svg width="14" height="14" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            Buscar
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</section>
 {% endblock %}
 
 {% block content %}
@@ -70,35 +222,6 @@
   .pg-mip:hover .pg-mip-cta { background: var(--gold-deep); }
   .pg-mip.has-badge { padding-top: 38px; min-height: 100px; }
 
-  /* ── Buscador ── */
-  .pg-search-section { margin-bottom: 28px; }
-  .pg-search-bar {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--paper); border: 1.5px solid var(--line);
-    border-radius: 999px; padding: 13px 20px; box-shadow: var(--sh-card);
-    transition: border-color .18s, box-shadow .18s;
-    margin-bottom: 12px;
-  }
-  .pg-search-bar:focus-within { border-color: var(--navy); box-shadow: 0 0 0 4px rgba(20,49,94,.08); }
-  .pg-search-input {
-    border: 0; outline: 0; background: none; flex: 1;
-    font: 600 15px/1 var(--font-ui); color: var(--ink);
-  }
-  .pg-search-input::placeholder { color: var(--muted); }
-  .pg-filters { display: flex; flex-wrap: wrap; gap: 8px; }
-  .pg-filter-pill { display: inline-flex; align-items: center; cursor: pointer; }
-  .pg-filter-pill input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
-  .pg-filter-label {
-    font: 700 13px/1 var(--font-ui); padding: 7px 15px; border-radius: 999px;
-    border: 1px solid var(--line); background: var(--paper); color: var(--muted);
-    cursor: pointer; transition: all .15s; user-select: none;
-  }
-  .pg-filter-pill input[type="radio"]:checked + .pg-filter-label {
-    background: var(--navy); border-color: var(--navy); color: var(--on-navy);
-    box-shadow: 0 4px 14px rgba(20,49,94,.18);
-  }
-  .pg-filter-label:hover { background: var(--bg-2); border-color: var(--navy-300); color: var(--ink); }
-
   /* ── Cerca de ti (results grid) ── */
   .pg-cerca-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
   @media (max-width: 640px) { .pg-cerca-grid { grid-template-columns: 1fr; } }
@@ -145,21 +268,10 @@
   /* ── Responsive grid ── */
   @media (max-width: 768px) {
     .inicio-grid { grid-template-columns: 1fr !important; }
-    .inicio-sidebar { order: -1; }
+    .inicio-sidebar { order: -1; position: static !important; }
   }
-</style>
 
-<!-- ── Greeting ── -->
-<div class="pg-greeting">
-  <p class="pg-greeting-saludo" id="saludo-hora">Buenos días</p>
-  <h1 class="pg-greeting-h1">
-    {% if request.user.is_authenticated %}
-      Hola, {{ request.user.first_name|default:request.user.username }} 👋
-    {% else %}
-      ¿Dónde querés ir a misa hoy?
-    {% endif %}
-  </h1>
-</div>
+</style>
 
 <div class="inicio-grid"
      style="display:grid; grid-template-columns:1fr 320px; gap:24px; align-items:start;">
@@ -215,69 +327,6 @@
     </div><!-- /mi-parroquia anchor -->
     {% endif %}
 
-    <!-- Buscador -->
-    <div class="pg-search-section" id="buscador">
-      <div class="pg-sh">
-        <span>Buscar parroquias</span>
-        <span style="font:500 12px/1 var(--font-ui);color:var(--muted);">{{ total }} parroquias</span>
-      </div>
-      <div class="pg-search-bar">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        <input
-          class="pg-search-input"
-          type="search"
-          name="q"
-          placeholder="Buscar por nombre, barrio, párroco..."
-          autocomplete="off"
-          hx-get="{% url 'iglesias:publico_buscar' %}"
-          hx-trigger="keyup changed delay:300ms, search"
-          hx-target="#resultados"
-          hx-include="[name='filtro']:checked"
-          id="main-search"
-        >
-      </div>
-      <div class="pg-filters">
-        <label class="pg-filter-pill">
-          <input type="radio" name="filtro" value="todas" checked
-            hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="change"
-            hx-target="#resultados" hx-include="[name='q'],[name='filtro']:checked">
-          <span class="pg-filter-label">Todas</span>
-        </label>
-        <label class="pg-filter-pill">
-          <input type="radio" name="filtro" value="eventos"
-            hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="change"
-            hx-target="#resultados" hx-include="[name='q'],[name='filtro']:checked">
-          <span class="pg-filter-label">Con eventos</span>
-        </label>
-        <label class="pg-filter-pill">
-          <input type="radio" name="filtro" value="horarios"
-            hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="change"
-            hx-target="#resultados" hx-include="[name='q'],[name='filtro']:checked">
-          <span class="pg-filter-label">Con horarios</span>
-        </label>
-        <label class="pg-filter-pill">
-          <input type="radio" name="filtro" value="redes"
-            hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="change"
-            hx-target="#resultados" hx-include="[name='q'],[name='filtro']:checked">
-          <span class="pg-filter-label">Con redes</span>
-        </label>
-        {% if total_provincias > 1 %}
-        <label class="pg-filter-pill" style="margin-left:auto;">
-          <select onchange="filtrarProvincia(this.value)"
-                  style="padding:7px 12px; border-radius:999px; font:700 13px/1 var(--font-ui);
-                         border:1px solid var(--line); background:var(--paper); color:var(--muted); cursor:pointer; outline:none;">
-            <option value="">Todas las provincias</option>
-            {% for p in provincias %}
-            <option value="{{ p.provincia }}">{{ p.provincia }} ({{ p.total }})</option>
-            {% endfor %}
-          </select>
-        </label>
-        {% endif %}
-      </div>
-    </div>
-
     <!-- Resultados -->
     <div id="resultados"></div>
     <div hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="load"
@@ -293,7 +342,9 @@
   </div><!-- /columna principal -->
 
   <!-- ══ COLUMNA DERECHA ══ -->
-  <div class="inicio-sidebar" style="display:flex; flex-direction:column; gap:16px;">
+  <div class="inicio-sidebar"
+       style="display:flex; flex-direction:column; gap:16px;
+              position:sticky; top:calc(var(--topbar) + 16px);">
 
     {% if not mi_parroquia %}
     <!-- Guardá tu parroquia favorita -->
@@ -341,6 +392,62 @@
         </div>
       </div>
     </div>
+
+    <!-- Estadísticas del directorio -->
+    <div style="background:var(--paper); border:1px solid var(--line-soft);
+                border-radius:var(--r-lg); padding:16px 16px 18px; box-shadow:var(--sh-card);">
+      <div style="font:700 11px/1 var(--font-ui); text-transform:uppercase;
+                  letter-spacing:.06em; color:var(--muted); margin-bottom:14px;">
+        Directorio
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:2px;">
+        <div style="text-align:center; padding:12px 8px; background:var(--bg-2);
+                    border-radius:var(--r-md) 0 0 var(--r-md); border:1px solid var(--line-soft);">
+          <div style="font:800 30px/.9 var(--font-display); color:var(--navy);
+                      letter-spacing:-.03em; margin-bottom:5px;">{{ total }}</div>
+          <div style="font:600 11px/1 var(--font-ui); color:var(--muted);">parroquias</div>
+        </div>
+        <div style="text-align:center; padding:12px 8px; background:var(--bg-2);
+                    border-radius:0 var(--r-md) var(--r-md) 0; border:1px solid var(--line-soft);
+                    border-left:0;">
+          <div style="font:800 30px/.9 var(--font-display); color:var(--navy);
+                      letter-spacing:-.03em; margin-bottom:5px;">{{ total_provincias }}</div>
+          <div style="font:600 11px/1 var(--font-ui); color:var(--muted);">zonas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gaudium promo -->
+    <a href="https://www.gaudium.com" target="_blank" rel="noopener sponsored"
+       style="display:block; position:relative; overflow:hidden;
+              border-radius:var(--r-lg); text-decoration:none;
+              background:linear-gradient(135deg, #1E4585, #0E2647);
+              padding:18px 18px 54px; box-shadow:var(--sh-card);
+              transition:box-shadow .18s, transform .15s;"
+       onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--sh-pop)'"
+       onmouseout="this.style.transform='';this.style.boxShadow='var(--sh-card)'">
+      <!-- hills deco -->
+      <svg style="position:absolute;bottom:0;left:0;right:0;opacity:.15;pointer-events:none;"
+           viewBox="0 0 320 50" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M0,30 C60,10 120,38 180,20 C240,2 290,32 320,18 L320,50 L0,50 Z" fill="white"/>
+        <path d="M0,42 C80,22 160,45 230,35 C270,28 295,42 320,36 L320,50 L0,50 Z" fill="white" opacity=".5"/>
+      </svg>
+      <div style="font:700 9px/1 var(--font-ui); letter-spacing:.14em; text-transform:uppercase;
+                  color:var(--gold-soft); margin-bottom:6px; position:relative;">
+        Eventos católicos
+      </div>
+      <div style="font:700 14px/1.35 var(--font-display); color:#fff;
+                  margin-bottom:10px; position:relative;">
+        Gestioná y difundí tus eventos en Gaudium
+      </div>
+      <div style="display:inline-flex; align-items:center; gap:5px; position:relative;
+                  font:700 12px/1 var(--font-ui); color:var(--gold);">
+        gaudium.com
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </div>
+    </a>
 
     <!-- Colaboradores -->
     <div style="background:var(--paper); border:1px solid var(--line-soft);

@@ -7,6 +7,37 @@
 {% endblock %}
 
 {% block content %}
+{% if login_required %}
+<div style="text-align:center; padding:60px 24px; max-width:480px; margin:0 auto;">
+  <div style="width:68px; height:68px; border-radius:50%;
+              background:var(--primary-soft, #e8edf8);
+              display:flex; align-items:center; justify-content:center;
+              margin:0 auto 20px;">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--navy)" stroke-width="2" stroke-linecap="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+  </div>
+  <h1 style="font:800 22px/1.2 var(--font-display); color:var(--ink);
+              margin-bottom:10px; letter-spacing:-.01em;">Mis Aportes</h1>
+  <p style="font:500 14px/1.6 var(--font-ui); color:var(--muted);
+             max-width:340px; margin:0 auto 28px;">
+    Acá podés ver y seguir los reportes de horarios que enviaste.
+    Necesitás iniciar sesión para acceder.
+  </p>
+  <a href="/accounts/login/?next=/publico/mis-aportes/"
+     style="display:inline-flex; align-items:center; gap:8px;
+            padding:12px 28px; border-radius:999px;
+            background:var(--navy); color:var(--on-navy);
+            font:700 14px/1 var(--font-ui); text-decoration:none;
+            box-shadow:0 4px 14px rgba(20,49,94,.22);
+            transition:background .15s;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+    </svg>
+    Iniciar sesión
+  </a>
+</div>
+{% else %}
 <style>
   .ma-header {
     background: linear-gradient(135deg, var(--navy-700), var(--navy-deep));
@@ -141,4 +172,5 @@
   </a>
 </div>
 {% endif %}
+{% endif %}{# login_required #}
 {% endblock %}
