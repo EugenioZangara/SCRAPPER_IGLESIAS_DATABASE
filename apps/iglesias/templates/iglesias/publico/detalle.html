@@ -518,9 +518,11 @@
               <textarea id="texto-comentario"
                         name="texto"
                         rows="3"
+                        minlength="3"
                         maxlength="500"
                         placeholder="Contá tu experiencia o corregí algo que esté mal..."
                         aria-label="Escribí tu comentario"></textarea>
+              <span id="comentario-error" style="color:#c0392b;font-size:13px;display:block;margin-top:4px;"></span>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
                 <span id="char-count" style="font:600 11px/1 var(--font-ui);color:var(--muted);" aria-live="polite">0/500</span>
                 <div style="display:flex;gap:8px;">
@@ -782,7 +784,12 @@ document.getElementById('texto-comentario')?.addEventListener('input', function(
 
 async function enviarComentario(pk) {
   const texto = document.getElementById('texto-comentario').value.trim();
-  if (texto.length < 10) { alert('Mínimo 10 caracteres'); return; }
+  const errorEl = document.getElementById('comentario-error');
+  if (errorEl) errorEl.textContent = '';
+  if (texto.length < 3) {
+    if (errorEl) errorEl.textContent = 'Escribí al menos 3 caracteres.';
+    return;
+  }
   const btn = document.querySelector('#form-comentario .btn-primary');
   if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
   try {
@@ -817,10 +824,10 @@ async function enviarComentario(pk) {
         </article>`;
       document.getElementById('lista-comentarios').insertAdjacentHTML('afterbegin', html);
     } else {
-      alert(d.error || 'Error al enviar');
+      if (errorEl) errorEl.textContent = d.error || 'Error al enviar.';
     }
   } catch(e) {
-    alert('Error de conexión');
+    if (errorEl) errorEl.textContent = 'Error de conexión. Intentá de nuevo.';
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = 'Enviar'; }
   }

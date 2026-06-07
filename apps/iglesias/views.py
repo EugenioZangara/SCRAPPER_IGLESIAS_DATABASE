@@ -1,7 +1,9 @@
 import os
 from datetime import date, datetime, time as dtime, timedelta
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1397,11 +1399,29 @@ def publico_mis_aportes(request):
         reverse=True,
     )[:30]
 
+    comentarios_aprobados = ComentarioParroquia.objects.filter(
+        usuario=request.user,
+        estado_moderacion='aprobado',
+    ).select_related('parroquia').order_by('-fecha')
+
+    comentarios_rechazados = ComentarioParroquia.objects.filter(
+        usuario=request.user,
+        estado_moderacion='rechazado',
+    ).select_related('parroquia').order_by('-fecha')
+
+    comentarios_pendientes = ComentarioParroquia.objects.filter(
+        usuario=request.user,
+        estado_moderacion='pendiente',
+    ).select_related('parroquia').order_by('-fecha')
+
     return render(request, "iglesias/publico/mis_aportes.html", {
         "perfil": perfil,
         "actividad": actividad,
         "total_aportes": perfil.reportes_enviados + perfil.validaciones_enviadas,
         "nivel_info": _nivel_nuevo(perfil.score),
+        "comentarios_aprobados": comentarios_aprobados,
+        "comentarios_rechazados": comentarios_rechazados,
+        "comentarios_pendientes": comentarios_pendientes,
     })
 
 
@@ -1482,8 +1502,10 @@ def parroquias_geo_json(request):
             "pk": p.pk,
             "nombre": p.nombre,
             "barrio": p.barrio or "",
+            "provincia": p.provincia or "",
             "lat": p.latitud,
             "lng": p.longitud,
+            "imagen_url": p.imagen_url or "",
             "tiene_horarios": p.horarios_misa.exists(),
             "tiene_ig": any(r.tipo == "instagram" for r in redes_v),
             "tiene_fb": any(r.tipo == "facebook" for r in redes_v),
@@ -1594,7 +1616,9 @@ def publico_detalle(request, pk):
     banner_detalle = Banner.objects.filter(posicion="detalle", activo=True).first()
 
     comentarios = ComentarioParroquia.objects.filter(
-        parroquia=parroquia, oculto=False
+        parroquia=parroquia,
+        oculto=False,
+        estado_moderacion='aprobado',
     ).select_related('usuario', 'usuario__perfil')[:30]
 
     votos = VotoHorario.objects.filter(parroquia=parroquia)
@@ -1696,17 +1720,26 @@ def agregar_comentario(request, pk):
     parroquia = get_object_or_404(Parroquia, pk=pk)
     texto = request.POST.get('texto', '').strip()
 
-    if len(texto) < 10:
-        return JsonResponse({'error': 'El comentario es muy corto (mínimo 10 caracteres)'}, status=400)
+    if len(texto) < 3:
+        return JsonResponse({'ok': False, 'error': 'El comentario es demasiado corto.'}, status=400)
     if len(texto) > 500:
-        return JsonResponse({'error': 'Máximo 500 caracteres'}, status=400)
+        return JsonResponse({'ok': False, 'error': 'El comentario no puede superar los 500 caracteres.'}, status=400)
 
     if not request.session.session_key:
         request.session.create()
 
     usuario = request.user if request.user.is_authenticated else None
 
-    comentario = ComentarioParroquia.objects.create(parroquia=parroquia, usuario=usuario, texto=texto)
+    comentario = ComentarioParroquia.objects.create(
+        parroquia=parroquia,
+        usuario=usuario,
+        texto=texto,
+        oculto=True,
+        estado_moderacion='pendiente',
+    )
+
+    from .moderacion_comentarios import moderar_comentario
+    moderar_comentario(comentario)
 
     def generar_reporte_silencioso():
         try:
@@ -2331,3 +2364,84 @@ def toggle_verificacion(request, pk):
 
 def pagina_terminos(request):
     return render(request, "iglesias/publico/terminos.html")
+
+
+def como_funciona(request):
+    canonical = f"{request.scheme}://{request.get_host()}/publico/como-funciona/"
+    niveles = [
+        {"emoji": "🗺️", "nombre": "Explorador", "rango": "0 – 49 pts"},
+        {"emoji": "🏘️", "nombre": "Vecino", "rango": "50 – 149 pts"},
+        {"emoji": "⛪", "nombre": "Sacristán", "rango": "150 – 299 pts"},
+        {"emoji": "📖", "nombre": "Catequista", "rango": "300 – 599 pts"},
+        {"emoji": "✝️", "nombre": "Párroco", "rango": "600+ pts"},
+    ]
+    return render(request, "iglesias/publico/como_funciona.html", {
+        "titulo_seo": "Cómo funciona ParroGuía — Directorio de parroquias de Buenos Aires",
+        "descripcion_seo": "Descubrí cómo usar ParroGuía para encontrar parroquias, ver horarios de misas, reportar cambios y ganar puntos colaborando con la comunidad.",
+        "canonical": canonical,
+        "niveles": niveles,
+    })
+
+
+@staff_member_required
+def moderacion_comentarios(request):
+    estado = request.GET.get('estado', 'pendiente')
+    estados_validos = ('pendiente', 'aprobado', 'rechazado')
+    if estado not in estados_validos:
+        estado = 'pendiente'
+    comentarios = ComentarioParroquia.objects.filter(
+        estado_moderacion=estado
+    ).select_related('parroquia', 'usuario').order_by('-fecha')
+    counts = {
+        e: ComentarioParroquia.objects.filter(estado_moderacion=e).count()
+        for e in estados_validos
+    }
+    return render(request, 'iglesias/moderacion_comentarios.html', {
+        'comentarios': comentarios,
+        'estado_activo': estado,
+        'counts': counts,
+    })
+
+
+@staff_member_required
+@require_POST
+def aprobar_comentario(request, pk):
+    comentario = get_object_or_404(ComentarioParroquia, pk=pk)
+    comentario.estado_moderacion = 'aprobado'
+    comentario.oculto = False
+    comentario.save(update_fields=['estado_moderacion', 'oculto'])
+    messages.success(request, 'Comentario aprobado.')
+    return redirect(request.META.get('HTTP_REFERER') or 'iglesias:moderacion_comentarios')
+
+
+@staff_member_required
+@require_POST
+def rechazar_comentario(request, pk):
+    comentario = get_object_or_404(ComentarioParroquia, pk=pk)
+    comentario.estado_moderacion = 'rechazado'
+    comentario.oculto = True
+    comentario.razon_rechazo = request.POST.get('razon', 'Rechazado manualmente')
+    comentario.save(update_fields=['estado_moderacion', 'oculto', 'razon_rechazo'])
+    messages.success(request, 'Comentario rechazado.')
+    return redirect(request.META.get('HTTP_REFERER') or 'iglesias:moderacion_comentarios')
+
+
+@login_required
+@require_POST
+def apelar_comentario(request, pk):
+    comentario = get_object_or_404(
+        ComentarioParroquia,
+        pk=pk,
+        usuario=request.user,
+        estado_moderacion='rechazado',
+    )
+    if comentario.apelado:
+        return JsonResponse({'ok': False, 'error': 'Ya apelaste este rechazo.'}, status=400)
+
+    comentario.apelado = True
+    comentario.apelado_en = timezone.now()
+    comentario.estado_moderacion = 'pendiente'
+    comentario.oculto = True
+    comentario.save(update_fields=['apelado', 'apelado_en', 'estado_moderacion', 'oculto'])
+
+    return JsonResponse({'ok': True, 'mensaje': 'Tu apelación fue enviada. La revisaremos pronto.'})

@@ -1,0 +1,118 @@
+{% extends "iglesias/base.html" %}
+
+{% block title %}Moderación de Comentarios · Scraper Católico{% endblock %}
+
+{% block content %}
+
+<section class="head">
+    <div>
+        <div class="eyebrow">Panel de revisión</div>
+        <h1 class="title">Moderación de <em>Comentarios</em></h1>
+        <p class="lede">Comentarios de usuarios pendientes de revisión por IA o manual.</p>
+    </div>
+    <div class="head-meta">
+        <strong>Resumen</strong>
+        {{ counts.pendiente }} pendientes<br>
+        {{ counts.aprobado }} aprobados<br>
+        {{ counts.rechazado }} rechazados
+    </div>
+</section>
+
+<div style="display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap;">
+    <a href="?estado=pendiente"
+       style="padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600;
+              text-decoration:none;
+              {% if estado_activo == 'pendiente' %}background:var(--ink); color:white;{% else %}background:#f3f4f6; color:var(--ink);{% endif %}">
+        Pendientes ({{ counts.pendiente }})
+    </a>
+    <a href="?estado=aprobado"
+       style="padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600;
+              text-decoration:none;
+              {% if estado_activo == 'aprobado' %}background:var(--ink); color:white;{% else %}background:#f3f4f6; color:var(--ink);{% endif %}">
+        Aprobados ({{ counts.aprobado }})
+    </a>
+    <a href="?estado=rechazado"
+       style="padding:6px 14px; border-radius:6px; font-size:13px; font-weight:600;
+              text-decoration:none;
+              {% if estado_activo == 'rechazado' %}background:var(--ink); color:white;{% else %}background:#f3f4f6; color:var(--ink);{% endif %}">
+        Rechazados ({{ counts.rechazado }})
+    </a>
+</div>
+
+{% if comentarios %}
+<div style="display:flex; flex-direction:column; gap:12px;">
+{% for c in comentarios %}
+<div style="background:white; border:1px solid #e5e7eb; border-radius:12px; padding:18px 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:0;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap;">
+                <a href="{% url 'iglesias:detalle_parroquia' c.parroquia.pk %}"
+                   style="font-weight:600; font-size:14px; color:var(--primary); text-decoration:none;">
+                    {{ c.parroquia.nombre }}
+                </a>
+                <span style="font-family:var(--mono); font-size:11px; color:#6b7280;">
+                    {% if c.usuario %}{{ c.usuario.get_full_name|default:c.usuario.username }}{% else %}Anónimo{% endif %}
+                </span>
+                <span style="font-family:var(--mono); font-size:11px; color:#9ca3af;">
+                    {{ c.fecha|date:"d/m/Y H:i" }}
+                </span>
+                {% if c.moderado_por_ia %}
+                <span style="font-family:var(--mono); font-size:10px; font-weight:600;
+                             background:#eff6ff; color:#1e40af; border-radius:4px; padding:2px 7px;">
+                    IA
+                </span>
+                {% endif %}
+                {% if c.apelado %}
+                <span style="font-family:var(--mono); font-size:10px; font-weight:600;
+                             background:#f3e8ff; color:#6b21a8; border-radius:4px; padding:2px 7px;">
+                    &#9873; Apelación del usuario
+                </span>
+                {% endif %}
+            </div>
+            <p style="margin:0 0 8px; font-size:14px; color:var(--ink); line-height:1.5;">
+                {{ c.texto }}
+            </p>
+            {% if c.razon_rechazo %}
+            <p style="margin:0; font-size:12px; color:#dc2626; font-style:italic;">
+                Razón: {{ c.razon_rechazo }}
+            </p>
+            {% endif %}
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end; flex-shrink:0;">
+            {% if estado_activo != 'aprobado' %}
+            <form method="post" action="{% url 'iglesias:aprobar_comentario' c.pk %}">
+                {% csrf_token %}
+                <button type="submit"
+                        style="padding:6px 14px; background:#16a34a; color:white; border:none;
+                               border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">
+                    ✓ Aprobar
+                </button>
+            </form>
+            {% endif %}
+            {% if estado_activo != 'rechazado' %}
+            <form method="post" action="{% url 'iglesias:rechazar_comentario' c.pk %}"
+                  style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                {% csrf_token %}
+                <input type="text" name="razon" placeholder="Razón (opcional)"
+                       style="width:180px; padding:4px 8px; border:1px solid #e5e7eb;
+                              border-radius:6px; font-size:12px;">
+                <button type="submit"
+                        style="padding:6px 14px; background:#dc2626; color:white; border:none;
+                               border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">
+                    ✗ Rechazar
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+{% else %}
+<div style="text-align:center; padding:60px 20px; color:#9ca3af; font-size:14px;">
+    No hay comentarios {{ estado_activo }}s.
+</div>
+{% endif %}
+
+{% endblock %}

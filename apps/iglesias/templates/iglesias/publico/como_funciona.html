@@ -1,0 +1,316 @@
+{% extends "iglesias/publico/base_publica.html" %}
+
+{% block page_title %}{{ titulo_seo }}{% endblock %}
+{% block canonical %}{{ canonical }}{% endblock %}
+
+{% block meta_extra %}
+<meta name="description" content="{{ descripcion_seo }}">
+<meta property="og:title" content="{{ titulo_seo }}">
+<meta property="og:description" content="{{ descripcion_seo }}">
+<meta property="og:url" content="{{ canonical }}">
+<meta property="og:type" content="website">
+{% endblock %}
+
+{% block content %}
+<a href="{% url 'iglesias:publico_inicio' %}" class="pub-back">← Volver al inicio</a>
+
+<div style="max-width:720px;">
+
+  <h1 style="font-size:26px; font-weight:700; color:var(--ink); margin-bottom:8px; line-height:1.3;">
+    Cómo funciona <span style="color:var(--primary);">ParroGuía</span>
+  </h1>
+  <p style="font-size:15px; color:var(--muted); margin-bottom:40px; line-height:1.6;">
+    ParroGuía es el directorio colaborativo de parroquias de Buenos Aires. Encontrá horarios de misas,
+    eventos y datos de contacto — y ayudá a mantenerlos actualizados.
+  </p>
+
+  <!-- ── PASOS ── -->
+  <div style="display:flex; flex-direction:column; gap:28px; margin-bottom:48px;">
+
+    <div style="display:flex; gap:16px; align-items:flex-start;">
+      <div style="flex-shrink:0; width:40px; height:40px; border-radius:50%;
+                  background:var(--primary); color:white; display:flex; align-items:center;
+                  justify-content:center; font-size:18px; font-weight:700;">1</div>
+      <div>
+        <h2 style="font-size:16px; font-weight:600; color:var(--ink); margin:0 0 6px;">
+          Buscá tu parroquia
+        </h2>
+        <p style="font-size:14px; color:var(--muted); margin:0; line-height:1.6;">
+          Usá el buscador de la página de inicio para encontrar parroquias por nombre o barrio.
+          También podés activar <strong>"Parroquias cerca mío"</strong> para ver las más cercanas
+          a tu ubicación actual, o filtrar por provincia.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:16px; align-items:flex-start;">
+      <div style="flex-shrink:0; width:40px; height:40px; border-radius:50%;
+                  background:var(--primary); color:white; display:flex; align-items:center;
+                  justify-content:center; font-size:18px; font-weight:700;">2</div>
+      <div>
+        <h2 style="font-size:16px; font-weight:600; color:var(--ink); margin:0 0 6px;">
+          Consultá horarios y eventos
+        </h2>
+        <p style="font-size:14px; color:var(--muted); margin:0; line-height:1.6;">
+          Cada parroquia tiene su página con los horarios de misas por día, información de contacto
+          y los próximos eventos parroquiales detectados automáticamente desde las redes sociales.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:16px; align-items:flex-start;">
+      <div style="flex-shrink:0; width:40px; height:40px; border-radius:50%;
+                  background:var(--primary); color:white; display:flex; align-items:center;
+                  justify-content:center; font-size:18px; font-weight:700;">3</div>
+      <div>
+        <h2 style="font-size:16px; font-weight:600; color:var(--ink); margin:0 0 6px;">
+          Confirmá o corregí la información
+        </h2>
+        <p style="font-size:14px; color:var(--muted); margin:0; line-height:1.6;">
+          Si los horarios están bien, presioná <strong>"Confirmar horarios"</strong> para que otros
+          vecinos sepan que la información es confiable. Si cambiaron, usá el botón
+          <strong>"Reportar cambio"</strong> y describe el nuevo horario: la inteligencia artificial
+          procesa tu reporte y lo envía al equipo para su revisión.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:16px; align-items:flex-start;">
+      <div style="flex-shrink:0; width:40px; height:40px; border-radius:50%;
+                  background:var(--primary); color:white; display:flex; align-items:center;
+                  justify-content:center; font-size:18px; font-weight:700;">4</div>
+      <div>
+        <h2 style="font-size:16px; font-weight:600; color:var(--ink); margin:0 0 6px;">
+          Guardá tus parroquias favoritas
+        </h2>
+        <p style="font-size:14px; color:var(--muted); margin:0; line-height:1.6;">
+          Iniciá sesión con tu cuenta de Google o Facebook y marcá parroquias como favoritas
+          con el botón <strong>♡</strong>. Las vas a encontrar siempre en tu sección
+          <strong>"Mis Parroquias"</strong> para acceder rápido.
+        </p>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:16px; align-items:flex-start;">
+      <div style="flex-shrink:0; width:40px; height:40px; border-radius:50%;
+                  background:var(--primary); color:white; display:flex; align-items:center;
+                  justify-content:center; font-size:18px; font-weight:700;">5</div>
+      <div>
+        <h2 style="font-size:16px; font-weight:600; color:var(--ink); margin:0 0 6px;">
+          Ganá puntos colaborando
+        </h2>
+        <p style="font-size:14px; color:var(--muted); margin:0; line-height:1.6;">
+          Cada reporte aprobado suma <strong>10 puntos</strong>, cada confirmación de horarios
+          suma <strong>1 punto</strong> y cada 5 reportes aprobados obtenés <strong>20 puntos
+          adicionales</strong>. Subí de nivel y aparecé en el
+          <a href="{% url 'iglesias:publico_ranking' %}" style="color:var(--primary);">ranking de colaboradores</a>.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── NIVELES ── -->
+  <div class="pub-section" style="margin-bottom:40px;">
+    <h2 style="font-size:18px; font-weight:700; color:var(--ink); margin-bottom:16px;">
+      Niveles de colaborador
+    </h2>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      {% for nivel in niveles %}
+      <div style="display:flex; align-items:center; gap:14px; padding:12px 16px;
+                  background:#f9fafb; border-radius:10px; border:1px solid var(--rule);">
+        <span style="font-size:20px;">{{ nivel.emoji }}</span>
+        <div style="flex:1;">
+          <strong style="font-size:14px; color:var(--ink);">{{ nivel.nombre }}</strong>
+          <span style="font-size:12px; color:var(--muted); margin-left:8px;">{{ nivel.rango }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── FAQ ── -->
+  <div style="margin-bottom:48px;">
+    <h2 style="font-size:18px; font-weight:700; color:var(--ink); margin-bottom:20px;">
+      Preguntas frecuentes
+    </h2>
+
+    <div style="display:flex; flex-direction:column; gap:0;">
+
+      <details class="cf-faq" open>
+        <summary class="cf-faq-q">¿Necesito crear una cuenta para usar ParroGuía?</summary>
+        <div class="cf-faq-a">
+          No. Podés buscar parroquias, ver horarios y consultar eventos sin iniciar sesión.
+          La cuenta (Google o Facebook) solo es necesaria para marcar favoritas, reportar
+          cambios y acumular puntos.
+        </div>
+      </details>
+
+      <details class="cf-faq">
+        <summary class="cf-faq-q">¿Cómo sé que los horarios están actualizados?</summary>
+        <div class="cf-faq-a">
+          Cada parroquia muestra cuántas personas confirmaron que los horarios son correctos.
+          Además, nuestro sistema revisa automáticamente las redes sociales de las parroquias
+          en busca de cambios de horario y los envía a revisión.
+        </div>
+      </details>
+
+      <details class="cf-faq">
+        <summary class="cf-faq-q">¿Cuánto tardan en aplicar mi reporte de horario?</summary>
+        <div class="cf-faq-a">
+          En general, menos de 48 horas. Un algoritmo de inteligencia artificial interpreta
+          tu texto y genera una propuesta de cambio. Luego el equipo la revisa y la aplica
+          si es correcta.
+        </div>
+      </details>
+
+      <details class="cf-faq">
+        <summary class="cf-faq-q">¿De dónde vienen los eventos parroquiales?</summary>
+        <div class="cf-faq-a">
+          Los eventos se detectan automáticamente analizando las publicaciones en Instagram
+          y Facebook de cada parroquia. Una IA identifica los posts que anuncian eventos
+          futuros y extrae la fecha, hora y descripción.
+        </div>
+      </details>
+
+      <details class="cf-faq">
+        <summary class="cf-faq-q">¿Los datos son oficiales?</summary>
+        <div class="cf-faq-a">
+          Los datos base provienen de fuentes oficiales como el directorio de la Arquidiócesis
+          de Buenos Aires. La comunidad los complementa y corrige. Siempre recomendamos
+          confirmar horarios directamente con la parroquia antes de asistir.
+        </div>
+      </details>
+
+      <details class="cf-faq">
+        <summary class="cf-faq-q">¿Puedo aportar si mi parroquia no está en el directorio?</summary>
+        <div class="cf-faq-a">
+          Por ahora el directorio cubre las parroquias de la Arquidiócesis de Buenos Aires
+          registradas en el directorio oficial. Si querés sugerir una parroquia faltante,
+          escribinos a
+          <a href="mailto:contacto@parroguia.com" style="color:var(--primary);">contacto@parroguia.com</a>.
+        </div>
+      </details>
+
+    </div>
+  </div>
+
+  <!-- ── CTA ── -->
+  <div style="text-align:center; padding:32px 24px; background:var(--primary-soft);
+              border-radius:16px; margin-bottom:48px;">
+    <p style="font-size:16px; font-weight:600; color:var(--ink); margin-bottom:16px;">
+      ¿Listo para empezar?
+    </p>
+    <a href="{% url 'iglesias:publico_inicio' %}"
+       style="display:inline-block; padding:12px 28px; background:var(--primary); color:white;
+              border-radius:10px; font-weight:600; font-size:15px; text-decoration:none;">
+      Buscar mi parroquia →
+    </a>
+  </div>
+
+  <!-- ── LINKS LEGALES ── -->
+  <div style="font-size:12px; color:var(--muted); text-align:center; padding-bottom:32px;">
+    <a href="{% url 'iglesias:privacidad' %}" style="color:var(--muted);">Política de privacidad</a>
+    <span style="margin:0 8px;">·</span>
+    <a href="{% url 'iglesias:terminos' %}" style="color:var(--muted);">Términos de servicio</a>
+  </div>
+
+</div>
+
+<!-- ── SCHEMA.ORG FAQPage ── -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Necesito crear una cuenta para usar ParroGuía?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Podés buscar parroquias, ver horarios y consultar eventos sin iniciar sesión. La cuenta (Google o Facebook) solo es necesaria para marcar favoritas, reportar cambios y acumular puntos."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo sé que los horarios están actualizados?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Cada parroquia muestra cuántas personas confirmaron que los horarios son correctos. Además, el sistema revisa automáticamente las redes sociales de las parroquias en busca de cambios de horario."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cuánto tardan en aplicar mi reporte de horario?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "En general, menos de 48 horas. Un algoritmo de inteligencia artificial interpreta el texto y genera una propuesta de cambio que el equipo revisa antes de aplicarla."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿De dónde vienen los eventos parroquiales?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Los eventos se detectan automáticamente analizando las publicaciones en Instagram y Facebook de cada parroquia. Una IA identifica los posts que anuncian eventos futuros y extrae la fecha, hora y descripción."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Los datos son oficiales?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Los datos base provienen de fuentes oficiales como el directorio de la Arquidiócesis de Buenos Aires. La comunidad los complementa y corrige. Siempre recomendamos confirmar horarios directamente con la parroquia antes de asistir."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Puedo aportar si mi parroquia no está en el directorio?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Por ahora el directorio cubre las parroquias de la Arquidiócesis de Buenos Aires registradas en el directorio oficial. Para sugerir una parroquia faltante, escribir a contacto@parroguia.com."
+      }
+    }
+  ]
+}
+</script>
+
+<style>
+.cf-faq {
+  border-bottom: 1px solid var(--rule);
+}
+.cf-faq:first-child {
+  border-top: 1px solid var(--rule);
+}
+.cf-faq-q {
+  list-style: none;
+  padding: 16px 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.cf-faq-q::-webkit-details-marker { display: none; }
+.cf-faq-q::after {
+  content: "+";
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--primary);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.cf-faq[open] .cf-faq-q::after {
+  content: "−";
+}
+.cf-faq-a {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  padding: 0 4px 16px;
+}
+</style>
+{% endblock %}

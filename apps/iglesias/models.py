@@ -532,12 +532,40 @@ class VotoHorario(models.Model):
 
 
 class ComentarioParroquia(models.Model):
+    ESTADO_MODERACION_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('aprobado', 'Aprobado'),
+        ('rechazado', 'Rechazado'),
+    ]
+
     parroquia = models.ForeignKey('Parroquia', on_delete=models.CASCADE, related_name='comentarios')
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='comentarios')
     texto = models.TextField(max_length=500)
     fecha = models.DateTimeField(auto_now_add=True)
     reporte = models.OneToOneField('ReporteHorario', on_delete=models.SET_NULL, null=True, blank=True, related_name='comentario')
+    estado_moderacion = models.CharField(
+        max_length=20,
+        choices=ESTADO_MODERACION_CHOICES,
+        default='pendiente',
+        db_index=True,
+    )
+    razon_rechazo = models.CharField(
+        max_length=255, blank=True, null=True,
+        help_text="Razón del rechazo (filtro local o IA)",
+    )
+    moderado_por_ia = models.BooleanField(
+        default=False,
+        help_text="True si la IA ya procesó este comentario",
+    )
     oculto = models.BooleanField(default=False)
+    apelado = models.BooleanField(
+        default=False,
+        help_text="El usuario marcó este rechazo como error",
+    )
+    apelado_en = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Fecha en que el usuario apeló",
+    )
 
     class Meta:
         ordering = ['-fecha']

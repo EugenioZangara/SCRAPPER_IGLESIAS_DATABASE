@@ -142,8 +142,9 @@
             hx-trigger="keyup changed delay:400ms, search"
             hx-target="#resultados"
             hx-swap="innerHTML"
-            hx-include="[name='q']"
+            hx-include="[name='q'],[name='provincia']"
           />
+          <input type="hidden" name="provincia" id="hidden-provincia" value="">
           <button type="submit" class="hero-search-btn" aria-label="Buscar">
             <svg width="14" height="14" viewBox="0 0 24 24"
                  fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
@@ -234,9 +235,24 @@
   }
   .pg-parish-card:hover { transform: translateY(-3px); box-shadow: var(--sh-pop); border-color: var(--navy-300); }
   .pg-parish-card-grad {
-    height: 88px; position: relative;
-    display: flex; align-items: flex-end; padding: 8px 12px;
+    height: 90px; position: relative;
+    display: flex; align-items: flex-end; padding: 8px 12px; overflow: hidden;
   }
+  .pg-parish-card-grad-tall { height: 150px; }
+  .pg-parish-card-img-el {
+    position: absolute; inset: 0; z-index: 0;
+    width: 100%; height: 100%; object-fit: cover; object-position: center;
+    display: block;
+  }
+  .pg-parish-card-avatar {
+    position: absolute; inset: 0; z-index: 0;
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .pg-parish-card-overlay {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(0,0,0,.35) 0%, rgba(0,0,0,.08) 100%);
+  }
+  .pg-parish-card-fav { z-index: 2; }
   .pg-parish-card-fav {
     position: absolute; top: 8px; right: 8px;
     width: 28px; height: 28px; border-radius: 50%;
@@ -327,6 +343,20 @@
     </div><!-- /mi-parroquia anchor -->
     {% endif %}
 
+    <!-- Aviso de filtro por provincia -->
+    <div id="provincia-aviso" style="display:none; margin-bottom:12px;
+         background:#e8edf8; border:1px solid #c7d4ef; border-radius:var(--r-sm);
+         padding:9px 14px; display:none; align-items:center; justify-content:space-between;
+         gap:10px; font:500 13px/1.4 var(--font-ui); color:#1e3270;">
+      <span id="provincia-aviso-texto"></span>
+      <button onclick="limpiarProvincia()"
+              style="flex-shrink:0; font:600 12px/1 var(--font-ui); color:#1e3270;
+                     background:none; border:1px solid #c7d4ef; border-radius:999px;
+                     padding:3px 10px; cursor:pointer; white-space:nowrap;">
+        × Quitar filtro
+      </button>
+    </div>
+
     <!-- Resultados -->
     <div id="resultados"></div>
     <div hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="load"
@@ -368,7 +398,24 @@
                   letter-spacing:.06em; color:var(--muted);">
         Cerca de ti
       </div>
-      <div style="padding:14px 16px;">
+      <div style="padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+
+        <!-- Selector de provincia -->
+        <select id="sel-provincia"
+                onchange="filtrarPorProvincia(this.value)"
+                style="width:100%; padding:8px 10px; border-radius:var(--r-sm);
+                       border:1.5px solid var(--line); font:500 13px/1 var(--font-ui);
+                       color:var(--ink); background:var(--paper); cursor:pointer;
+                       appearance:none; -webkit-appearance:none;
+                       background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\");
+                       background-repeat:no-repeat; background-position:right 10px center;
+                       padding-right:30px;">
+          <option value="">Todas las provincias</option>
+          {% for prov in provincias %}
+          <option value="{{ prov.provincia }}">{{ prov.provincia }} ({{ prov.total }})</option>
+          {% endfor %}
+        </select>
+
         <button id="btn-cerca" onclick="buscarCercaMio()"
                 style="width:100%; display:flex; align-items:center; justify-content:center;
                        gap:8px; padding:10px 16px; border-radius:var(--r-sm);
@@ -382,8 +429,8 @@
           <span id="btn-cerca-text">Parroquias cerca mío</span>
         </button>
         <div id="cerca-error"
-             style="display:none; font:500 12px/1 var(--font-ui); color:#dc2626; margin-top:8px;"></div>
-        <div id="ver-todas-wrap" style="display:none; margin-top:8px; text-align:center;">
+             style="display:none; font:500 12px/1 var(--font-ui); color:#dc2626;"></div>
+        <div id="ver-todas-wrap" style="display:none; text-align:center;">
           <button onclick="volverAlListado()"
                   style="font:600 13px/1 var(--font-ui); color:var(--muted);
                          background:none; border:none; cursor:pointer; text-decoration:underline;">
@@ -491,6 +538,8 @@
 </noscript>
 
 <script>
+{% load static %}
+const AVATAR_URL = "{% static 'iglesias/img/avatar-parroquia.png' %}";
 /* Greeting by time */
 (function() {
   const h = new Date().getHours();
@@ -509,6 +558,8 @@ function gradParroquia(pk) {
 }
 
 let parroquiasGeo = [];
+let cercaMioActivo = false;
+let cercaMioSorted = [];
 fetch('/publico/geo/').then(r => r.json()).then(d => { parroquiasGeo = d.parroquias; }).catch(() => {});
 
 function haversine(lat1,lng1,lat2,lng2) {
@@ -530,11 +581,14 @@ function buscarCercaMio() {
     txt.textContent = 'Parroquias cerca mío';
     btn.disabled = false;
     const {latitude:lat, longitude:lng} = pos.coords;
-    const sorted = parroquiasGeo
+    cercaMioSorted = parroquiasGeo
       .filter(p => p.lat && p.lng)
       .map(p => ({...p, dist: haversine(lat,lng,p.lat,p.lng)}))
-      .sort((a,b) => a.dist-b.dist).slice(0,10);
-    mostrarCercanas(sorted);
+      .sort((a,b) => a.dist-b.dist).slice(0,20);
+    cercaMioActivo = true;
+    const prov = document.getElementById('sel-provincia').value;
+    const filtered = prov ? cercaMioSorted.filter(p => p.provincia === prov) : cercaMioSorted;
+    mostrarCercanas(filtered.slice(0,10));
   }, err2 => {
     txt.textContent = 'Parroquias cerca mío';
     btn.disabled = false;
@@ -549,8 +603,18 @@ function mostrarCercanas(parroquias) {
   let html = '<div class="pg-cerca-grid">';
   parroquias.forEach(p => {
     const [c1,c2] = gradParroquia(p.pk);
+    const grad = `linear-gradient(135deg,${c1},${c2})`;
+    const hasImg = !!p.imagen_url;
+    const topClass = hasImg ? 'pg-parish-card-grad pg-parish-card-grad-tall' : 'pg-parish-card-grad';
+    const imgContent = hasImg
+      ? `<img class="pg-parish-card-img-el" src="${p.imagen_url}" alt="${p.nombre}" loading="lazy"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+         <img class="pg-parish-card-img-el" src="${AVATAR_URL}" alt="" style="display:none" aria-hidden="true">`
+      : `<img class="pg-parish-card-avatar" src="${AVATAR_URL}" alt="" loading="lazy" aria-hidden="true">`;
     html += `<a href="/publico/${p.pk}/" class="pg-parish-card">
-      <div class="pg-parish-card-grad" style="background:linear-gradient(135deg,${c1},${c2});">
+      <div class="${topClass}" style="background:${grad}">
+        ${imgContent}
+        <div class="pg-parish-card-overlay"></div>
         <button class="pg-parish-card-fav" onclick="event.preventDefault();" aria-label="Favorita">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -572,15 +636,47 @@ function mostrarCercanas(parroquias) {
 }
 
 function volverAlListado() {
+  cercaMioActivo = false;
+  cercaMioSorted = [];
   const wrap = document.getElementById('ver-todas-wrap');
   if (wrap) wrap.style.display = 'none';
-  htmx.ajax('GET', '{% url "iglesias:publico_buscar" %}', {target:'#resultados',swap:'innerHTML'});
+  const prov = (document.getElementById('sel-provincia') || {}).value || '';
+  filtrarPorProvincia(prov);
 }
 
-function filtrarProvincia(provincia) {
-  const params = new URLSearchParams();
-  if (provincia) params.set('provincia', provincia);
-  htmx.ajax('GET', '{% url "iglesias:publico_buscar" %}?'+params.toString(), {target:'#resultados',swap:'innerHTML'});
+function filtrarPorProvincia(prov) {
+  // Sincronizar hidden input para que el buscador lo incluya automáticamente
+  const hidden = document.getElementById('hidden-provincia');
+  if (hidden) hidden.value = prov;
+
+  // Mostrar / ocultar aviso
+  const aviso = document.getElementById('provincia-aviso');
+  const avisoTxt = document.getElementById('provincia-aviso-texto');
+  if (aviso && avisoTxt) {
+    if (prov) {
+      avisoTxt.textContent = `Estás buscando parroquias de la provincia de ${prov}.`;
+      aviso.style.display = 'flex';
+    } else {
+      aviso.style.display = 'none';
+    }
+  }
+
+  if (cercaMioActivo) {
+    const filtered = prov ? cercaMioSorted.filter(p => p.provincia === prov) : cercaMioSorted;
+    mostrarCercanas(filtered.slice(0, 10));
+  } else {
+    const q = (document.getElementById('main-search') || {}).value || '';
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (prov) params.set('provincia', prov);
+    htmx.ajax('GET', '{% url "iglesias:publico_buscar" %}?' + params.toString(), {target:'#resultados', swap:'innerHTML'});
+  }
+}
+
+function limpiarProvincia() {
+  const sel = document.getElementById('sel-provincia');
+  if (sel) sel.value = '';
+  filtrarPorProvincia('');
 }
 
 /* Pre-fill search from URL ?q= */

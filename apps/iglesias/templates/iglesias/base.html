@@ -658,6 +658,10 @@
                                      text-align:center; vertical-align:middle;">
                         </span>
                     </a>
+                    <a href="{% url 'iglesias:moderacion_comentarios' %}"
+                       {% if 'moderacion_comentarios' == request.resolver_match.url_name %}class="active"{% endif %}>
+                        Comentarios
+                    </a>
                     {% endif %}
                     {% if request.user.is_authenticated %}
                     <a href="{% url 'admin:index' %}"

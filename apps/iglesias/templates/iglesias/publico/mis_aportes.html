@@ -84,6 +84,50 @@
   .ma-empty-icon { font-size:32px; margin-bottom:12px; }
   .ma-empty-title { font:700 16px/1 var(--font-display); color:var(--ink-soft); margin-bottom:6px; }
   .ma-empty-sub { font:500 13px/1.5 var(--font-ui); color:var(--muted); }
+
+  .aportes-seccion { margin-bottom: 2rem; }
+  .aportes-subtitulo { font-size: 15px; font-weight: 600; color: var(--navy, #14315E); margin: 0 0 0.75rem; }
+  .aporte-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+  .aporte-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .aporte-fecha { font-size: 12px; color: #9ca3af; margin-left: auto; }
+  .aporte-parroquia { font-size: 13px; font-weight: 600; color: var(--navy, #14315E); margin: 0 0 4px; }
+  .aporte-texto { font-size: 14px; color: #374151; margin: 0 0 10px; line-height: 1.5; }
+  .aporte-razon {
+    display: flex; align-items: flex-start; gap: 8px;
+    font-size: 13px; color: #7a2020; background: #fff5f5;
+    border: 1px solid #fecaca; border-radius: 8px;
+    padding: 8px 12px; margin-bottom: 10px;
+  }
+  .aporte-razon svg { flex-shrink: 0; margin-top: 1px; }
+  .aporte-razon-label { font-weight: 600; }
+  .aporte-apelado-msg {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: #1a6b3c; background: #f0fdf4;
+    border: 1px solid #bbf7d0; border-radius: 8px; padding: 8px 12px;
+  }
+  .aporte-rechazado { border-left: 3px solid #fca5a5 !important; background: #fffafa !important; }
+  .badge-estado { font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 700; letter-spacing: .02em; }
+  .badge-pendiente { background: #fef9c3; color: #854d0e; }
+  .badge-aprobado { background: #dcfce7; color: #166534; }
+  .badge-rechazado { background: #fee2e2; color: #991b1b; }
+  .btn-apelar {
+    font-size: 13px; font-weight: 500;
+    color: #6b21a8; background: #faf5ff;
+    border: 1px solid #d8b4fe; border-radius: 8px;
+    padding: 7px 14px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .15s, border-color .15s;
+  }
+  .btn-apelar:hover { background: #f3e8ff; border-color: #c084fc; }
+  .btn-apelar:disabled { opacity: 0.6; cursor: default; }
+  .apelar-msg { font-size: 13px; margin-top: 8px; display: block; }
+  .ma-alerta-rechazados {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; background: #fff8f8;
+    border-bottom: 1px solid #fde8e8; color: #7a2020;
+    font: 500 13px/1.4 var(--font-ui);
+  }
+  .ma-alerta-rechazados a { color: #991b1b; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
 </style>
 
 <!-- Header -->
@@ -114,6 +158,16 @@
 <!-- Activity list -->
 <div class="ma-activity">
   <div class="ma-activity-header">Historial de actividad</div>
+
+  {% if comentarios_rechazados %}
+  <div class="ma-alerta-rechazados">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" flex-shrink="0" style="flex-shrink:0;color:#dc2626">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    Tenés {{ comentarios_rechazados|length }} comentario{{ comentarios_rechazados|length|pluralize:",s" }} rechazado{{ comentarios_rechazados|length|pluralize:",s" }} —
+    <a href="#mis-comentarios">revisá el motivo y apelá si es un error</a>
+  </div>
+  {% endif %}
 
   {% if actividad %}
     {% for item in actividad %}
@@ -172,5 +226,115 @@
   </a>
 </div>
 {% endif %}
+
+{% if comentarios_pendientes or comentarios_aprobados or comentarios_rechazados %}
+<div id="mis-comentarios" style="margin-top:32px;">
+  <h2 style="font:700 16px/1 var(--font-display);color:var(--ink);margin:0 0 18px;">Mis comentarios</h2>
+
+  {% if comentarios_pendientes %}
+  <div class="aportes-seccion">
+    <h3 class="aportes-subtitulo">En revisión</h3>
+    {% for c in comentarios_pendientes %}
+    <div class="aporte-card aporte-pendiente">
+      <div class="aporte-card-header">
+        <span class="badge-estado badge-pendiente">En revisión</span>
+        <span class="aporte-fecha">{{ c.fecha|date:"d/m/Y" }}</span>
+      </div>
+      <p class="aporte-parroquia">{{ c.parroquia.nombre }}</p>
+      <p class="aporte-texto">{{ c.texto }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if comentarios_aprobados %}
+  <div class="aportes-seccion">
+    <h3 class="aportes-subtitulo">Publicados</h3>
+    {% for c in comentarios_aprobados %}
+    <div class="aporte-card aporte-aprobado">
+      <div class="aporte-card-header">
+        <span class="badge-estado badge-aprobado">Publicado</span>
+        <span class="aporte-fecha">{{ c.fecha|date:"d/m/Y" }}</span>
+      </div>
+      <p class="aporte-parroquia">{{ c.parroquia.nombre }}</p>
+      <p class="aporte-texto">{{ c.texto }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if comentarios_rechazados %}
+  <div class="aportes-seccion">
+    <h3 class="aportes-subtitulo">Rechazados</h3>
+    {% for c in comentarios_rechazados %}
+    <div class="aporte-card aporte-rechazado" id="comentario-{{ c.pk }}">
+      <div class="aporte-card-header">
+        <span class="badge-estado badge-rechazado">Rechazado</span>
+        <span class="aporte-fecha">{{ c.fecha|date:"d/m/Y" }}</span>
+      </div>
+      <p class="aporte-parroquia">{{ c.parroquia.nombre }}</p>
+      <p class="aporte-texto">{{ c.texto }}</p>
+      {% if c.razon_rechazo %}
+      <div class="aporte-razon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span><span class="aporte-razon-label">Motivo:</span> {{ c.razon_rechazo }}</span>
+      </div>
+      {% endif %}
+      {% if c.apelado %}
+      <div class="aporte-apelado-msg">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Apelación enviada el {{ c.apelado_en|date:"d/m/Y" }}. Está siendo revisada.
+      </div>
+      {% else %}
+      <button
+        class="btn-apelar"
+        data-pk="{{ c.pk }}"
+        onclick="apelarComentario({{ c.pk }}, this)"
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h12"/></svg>
+        Creo que es un error — pedir revisión
+      </button>
+      <span class="apelar-msg" id="apelar-msg-{{ c.pk }}" style="display:none"></span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<script>
+function apelarComentario(pk, btn) {
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+  fetch(`/comentarios/${pk}/apelar/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '',
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(r => r.json())
+  .then(data => {
+    const msg = document.getElementById(`apelar-msg-${pk}`);
+    if (data.ok) {
+      btn.style.display = 'none';
+      msg.style.display = 'block';
+      msg.style.color = '#1a6b3c';
+      msg.textContent = data.mensaje;
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Creo que es un error — pedir revisión';
+      msg.style.display = 'block';
+      msg.style.color = '#c0392b';
+      msg.textContent = data.error;
+    }
+  })
+  .catch(() => {
+    btn.disabled = false;
+    btn.textContent = 'Creo que es un error — pedir revisión';
+  });
+}
+</script>
 {% endif %}{# login_required #}
 {% endblock %}

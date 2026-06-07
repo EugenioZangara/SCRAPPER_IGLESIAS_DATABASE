@@ -57,6 +57,10 @@ urlpatterns = [
     path("eventos/<int:pk>/aprobar/", views.aprobar_evento, name="aprobar_evento"),
     path("eventos/<int:pk>/rechazar/", views.rechazar_evento, name="rechazar_evento"),
     path("eventos/moderacion/", views.moderacion_eventos, name="moderacion_eventos"),
+    path("comentarios/moderacion/", views.moderacion_comentarios, name="moderacion_comentarios"),
+    path("comentarios/<int:pk>/aprobar/", views.aprobar_comentario, name="aprobar_comentario"),
+    path("comentarios/<int:pk>/rechazar/", views.rechazar_comentario, name="rechazar_comentario"),
+    path("comentarios/<int:pk>/apelar/", views.apelar_comentario, name="apelar_comentario"),
     path(
         "eventos/moderacion/pasados/",
         views.moderacion_eventos_pasados,
@@ -125,6 +129,7 @@ urlpatterns = [
     path("publico/perfil/", views.publico_perfil, name="publico_perfil"),
     path("publico/privacidad/", views.pagina_privacidad, name="privacidad"),
     path("publico/terminos/", views.pagina_terminos, name="terminos"),
+    path("publico/como-funciona/", views.como_funciona, name="como_funciona"),
     path("publico/<int:pk>/votar-horario/", views.votar_horario, name="votar_horario"),
     path("publico/<int:pk>/comentar/", views.agregar_comentario, name="agregar_comentario"),
     path(
