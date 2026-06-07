@@ -4,14 +4,14 @@
 {% block page_title %}{{ parroquia.nombre }} — Horarios de misas y eventos | ParroGuía{% endblock %}
 {% block og_type %}place{% endblock %}
 {% block og_title %}{{ parroquia.nombre }} | ParroGuía{% endblock %}
-{% block og_description %}Horarios de misas y eventos de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% endif %}.{% endblock %}
+{% block og_description %}Horarios de misas{% if horarios %} y eventos{% endif %} de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% elif parroquia.ciudad %} en {{ parroquia.ciudad }}{% endif %}{% if parroquia.provincia %}, {{ parroquia.provincia }}{% endif %}.{% if parroquia.diocesis %} {{ parroquia.diocesis }}.{% endif %}{% endblock %}
 {% block og_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_detalle' parroquia.pk %}{% endblock %}
 {% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_detalle' parroquia.pk %}{% endblock %}
 {% block twitter_title %}{{ parroquia.nombre }} | ParroGuía{% endblock %}
-{% block twitter_description %}Horarios de misas y eventos de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% endif %}.{% endblock %}
+{% block twitter_description %}Horarios de misas{% if horarios %} y eventos{% endif %} de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% elif parroquia.ciudad %} en {{ parroquia.ciudad }}{% endif %}{% if parroquia.provincia %}, {{ parroquia.provincia }}{% endif %}.{% if parroquia.diocesis %} {{ parroquia.diocesis }}.{% endif %}{% endblock %}
 
 {% block meta_extra %}
-<meta name="description" content="Horarios de misas, eventos y contacto de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}, Buenos Aires{% endif %}. Parroquia de la Arquidiócesis de Buenos Aires.">
+<meta name="description" content="Horarios de misas{% if horarios %} y eventos{% endif %} de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% elif parroquia.ciudad %} en {{ parroquia.ciudad }}{% endif %}{% if parroquia.provincia %}, {{ parroquia.provincia }}{% endif %}.{% if parroquia.diocesis %} {{ parroquia.diocesis }}.{% endif %}">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -27,8 +27,34 @@
   }
   {% if parroquia.telefonos %},"telephone": "{{ parroquia.telefonos }}"{% endif %}
   {% if parroquia.sitio_web %},"url": "{{ parroquia.sitio_web }}"{% endif %}
-  {% if parroquia.imagen_url %},"image": "{{ parroquia.imagen_url }}"{% endif %}
-  {% if parroquia.horarios_misa.exists %},"openingHours": [{% for h in parroquia.horarios_misa.all %}{% for entry in h.schema_opening_hours %}"{{ entry }}"{% if not forloop.last %},{% endif %}{% endfor %}{% if not forloop.last %},{% endif %}{% endfor %}]{% endif %}
+  {% if parroquia.imagen_url %}{% if 'key=' not in parroquia.imagen_url %},"image": "{{ parroquia.imagen_url }}"{% endif %}{% endif %}
+  {% if opening_hours_schema %},"openingHours": {{ opening_hours_schema|safe_json|safe }}{% endif %}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/publico/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{% if parroquia.provincia %}{{ parroquia.provincia }}{% else %}Argentina{% endif %}",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/publico/?provincia={{ parroquia.provincia|urlencode }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ parroquia.nombre }}",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
 }
 </script>
 {% endblock %}
@@ -284,6 +310,30 @@
   .horarios-leyenda { font: 500 11px/1.4 var(--font-ui); color: var(--muted); margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 </style>
 
+<nav class="detalle-breadcrumb" aria-label="Ruta de navegación">
+  <ol class="breadcrumb-list" itemscope itemtype="https://schema.org/BreadcrumbList">
+    <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+      <a href="{% url 'iglesias:publico_inicio' %}" itemprop="item">
+        <span itemprop="name">Inicio</span>
+      </a>
+      <meta itemprop="position" content="1" />
+    </li>
+    <li class="breadcrumb-sep" aria-hidden="true">›</li>
+    <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+      <a href="/publico/?provincia={{ parroquia.provincia|urlencode }}" itemprop="item">
+        <span itemprop="name">{% if parroquia.provincia %}{{ parroquia.provincia }}{% else %}Argentina{% endif %}</span>
+      </a>
+      <meta itemprop="position" content="2" />
+    </li>
+    <li class="breadcrumb-sep" aria-hidden="true">›</li>
+    <li class="breadcrumb-item breadcrumb-current" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+      <span itemprop="name">{{ parroquia.nombre }}</span>
+      <meta itemprop="item" content="{{ request.build_absolute_uri }}" />
+      <meta itemprop="position" content="3" />
+    </li>
+  </ol>
+</nav>
+
 <!-- Hero header -->
 <div class="pd-hero" id="pd-hero-{{ parroquia.pk }}">
   <div class="pd-hero-grad{% if parroquia.imagen_url %} pd-hero-grad-has-img{% endif %}"
@@ -339,6 +389,20 @@
   <!-- ═══ TAB: HORARIOS ═══ -->
   <div class="pd-panel active" id="panel-horarios" role="tabpanel">
     <section aria-label="Horarios de misas y comentarios">
+      <div class="detalle-disclaimer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          aria-hidden="true" style="flex-shrink:0; margin-top:1px;">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>
+          Los horarios pueden cambiar por fechas especiales o decisiones del párroco.
+          Recomendamos confirmar con la parroquia antes de asistir.
+          <a href="{% url 'iglesias:como_funciona' %}">¿Cómo funciona Parroguía?</a>
+        </span>
+      </div>
       <div class="pg-horarios-grid">
 
         <!-- COLUMNA IZQUIERDA: Horarios oficiales + El prójimo dice + votos -->

@@ -1,6 +1,12 @@
+import json as _json
 from django import template
 
 register = template.Library()
+
+
+@register.filter
+def safe_json(value):
+    return _json.dumps(value, ensure_ascii=False)
 
 
 @register.filter

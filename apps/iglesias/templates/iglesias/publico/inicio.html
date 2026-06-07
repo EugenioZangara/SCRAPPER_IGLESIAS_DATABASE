@@ -6,6 +6,54 @@
 {% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_inicio' %}{% endblock %}
 {% block meta_extra %}
 <meta name="description" content="Encontrá tu parroquia en Buenos Aires. Horarios de misas, eventos, contacto y ubicación de las {{ total }} parroquias de la Arquidiócesis de Buenos Aires.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Cómo encuentro los horarios de misa de una parroquia?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Usá el buscador de Parroguía para encontrar parroquias por nombre, barrio o ciudad. Cada parroquia tiene su página con los horarios de misa organizados por día de la semana."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Los horarios de misa están actualizados?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Parroguía combina información de fuentes públicas, redes sociales oficiales de las parroquias y aportes de la comunidad. Los horarios marcados como verificados son los más confiables. Siempre recomendamos confirmar directamente con la parroquia antes de asistir."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Puedo reportar un cambio de horario?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí. En la página de cada parroquia podés reportar cambios de horarios, validar que la información es correcta o dejar un comentario. Los aportes aprobados ayudan a toda la comunidad."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Parroguía cubre toda Argentina?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Parroguía tiene parroquias de Buenos Aires, CABA y otras provincias de Argentina. El directorio crece continuamente con nuevas parroquias y actualizaciones de la comunidad."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Necesito registrarme para usar Parroguía?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Podés consultar horarios de misa sin registrarte. El registro es opcional y permite reportar cambios, dejar comentarios y acumular puntos por tus aportes a la comunidad."
+      }
+    }
+  ]
+}
+</script>
 {% endblock %}
 
 {% block fullbleed %}
@@ -692,4 +740,69 @@ function limpiarProvincia() {
   }
 })();
 </script>
+
+<section class="faq-section" aria-labelledby="faq-titulo">
+  <h2 id="faq-titulo" class="faq-titulo">Preguntas frecuentes</h2>
+  <div class="faq-lista">
+
+    <details class="faq-item">
+      <summary class="faq-pregunta">
+        ¿Cómo encuentro los horarios de misa de una parroquia?
+      </summary>
+      <p class="faq-respuesta">
+        Usá el buscador para encontrar parroquias por nombre, barrio o ciudad.
+        Cada parroquia tiene su página con los horarios organizados por día.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-pregunta">
+        ¿Los horarios están actualizados?
+      </summary>
+      <p class="faq-respuesta">
+        Combinamos información de fuentes públicas, redes sociales oficiales
+        y aportes de la comunidad. Los horarios verificados son los más
+        confiables. Recomendamos siempre confirmar con la parroquia antes de asistir.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-pregunta">
+        ¿Puedo reportar un cambio de horario?
+      </summary>
+      <p class="faq-respuesta">
+        Sí. En la página de cada parroquia podés reportar cambios, validar
+        información o dejar un comentario. Los aportes aprobados ayudan
+        a toda la comunidad.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-pregunta">
+        ¿Parroguía cubre toda Argentina?
+      </summary>
+      <p class="faq-respuesta">
+        Tenemos parroquias de CABA, Buenos Aires y otras provincias.
+        El directorio crece continuamente con nuevas parroquias
+        y actualizaciones de la comunidad.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary class="faq-pregunta">
+        ¿Necesito registrarme para usar Parroguía?
+      </summary>
+      <p class="faq-respuesta">
+        No. Podés consultar horarios sin registrarte. El registro es opcional
+        y permite reportar cambios, comentar y acumular puntos
+        por tus aportes.
+      </p>
+    </details>
+
+  </div>
+  <p class="faq-mas">
+    ¿Más dudas?
+    <a href="{% url 'iglesias:como_funciona' %}">Conocé cómo funciona Parroguía</a>
+  </p>
+</section>
 {% endblock %}

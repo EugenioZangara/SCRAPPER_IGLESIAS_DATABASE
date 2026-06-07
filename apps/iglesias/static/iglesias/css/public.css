@@ -338,3 +338,104 @@ div[style*="width:36px; height:36px; border-radius:8px"] {
     padding-right: 16px;
   }
 }
+
+.faq-section {
+  max-width: 720px;
+  margin: 3rem auto 2rem;
+  padding: 0 1rem;
+}
+.faq-titulo {
+  font-size: 20px;
+  font-weight: 600;
+  color: #14315E;
+  margin-bottom: 1.25rem;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #F2A007;
+}
+.faq-lista { display: flex; flex-direction: column; gap: 8px; }
+.faq-item {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.faq-item[open] { border-color: #14315E; }
+.faq-pregunta {
+  font-size: 15px;
+  font-weight: 500;
+  color: #14315E;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+.faq-pregunta::-webkit-details-marker { display: none; }
+.faq-pregunta::after {
+  content: '+';
+  font-size: 18px;
+  color: #F2A007;
+  font-weight: 400;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+.faq-item[open] .faq-pregunta::after { content: '−'; }
+.faq-respuesta {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+  padding: 0 16px 14px;
+  margin: 0;
+}
+.faq-mas {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 1rem;
+  text-align: center;
+}
+.faq-mas a {
+  color: #14315E;
+  text-decoration: underline;
+}
+.faq-mas a:hover { color: #F2A007; }
+
+.detalle-breadcrumb { margin-bottom: 1rem; }
+.breadcrumb-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+}
+.breadcrumb-item a {
+  color: #14315E;
+  text-decoration: none;
+}
+.breadcrumb-item a:hover { text-decoration: underline; color: #F2A007; }
+.breadcrumb-sep { color: #9ca3af; font-size: 14px; }
+.breadcrumb-current { color: #6b7280; }
+
+.detalle-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #fef9c3;
+  border-left: 3px solid #F2A007;
+  border-radius: 0 8px 8px 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+.detalle-disclaimer a {
+  color: #14315E;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.detalle-disclaimer a:hover { color: #F2A007; }

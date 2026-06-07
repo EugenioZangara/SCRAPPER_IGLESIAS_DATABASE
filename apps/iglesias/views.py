@@ -17,6 +17,28 @@ from django.contrib import messages
 from django.utils import timezone
 
 
+_DIAS_SCHEMA = {0: 'Mo', 1: 'Tu', 2: 'We', 3: 'Th', 4: 'Fr', 5: 'Sa', 6: 'Su'}
+
+
+def _generar_opening_hours(horarios_qs):
+    resultado = []
+    for hm in horarios_qs:
+        dia_code = _DIAS_SCHEMA.get(hm.dia_semana, '')
+        if not dia_code:
+            continue
+        horas = [h.strip() for h in (hm.horarios or '').replace('·', ',').split(',') if h.strip()]
+        for hora in horas:
+            try:
+                partes = hora.split(':')
+                h = int(partes[0])
+                m = int(partes[1]) if len(partes) > 1 else 0
+                h_fin = (h + 1) % 24
+                resultado.append(f"{dia_code} {h:02d}:{m:02d}-{h_fin:02d}:{m:02d}")
+            except (ValueError, IndexError):
+                continue
+    return resultado
+
+
 def _armar_grupo_red(parroquia, tipo, etiqueta):
     redes = [
         red
@@ -1662,6 +1684,7 @@ def publico_detalle(request, pk):
         "hoy_dia": date.today().weekday(),
         "horarios_propuestos": horarios_propuestos,
         "UMBRAL_CONFIANZA_ALTA": 1.5,
+        "opening_hours_schema": _generar_opening_hours(horarios),
     })
 
 
