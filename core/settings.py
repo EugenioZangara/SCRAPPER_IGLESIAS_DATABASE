@@ -82,6 +82,8 @@ FACEBOOK_APP_ID = env("FACEBOOK_APP_ID", default="")
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 SITE_URL = env("SITE_URL", default="https://parroguia.com")
 SCRAPER_SECRET_TOKEN = env("SCRAPER_SECRET_TOKEN", default="")
+# Render: agregar IMAGEKIT_URL_ENDPOINT como variable de entorno
+IMAGEKIT_URL_ENDPOINT = env("IMAGEKIT_URL_ENDPOINT", default="")
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {

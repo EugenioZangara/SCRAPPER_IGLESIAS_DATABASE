@@ -1570,7 +1570,7 @@ def parroquias_geo_json(request):
             "provincia": p.provincia or "",
             "lat": p.latitud,
             "lng": p.longitud,
-            "foto_url": _foto_url_local(p) or "",
+            "imagen_url": p.imagen_url or "",
             "tiene_horarios": p.horarios_misa.exists(),
             "tiene_ig": any(r.tipo == "instagram" for r in redes_v),
             "tiene_fb": any(r.tipo == "facebook" for r in redes_v),
@@ -1633,7 +1633,6 @@ def publico_buscar(request):
         tiene_horarios = p.horarios_misa.exists()
         resultados.append({
             "parroquia": p,
-            "foto_url": _foto_url_local(p),
             "redes": redes_verificadas,
             "eventos_count": len(eventos_proximos),
             "tiene_horarios": tiene_horarios,

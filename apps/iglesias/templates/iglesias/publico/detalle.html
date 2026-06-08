@@ -9,6 +9,12 @@
 {% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_detalle' parroquia.pk %}{% endblock %}
 {% block twitter_title %}{{ parroquia.nombre }} | ParroGuía{% endblock %}
 {% block twitter_description %}Horarios de misas{% if horarios %} y eventos{% endif %} de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% elif parroquia.ciudad %} en {{ parroquia.ciudad }}{% endif %}{% if parroquia.provincia %}, {{ parroquia.provincia }}{% endif %}.{% if parroquia.diocesis %} {{ parroquia.diocesis }}.{% endif %}{% endblock %}
+{% if parroquia.imagen_url %}
+{% block og_image %}{{ parroquia.imagen_url }}?tr=w-1200,h-630,c-at_max,q-85,f-webp{% endblock %}
+{% block og_image_width %}1200{% endblock %}
+{% block og_image_height %}630{% endblock %}
+{% block twitter_image %}{{ parroquia.imagen_url }}?tr=w-1200,h-630,c-at_max,q-85,f-webp{% endblock %}
+{% endif %}
 
 {% block meta_extra %}
 <meta name="description" content="Horarios de misas{% if horarios %} y eventos{% endif %} de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% elif parroquia.ciudad %} en {{ parroquia.ciudad }}{% endif %}{% if parroquia.provincia %}, {{ parroquia.provincia }}{% endif %}.{% if parroquia.diocesis %} {{ parroquia.diocesis }}.{% endif %}">
@@ -27,7 +33,7 @@
   }
   {% if parroquia.telefonos %},"telephone": "{{ parroquia.telefonos }}"{% endif %}
   {% if parroquia.sitio_web %},"url": "{{ parroquia.sitio_web }}"{% endif %}
-  {% if parroquia.imagen_url %}{% if 'key=' not in parroquia.imagen_url %},"image": "{{ parroquia.imagen_url }}"{% endif %}{% endif %}
+  {% if parroquia.imagen_url %},"image": "{{ parroquia.imagen_url }}?tr=w-1200,h-630,c-at_max,q-85,f-webp"{% endif %}
   {% if opening_hours_schema %},"openingHours": {{ opening_hours_schema|safe_json|safe }}{% endif %}
 }
 </script>
@@ -336,11 +342,14 @@
 
 <!-- Hero header -->
 <div class="pd-hero" id="pd-hero-{{ parroquia.pk }}">
-  <div class="pd-hero-grad{% if foto_url %} pd-hero-grad-has-img{% endif %}"
+  <div class="pd-hero-grad{% if parroquia.imagen_url %} pd-hero-grad-has-img{% endif %}"
        id="pd-grad-{{ parroquia.pk }}"
        style="background: linear-gradient(135deg, #1E4585, #0E2647);">
-    {% if foto_url %}
-    <img src="{{ foto_url }}" alt="{{ parroquia.nombre }}" loading="eager"
+    {% if parroquia.imagen_url %}
+    <img src="{{ parroquia.imagen_url }}?tr=w-1200,h-630,c-at_max,q-85,f-webp"
+         alt="Foto de {{ parroquia.nombre }} - parroquia en {{ parroquia.ciudad|default:parroquia.barrio }}, {{ parroquia.provincia }}"
+         width="1200" height="630"
+         loading="eager" decoding="async"
          onerror="this.src='{% static 'iglesias/img/parroquia-header-detalle.png' %}';this.className='pd-hero-avatar-img'">
     {% else %}
     <img src="{% static 'iglesias/img/parroquia-header-detalle.png' %}" alt="" class="pd-hero-avatar-img" aria-hidden="true" loading="lazy">

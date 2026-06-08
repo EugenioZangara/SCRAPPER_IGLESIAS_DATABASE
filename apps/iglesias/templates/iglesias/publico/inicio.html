@@ -622,6 +622,7 @@
 <script>
 {% load static %}
 const AVATAR_URL = "{% static 'iglesias/img/avatar-parroquia.png' %}";
+const PLACEHOLDER_URL = "{% static 'iglesias/img/parroquia-header-detalle.png' %}";
 /* Greeting by time */
 (function() {
   const h = new Date().getHours();
@@ -686,13 +687,16 @@ function mostrarCercanas(parroquias) {
   parroquias.forEach(p => {
     const [c1,c2] = gradParroquia(p.pk);
     const grad = `linear-gradient(135deg,${c1},${c2})`;
-    const hasImg = !!p.foto_url;
+    const hasImg = !!p.imagen_url;
     const topClass = hasImg ? 'pg-parish-card-grad pg-parish-card-grad-tall' : 'pg-parish-card-grad';
     const imgContent = hasImg
-      ? `<img class="pg-parish-card-img-el" src="${p.foto_url}" alt="${p.nombre}" loading="lazy"
+      ? `<img class="pg-parish-card-img-el" loading="lazy" decoding="async"
+             src="${p.imagen_url}?tr=w-400,h-300,c-at_max,q-75,f-webp"
+             alt="Foto de ${p.nombre}, ${(p.barrio||p.ciudad||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}"
+             width="400" height="300"
              onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-         <img class="pg-parish-card-img-el" src="${AVATAR_URL}" alt="" style="display:none" aria-hidden="true">`
-      : `<img class="pg-parish-card-avatar" src="${AVATAR_URL}" alt="" loading="lazy" aria-hidden="true">`;
+         <img class="pg-parish-card-img-el" src="${PLACEHOLDER_URL}" alt="" style="display:none" aria-hidden="true">`
+      : `<img class="pg-parish-card-avatar" src="${PLACEHOLDER_URL}" alt="" loading="lazy" aria-hidden="true">`;
     html += `<a href="/publico/${p.pk}/" class="pg-parish-card">
       <div class="${topClass}" style="background:${grad}">
         ${imgContent}

@@ -364,8 +364,8 @@
   <meta property="og:description" content="{% block og_description %}Directorio de parroquias católicas de la Arquidiócesis de Buenos Aires con horarios de misas y eventos.{% endblock %}">
   <meta property="og:url" content="{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
   <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}/static/iglesias/img/parroguia_logo.png{% endblock %}">
-  <meta property="og:image:width" content="512">
-  <meta property="og:image:height" content="512">
+  <meta property="og:image:width" content="{% block og_image_width %}512{% endblock %}">
+  <meta property="og:image:height" content="{% block og_image_height %}512{% endblock %}">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="{% block twitter_title %}ParroGuía — Parroquias de Buenos Aires{% endblock %}">
   <meta name="twitter:description" content="{% block twitter_description %}Directorio de parroquias católicas de la Arquidiócesis de Buenos Aires.{% endblock %}">
