@@ -1151,5 +1151,68 @@
   "940": {
     "resultado": "ok",
     "descripcion": "Interior de una iglesia con altar y figuras religiosas"
+  },
+  "941": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con feligres y altar"
+  },
+  "942": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia blanca con una cruz y letrero que dice Nuestra Señora de Lujan"
+  },
+  "943": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "944": {
+    "resultado": "sin_imagen_valida"
+  },
+  "945": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia con una torre campanario"
+  },
+  "947": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia con personas en la entrada"
+  },
+  "948": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar y feligres"
+  },
+  "949": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar y figuras religiosas"
+  },
+  "950": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "951": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con crucifijo, altar y decoraciones"
+  },
+  "952": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con puerta verde y torre"
+  },
+  "954": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia blanca con detalles en amarillo y una torre"
+  },
+  "955": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con mural y puerta cerrada"
+  },
+  "956": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia con torre campanario"
+  },
+  "958": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia con torre campanario y cúpula"
+  },
+  "959": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y vitrales coloridos"
   }
 }

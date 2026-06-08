@@ -2169,7 +2169,7 @@ def robots_txt(request):
         "Disallow: /debug/\n"
         "Disallow: /api/\n"
         "\n"
-        "Sitemap: https://scrapper-iglesias-database.onrender.com/sitemap.xml\n"
+        "Sitemap: https://parroguia.com/sitemap.xml\n"
     )
     from django.http import HttpResponse
     return HttpResponse(content, content_type="text/plain")
