@@ -62,9 +62,10 @@ PROMPT_VERIFICACION = """Analizá esta imagen y respondé SOLO con un JSON, sin 
 El JSON debe tener exactamente esta estructura:
 {
   "es_iglesia": true/false,
+  "tiene_personas": true/false,
   "confianza": "alta"/"media"/"baja",
   "descripcion": "descripción breve de lo que se ve en la imagen (máximo 15 palabras)",
-  "motivo_rechazo": "razón si es_iglesia es false, sino null"
+  "motivo_rechazo": "razón si es_iglesia es false o tiene_personas es true, sino null"
 }
 
 Criterios para es_iglesia = true:
@@ -78,6 +79,17 @@ Criterios para es_iglesia = false:
 - Imagen genérica, logo, afiche o flyer
 - Foto de una calle o edificio que no es una iglesia
 - Imagen en negro, borrosa o ilegible
+
+Criterios para tiene_personas = true:
+- Se ven rostros o cuerpos reconocibles de personas reales fotografiadas
+- Hay personas en primer o segundo plano (sacerdotes, feligreses, grupos, individuos)
+- Foto de un evento aunque el edificio sea visible al fondo
+
+Criterios para tiene_personas = false (NO cuenta como personas):
+- Pinturas, murales o mosaicos religiosos con figuras (aunque tengan rostros)
+- Vitrales con imágenes de santos o escenas bíblicas
+- Esculturas, imágenes o estatuas religiosas (Virgen, Cristo, santos)
+- Personas diminutas e irreconocibles que aparecen de fondo por escala del edificio
 """
 
 
@@ -243,12 +255,14 @@ def main():
             time.sleep(2)
             continue
 
+        tiene_personas = resultado.get("tiene_personas", False)
         print(
-            f"         Gemini: es_iglesia={resultado['es_iglesia']} "
+            f"         Groq: es_iglesia={resultado['es_iglesia']} "
+            f"tiene_personas={tiene_personas} "
             f"({resultado['confianza']}) — {resultado['descripcion']}"
         )
 
-        if resultado["es_iglesia"]:
+        if resultado["es_iglesia"] and not tiene_personas:
             cache[cache_key] = {
                 "resultado": "ok",
                 "descripcion": resultado["descripcion"],
@@ -258,7 +272,8 @@ def main():
             time.sleep(4)
             continue
 
-        print(f"         RECHAZADA: {resultado['motivo_rechazo']}")
+        motivo = resultado.get("motivo_rechazo") or ("personas visibles en la foto" if tiene_personas else "no es iglesia")
+        print(f"         RECHAZADA: {motivo}")
 
         rechazada_dest = CARPETA_RECHAZADAS / archivo.name
         archivo.rename(rechazada_dest)
@@ -284,12 +299,14 @@ def main():
             if resultado_alt is None:
                 continue
 
+            tiene_personas_alt = resultado_alt.get("tiene_personas", False)
             print(
                 f"         Alternativa: es_iglesia={resultado_alt['es_iglesia']} "
+                f"tiene_personas={tiene_personas_alt} "
                 f"— {resultado_alt['descripcion']}"
             )
 
-            if resultado_alt["es_iglesia"]:
+            if resultado_alt["es_iglesia"] and not tiene_personas_alt:
                 nueva_url = (
                     f"https://maps.googleapis.com/maps/api/place/photo"
                     f"?maxwidth=800&photo_reference={ref}&key={GOOGLE_PLACES_API_KEY}"

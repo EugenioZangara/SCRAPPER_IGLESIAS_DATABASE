@@ -10,3 +10,4 @@ reconocimiento_web_resultados.json
 google_credentials.json
 /imagenes_parroquias/
 /imagenes_rechazadas/
+subir_imagenes_imagekit.py

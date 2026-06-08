@@ -23,7 +23,7 @@ from django.utils import timezone
 def _foto_url_local(parroquia):
     """Return URL for local photo from imagenes_parroquias/ if it exists, else None."""
     provincia_slug = slugify(parroquia.provincia or '')
-    pattern = str(settings.BASE_DIR / 'imagenes_parroquias' / provincia_slug / f'{parroquia.id_externo}__*')
+    pattern = str(settings.BASE_DIR / 'imagenes_parroquias' / provincia_slug / f'{parroquia.pk}__*')
     matches = _glob.glob(pattern)
     if matches:
         filename = os.path.basename(matches[0])
