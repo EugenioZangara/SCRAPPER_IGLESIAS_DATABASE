@@ -98,15 +98,20 @@ if (!window.pgGrad) {
 <div class="pg-results-grid" id="resultados-grid">
   {% for item in resultados %}
   <a href="{% url 'iglesias:publico_detalle' item.parroquia.pk %}" class="pg-rcard">
-    <div class="pg-rcard-top{% if item.parroquia.imagen_url %} pg-rcard-top-has-img{% endif %}"
+    <div class="pg-rcard-top{% if item.foto_url %} pg-rcard-top-has-img{% endif %}"
          data-pk-grad="{{ item.parroquia.pk }}"
          style="background:linear-gradient(135deg,#1E4585,#0E2647);">
-      {% if item.parroquia.imagen_url %}
+      {% if item.foto_url %}
       <img class="pg-rcard-top-img-el"
-           src="{{ item.parroquia.imagen_url }}"
+           src="{{ item.foto_url }}"
            alt="{{ item.parroquia.nombre }}"
            loading="lazy"
-           onerror="this.className='pg-rcard-top-avatar';this.src='{% static 'iglesias/img/avatar-parroquia.png' %}'">
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <img class="pg-rcard-top-avatar"
+           src="{% static 'iglesias/img/avatar-parroquia.png' %}"
+           alt=""
+           style="display:none"
+           aria-hidden="true">
       <div class="pg-rcard-top-overlay"></div>
       {% else %}
       <img class="pg-rcard-top-avatar"

@@ -1,0 +1,27 @@
+name: Avisos de misa — ParroGuía
+
+on:
+  schedule:
+    # Cada hora entre las 6:00 y las 22:00 hora Argentina (9:00–01:00 UTC)
+    - cron: '0 9-23,0-1 * * *'
+  workflow_dispatch:
+
+jobs:
+  enviar-avisos:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enviar avisos de misa
+        run: |
+          response=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST \
+            -H "X-Scraper-Token: ${{ secrets.SCRAPER_SECRET_TOKEN }}" \
+            ${{ secrets.SCRAPER_URL_BASE }}/api/avisos/enviar/)
+          echo "HTTP Status: $response"
+          cat /tmp/response.json
+          if [ "$response" != "200" ]; then
+            echo "Error: el endpoint respondió con status $response"
+            exit 1
+          fi
+          enviados=$(python3 -c "import json,sys; d=json.load(open('/tmp/response.json')); print(d.get('enviados',0))")
+          errores=$(python3 -c "import json,sys; d=json.load(open('/tmp/response.json')); print(d.get('errores',0))")
+          echo "Avisos enviados: $enviados | Errores: $errores"

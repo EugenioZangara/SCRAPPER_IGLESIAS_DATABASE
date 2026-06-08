@@ -601,3 +601,30 @@ class HorarioPropuestoAgregado(models.Model):
     def __str__(self):
         dia = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'][self.dia_semana]
         return f"{self.parroquia} — {dia}"
+
+
+class SuscripcionAvisoMisa(models.Model):
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='suscripciones_avisos'
+    )
+    parroquia = models.ForeignKey(
+        'Parroquia',
+        on_delete=models.CASCADE,
+        related_name='suscripciones_avisos'
+    )
+    dias_semana = models.JSONField(
+        default=list,
+        help_text='Lista de días [0-6] donde 0=Lunes. Vacío = todos los días.'
+    )
+    activa = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario', 'parroquia')
+        verbose_name = 'Suscripción aviso misa'
+        verbose_name_plural = 'Suscripciones avisos misa'
+
+    def __str__(self):
+        return f"{self.usuario.email} → {self.parroquia.nombre}"

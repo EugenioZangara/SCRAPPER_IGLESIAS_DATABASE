@@ -37,7 +37,7 @@ SECRET_KEY = env("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1", "parroguia.com", "www.parroguia.com"])
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 
@@ -78,6 +78,9 @@ LOGOUT_REDIRECT_URL = "/publico/"
 LOGIN_URL = "/accounts/login/"
 
 FACEBOOK_APP_ID = env("FACEBOOK_APP_ID", default="")
+RESEND_API_KEY = env("RESEND_API_KEY", default="")
+SITE_URL = env("SITE_URL", default="https://parroguia.com")
+SCRAPER_SECRET_TOKEN = env("SCRAPER_SECRET_TOKEN", default="")
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {

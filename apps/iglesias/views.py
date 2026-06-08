@@ -1,3 +1,4 @@
+import glob as _glob
 import os
 from datetime import date, datetime, time as dtime, timedelta
 from django.views.decorators.csrf import csrf_exempt
@@ -11,10 +12,23 @@ from django.views.decorators.http import require_POST
 
 from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, ValidacionHorario, Banner, VotoHorario, ComentarioParroquia, PerfilUsuario, HorarioPropuestoAgregado
 
+from django.conf import settings
+from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.contrib import messages
 from django.utils import timezone
+
+
+def _foto_url_local(parroquia):
+    """Return URL for local photo from imagenes_parroquias/ if it exists, else None."""
+    provincia_slug = slugify(parroquia.provincia or '')
+    pattern = str(settings.BASE_DIR / 'imagenes_parroquias' / provincia_slug / f'{parroquia.id_externo}__*')
+    matches = _glob.glob(pattern)
+    if matches:
+        filename = os.path.basename(matches[0])
+        return f'/imagenes-parroquias/{provincia_slug}/{filename}'
+    return None
 
 
 _DIAS_SCHEMA = {0: 'Mo', 1: 'Tu', 2: 'We', 3: 'Th', 4: 'Fr', 5: 'Sa', 6: 'Su'}
@@ -1349,11 +1363,19 @@ def publico_inicio(request):
     )
 
     nivel_info = None
+    suscripcion_activa_inicio = False
     if request.user.is_authenticated:
         try:
             nivel_info = _nivel_nuevo(request.user.perfil.score)
         except Exception:
             pass
+        if mi_parroquia:
+            from .models import SuscripcionAvisoMisa
+            suscripcion_activa_inicio = SuscripcionAvisoMisa.objects.filter(
+                usuario=request.user,
+                parroquia_id=mi_parroquia['pk'],
+                activa=True
+            ).exists()
 
     return render(request, "iglesias/publico/inicio.html", {
         "total": Parroquia.objects.count(),
@@ -1367,6 +1389,7 @@ def publico_inicio(request):
         "provincias": provincias,
         "total_provincias": provincias.count(),
         "nivel_info": nivel_info,
+        "suscripcion_activa": suscripcion_activa_inicio,
     })
 
 
@@ -1393,9 +1416,19 @@ def publico_favoritas(request):
     except Exception:
         pass
 
+    suscripcion_activa = False
+    if parroquia_favorita and request.user.is_authenticated:
+        from .models import SuscripcionAvisoMisa
+        suscripcion_activa = SuscripcionAvisoMisa.objects.filter(
+            usuario=request.user,
+            parroquia=parroquia_favorita,
+            activa=True
+        ).exists()
+
     return render(request, "iglesias/publico/favoritas.html", {
         "parroquia_favorita": parroquia_favorita,
         "proxima_misa": proxima_misa,
+        "suscripcion_activa": suscripcion_activa,
     })
 
 
@@ -1475,6 +1508,15 @@ def publico_perfil(request):
         .select_related("parroquia").order_by("-creado_en")[:10]
     )
 
+    from .models import SuscripcionAvisoMisa
+    suscripcion_activa = False
+    if perfil.parroquia_favorita:
+        suscripcion_activa = SuscripcionAvisoMisa.objects.filter(
+            usuario=request.user,
+            parroquia=perfil.parroquia_favorita,
+            activa=True
+        ).exists()
+
     return render(request, "iglesias/publico/perfil.html", {
         "perfil": perfil,
         "nivel_info": nivel_info,
@@ -1482,6 +1524,7 @@ def publico_perfil(request):
         "ranking_pos": ranking_pos,
         "insignias": insignias,
         "actividad": actividad,
+        "suscripcion_activa": suscripcion_activa,
     })
 
 
@@ -1527,7 +1570,7 @@ def parroquias_geo_json(request):
             "provincia": p.provincia or "",
             "lat": p.latitud,
             "lng": p.longitud,
-            "imagen_url": p.imagen_url or "",
+            "foto_url": _foto_url_local(p) or "",
             "tiene_horarios": p.horarios_misa.exists(),
             "tiene_ig": any(r.tipo == "instagram" for r in redes_v),
             "tiene_fb": any(r.tipo == "facebook" for r in redes_v),
@@ -1590,6 +1633,7 @@ def publico_buscar(request):
         tiene_horarios = p.horarios_misa.exists()
         resultados.append({
             "parroquia": p,
+            "foto_url": _foto_url_local(p),
             "redes": redes_verificadas,
             "eventos_count": len(eventos_proximos),
             "tiene_horarios": tiene_horarios,
@@ -1666,14 +1710,27 @@ def publico_detalle(request, pk):
         f"[detalle] parroquia {parroquia.pk}: horarios_propuestos count={horarios_propuestos.count()}"
     )
 
+    foto_url = _foto_url_local(parroquia)
+
+    from .models import SuscripcionAvisoMisa
+    suscripcion_activa = False
+    if request.user.is_authenticated and es_favorita:
+        suscripcion_activa = SuscripcionAvisoMisa.objects.filter(
+            usuario=request.user,
+            parroquia=parroquia,
+            activa=True
+        ).exists()
+
     return render(request, "iglesias/publico/detalle.html", {
         "parroquia": parroquia,
+        "foto_url": foto_url,
         "redes": redes_verificadas,
         "eventos": eventos_proximos,
         "horarios": horarios,
         "ya_valido": ya_valido,
         "ya_reporto": ya_reporto,
         "es_favorita": es_favorita,
+        "suscripcion_activa": suscripcion_activa,
         "banner_detalle": banner_detalle,
         "comentarios": comentarios,
         "votos_up": votos_up,
@@ -2468,3 +2525,46 @@ def apelar_comentario(request, pk):
     comentario.save(update_fields=['apelado', 'apelado_en', 'estado_moderacion', 'oculto'])
 
     return JsonResponse({'ok': True, 'mensaje': 'Tu apelación fue enviada. La revisaremos pronto.'})
+
+
+@csrf_exempt
+def enviar_avisos_view(request):
+    """Endpoint llamado por GitHub Actions cada hora para enviar avisos de misa."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    token = request.headers.get('X-Scraper-Token', '')
+    if token != settings.SCRAPER_SECRET_TOKEN:
+        return JsonResponse({'error': 'No autorizado'}, status=403)
+
+    from .avisos import enviar_avisos_misa
+    resultado = enviar_avisos_misa()
+    return JsonResponse(resultado)
+
+
+@login_required
+@require_POST
+def toggle_avisos_view(request):
+    """Toggle para activar/desactivar avisos de la parroquia favorita."""
+    from .models import SuscripcionAvisoMisa, PerfilUsuario
+
+    perfil = get_object_or_404(PerfilUsuario, user=request.user)
+    parroquia_favorita = perfil.parroquia_favorita
+
+    if not parroquia_favorita:
+        return JsonResponse({'error': 'No tenés parroquia favorita seleccionada'}, status=400)
+
+    suscripcion, created = SuscripcionAvisoMisa.objects.get_or_create(
+        usuario=request.user,
+        parroquia=parroquia_favorita,
+        defaults={'activa': True, 'dias_semana': []}
+    )
+
+    if not created:
+        suscripcion.activa = not suscripcion.activa
+        suscripcion.save(update_fields=['activa'])
+
+    return JsonResponse({
+        'activa': suscripcion.activa,
+        'mensaje': 'Avisos activados' if suscripcion.activa else 'Avisos desactivados'
+    })

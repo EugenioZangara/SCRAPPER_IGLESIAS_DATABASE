@@ -336,11 +336,11 @@
 
 <!-- Hero header -->
 <div class="pd-hero" id="pd-hero-{{ parroquia.pk }}">
-  <div class="pd-hero-grad{% if parroquia.imagen_url %} pd-hero-grad-has-img{% endif %}"
+  <div class="pd-hero-grad{% if foto_url %} pd-hero-grad-has-img{% endif %}"
        id="pd-grad-{{ parroquia.pk }}"
        style="background: linear-gradient(135deg, #1E4585, #0E2647);">
-    {% if parroquia.imagen_url %}
-    <img src="{{ parroquia.imagen_url }}" alt="{{ parroquia.nombre }}" loading="eager"
+    {% if foto_url %}
+    <img src="{{ foto_url }}" alt="{{ parroquia.nombre }}" loading="eager"
          onerror="this.src='{% static 'iglesias/img/parroquia-header-detalle.png' %}';this.className='pd-hero-avatar-img'">
     {% else %}
     <img src="{% static 'iglesias/img/parroquia-header-detalle.png' %}" alt="" class="pd-hero-avatar-img" aria-hidden="true" loading="lazy">
@@ -751,6 +751,37 @@
         {% if es_favorita %}Mi parroquia ✓{% else %}Marcar como mi parroquia{% endif %}
       </span>
     </button>
+
+    <!-- Avisos de misa -->
+    <div id="aviso-misa-block"
+         style="margin-top:10px; padding:12px 14px; border-radius:8px;
+                background:#f0f4ff; border:1px solid #c7d7f5;
+                {% if not es_favorita %}display:none;{% endif %}">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div style="flex:1; min-width:0;">
+          <div style="font:700 12px/1.3 var(--font-ui); color:#14315E; margin-bottom:2px;">
+            🔔 Avisos de misa
+          </div>
+          <div style="font:500 11px/1.4 var(--font-ui); color:#64748b;">
+            Recibí un email 1 hora antes
+          </div>
+        </div>
+        <button id="btn-aviso-misa"
+                onclick="toggleAvisoMisa()"
+                style="flex-shrink:0; padding:7px 14px; border-radius:999px;
+                       font:700 12px/1 var(--font-ui); cursor:pointer;
+                       transition:background .15s, color .15s, border-color .15s;
+                       {% if suscripcion_activa %}
+                       background:#14315E; color:#fff; border:1.5px solid #14315E;
+                       {% else %}
+                       background:transparent; color:#14315E; border:1.5px solid #14315E;
+                       {% endif %}">
+          <span id="btn-aviso-misa-text">
+            {% if suscripcion_activa %}Activado ✓{% else %}Activar{% endif %}
+          </span>
+        </button>
+      </div>
+    </div>
     {% endif %}
   </div>
 
@@ -897,24 +928,54 @@ async function enviarComentario(pk) {
   }
 }
 
+function getCsrfDetalle() {
+  return document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
+}
+
 function toggleFavorita(pk) {
-  const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
-  fetch('/publico/'+pk+'/favorita/',{method:'POST',headers:{'X-CSRFToken':csrf}})
+  fetch('/publico/'+pk+'/favorita/',{method:'POST',headers:{'X-CSRFToken':getCsrfDetalle()}})
   .then(r=>r.json()).then(d=>{
     if(d.login_required){sessionStorage.setItem('pendingFavorita','{{ parroquia.pk }}');window.location.href='/accounts/login/?next={{ request.path }}';return;}
     const btn=document.getElementById('btn-favorita');
     const txt=document.getElementById('btn-favorita-text');
     const path=btn.querySelector('path');
+    const avisoBlock=document.getElementById('aviso-misa-block');
     if(d.favorita){
       btn.style.background='#eeedfe'; btn.style.color='#4f46e5'; btn.style.border='1.5px solid #4f46e5';
       if(path) path.setAttribute('fill','#4f46e5');
       txt.textContent='Mi parroquia ✓';
+      if(avisoBlock) avisoBlock.style.display='block';
     } else {
       btn.style.background='white'; btn.style.color='#6b7280'; btn.style.border='1px solid #e5e7eb';
       if(path) path.setAttribute('fill','none');
       txt.textContent='Marcar como mi parroquia';
+      if(avisoBlock) avisoBlock.style.display='none';
     }
   }).catch(()=>{});
+}
+
+async function toggleAvisoMisa() {
+  const btn = document.getElementById('btn-aviso-misa');
+  const txt = document.getElementById('btn-aviso-misa-text');
+  if (btn) btn.disabled = true;
+  try {
+    const resp = await fetch('/publico/perfil/toggle-avisos/', {
+      method:'POST', headers:{'X-CSRFToken':getCsrfDetalle()}
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      if (data.activa) {
+        btn.style.background='#14315E'; btn.style.color='#fff'; btn.style.borderColor='#14315E';
+        txt.textContent='Activado ✓';
+      } else {
+        btn.style.background='transparent'; btn.style.color='#14315E'; btn.style.borderColor='#14315E';
+        txt.textContent='Activar';
+      }
+    } else {
+      alert(data.error || 'Error al cambiar los avisos');
+    }
+  } catch(e) { alert('Error de conexión'); }
+  finally { if (btn) btn.disabled = false; }
 }
 
 function mostrarMasComentarios(btn) {

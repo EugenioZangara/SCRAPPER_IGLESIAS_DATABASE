@@ -133,9 +133,32 @@
       </div>
       {% endif %}
 
-      <div style="margin-top:14px; padding-top:14px;
-                  border-top:1px solid var(--line-soft);
-                  display:flex; gap:10px;">
+      <!-- Toggle avisos -->
+      <div style="margin-top:14px; padding:12px 14px;
+                  background:#f0f4ff; border-radius:var(--r-md);
+                  border:1px solid #c7d7f5;
+                  display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div style="font:500 12px/1.4 var(--font-ui); color:#14315E;">
+          🔔 <strong>Avisos de misa</strong><br>
+          <span style="font-weight:400; color:#64748b;">Email 1 hora antes</span>
+        </div>
+        <button id="btn-aviso-fav"
+                onclick="toggleAvisoFav(event)"
+                style="flex-shrink:0; padding:7px 16px; border-radius:999px;
+                       font:700 13px/1 var(--font-ui); cursor:pointer;
+                       transition:background .15s, color .15s;
+                       {% if suscripcion_activa %}
+                       background:#14315E; color:#fff; border:1.5px solid #14315E;
+                       {% else %}
+                       background:transparent; color:#14315E; border:1.5px solid #14315E;
+                       {% endif %}">
+          <span id="btn-aviso-fav-text">
+            {% if suscripcion_activa %}Activado ✓{% else %}Activar{% endif %}
+          </span>
+        </button>
+      </div>
+
+      <div style="margin-top:10px; display:flex; gap:10px;">
         <a href="{% url 'iglesias:publico_detalle' p.pk %}"
            style="flex:1; text-align:center; padding:9px;
                   border-radius:8px; background:#4f46e5;
@@ -194,15 +217,43 @@
   });
 })();
 
+function getCsrfFav() {
+  return document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
+}
+
 async function quitarFavorita(pk) {
-  const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
   const resp = await fetch('/publico/'+pk+'/favorita/', {
-    method: 'POST', headers: {'X-CSRFToken': csrf}
+    method: 'POST', headers: {'X-CSRFToken': getCsrfFav()}
   });
   const data = await resp.json();
   if (data.ok && !data.favorita) {
     window.location.reload();
   }
+}
+
+async function toggleAvisoFav(e) {
+  if (e) e.preventDefault();
+  const btn = document.getElementById('btn-aviso-fav');
+  const txt = document.getElementById('btn-aviso-fav-text');
+  if (btn) btn.disabled = true;
+  try {
+    const resp = await fetch('/publico/perfil/toggle-avisos/', {
+      method:'POST', headers:{'X-CSRFToken': getCsrfFav()}
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      if (data.activa) {
+        btn.style.background='#14315E'; btn.style.color='#fff'; btn.style.borderColor='#14315E';
+        txt.textContent='Activado ✓';
+      } else {
+        btn.style.background='transparent'; btn.style.color='#14315E'; btn.style.borderColor='#14315E';
+        txt.textContent='Activar';
+      }
+    } else {
+      alert(data.error || 'Error al cambiar los avisos');
+    }
+  } catch(e) { alert('Error de conexión'); }
+  finally { if (btn) btn.disabled = false; }
 }
 </script>
 {% endblock %}

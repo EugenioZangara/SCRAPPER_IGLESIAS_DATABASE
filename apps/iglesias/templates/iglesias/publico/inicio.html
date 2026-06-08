@@ -345,50 +345,84 @@
 
     {% if mi_parroquia %}
     <!-- Card próxima misa -->
-    <div id="mi-parroquia">
-    <a href="{% url 'iglesias:publico_detalle' mi_parroquia.pk %}"
-       class="pg-mip {% if mi_parroquia.proxima_misa %}has-badge{% endif %}">
-      <svg class="pg-mip-hills" viewBox="0 0 800 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M0,50 C120,15 240,65 360,30 C480,0 600,55 720,25 C760,12 780,40 800,20 L800,80 L0,80 Z" fill="white"/>
-        <path d="M0,65 C150,35 300,75 450,50 C600,25 700,65 800,45 L800,80 L0,80 Z" fill="white" opacity=".45"/>
-      </svg>
-      {% if mi_parroquia.proxima_misa %}
-      <div class="pg-mip-badge">
-        <span class="pg-mip-badge-dot"></span>
-        PRÓXIMA MISA
-      </div>
-      <div class="pg-mip-time">{{ mi_parroquia.proxima_misa.hora }}</div>
-      {% else %}
-      <div style="position:relative;">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="rgba(242,160,7,.45)" stroke="none"/>
+    <div id="mi-parroquia"
+         style="background:linear-gradient(135deg,#1E4585 0%,#0E2647 100%);
+                border-radius:var(--r-xl); overflow:hidden;
+                box-shadow:0 14px 36px rgba(14,38,71,.32);
+                margin-bottom:24px; transition:box-shadow .18s, transform .15s;"
+         onmouseenter="this.style.boxShadow='0 20px 48px rgba(14,38,71,.42)';this.style.transform='translateY(-2px)'"
+         onmouseleave="this.style.boxShadow='0 14px 36px rgba(14,38,71,.32)';this.style.transform=''">
+      <a href="{% url 'iglesias:publico_detalle' mi_parroquia.pk %}"
+         class="pg-mip {% if mi_parroquia.proxima_misa %}has-badge{% endif %}"
+         style="background:transparent; border-radius:0; margin-bottom:0; box-shadow:none; display:flex;">
+        <svg class="pg-mip-hills" viewBox="0 0 800 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0,50 C120,15 240,65 360,30 C480,0 600,55 720,25 C760,12 780,40 800,20 L800,80 L0,80 Z" fill="white"/>
+          <path d="M0,65 C150,35 300,75 450,50 C600,25 700,65 800,45 L800,80 L0,80 Z" fill="white" opacity=".45"/>
         </svg>
+        {% if mi_parroquia.proxima_misa %}
+        <div class="pg-mip-badge">
+          <span class="pg-mip-badge-dot"></span>
+          PRÓXIMA MISA
+        </div>
+        <div class="pg-mip-time">{{ mi_parroquia.proxima_misa.hora }}</div>
+        {% else %}
+        <div style="position:relative;">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="rgba(242,160,7,.45)" stroke="none"/>
+          </svg>
+        </div>
+        {% endif %}
+        <div class="pg-mip-body">
+          {% if mi_parroquia.proxima_misa %}
+          <div class="pg-mip-top">
+            <span class="pg-mip-day">{{ mi_parroquia.proxima_misa.dia_label }}</span>
+            <span class="pg-mip-countdown">{{ mi_parroquia.proxima_misa.countdown }}</span>
+          </div>
+          {% else %}
+          <div style="font:700 11px/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:rgba(251,244,228,.5);margin-bottom:6px;">Mi parroquia</div>
+          {% endif %}
+          <div class="pg-mip-nombre">{{ mi_parroquia.nombre }}</div>
+          {% if mi_parroquia.barrio %}
+          <div class="pg-mip-barrio">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            {{ mi_parroquia.barrio }}
+          </div>
+          {% endif %}
+        </div>
+        <div class="pg-mip-cta">
+          {% if mi_parroquia.tiene_horarios %}Ver horarios →{% else %}Ver detalle →{% endif %}
+        </div>
+      </a>
+      {% if request.user.is_authenticated %}
+      <div style="border-top:1px solid rgba(255,255,255,.12);
+                  padding:10px 24px;
+                  display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <span style="color:rgba(255,255,255,.75); font:500 12px/1 var(--font-ui);
+                     display:flex; align-items:center; gap:7px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".8">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          Avisame 1 hora antes de la misa
+        </span>
+        <button id="btn-aviso-inicio"
+                onclick="toggleAvisoInicio(event)"
+                style="flex-shrink:0; padding:6px 16px; border-radius:999px;
+                       font:700 12px/1 var(--font-ui); cursor:pointer;
+                       transition:background .15s, color .15s, border-color .15s;
+                       {% if suscripcion_activa %}
+                       background:rgba(255,255,255,.95); color:#14315E; border:1.5px solid rgba(255,255,255,.95);
+                       {% else %}
+                       background:transparent; color:rgba(255,255,255,.9); border:1.5px solid rgba(255,255,255,.4);
+                       {% endif %}">
+          <span id="btn-aviso-inicio-text">
+            {% if suscripcion_activa %}Activado ✓{% else %}Activar{% endif %}
+          </span>
+        </button>
       </div>
       {% endif %}
-      <div class="pg-mip-body">
-        {% if mi_parroquia.proxima_misa %}
-        <div class="pg-mip-top">
-          <span class="pg-mip-day">{{ mi_parroquia.proxima_misa.dia_label }}</span>
-          <span class="pg-mip-countdown">{{ mi_parroquia.proxima_misa.countdown }}</span>
-        </div>
-        {% else %}
-        <div style="font:700 11px/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:rgba(251,244,228,.5);margin-bottom:6px;">Mi parroquia</div>
-        {% endif %}
-        <div class="pg-mip-nombre">{{ mi_parroquia.nombre }}</div>
-        {% if mi_parroquia.barrio %}
-        <div class="pg-mip-barrio">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-          </svg>
-          {{ mi_parroquia.barrio }}
-        </div>
-        {% endif %}
-      </div>
-      <div class="pg-mip-cta">
-        {% if mi_parroquia.tiene_horarios %}Ver horarios →{% else %}Ver detalle →{% endif %}
-      </div>
-    </a>
-    </div><!-- /mi-parroquia anchor -->
+    </div><!-- /mi-parroquia -->
     {% endif %}
 
     <!-- Aviso de filtro por provincia -->
@@ -652,10 +686,10 @@ function mostrarCercanas(parroquias) {
   parroquias.forEach(p => {
     const [c1,c2] = gradParroquia(p.pk);
     const grad = `linear-gradient(135deg,${c1},${c2})`;
-    const hasImg = !!p.imagen_url;
+    const hasImg = !!p.foto_url;
     const topClass = hasImg ? 'pg-parish-card-grad pg-parish-card-grad-tall' : 'pg-parish-card-grad';
     const imgContent = hasImg
-      ? `<img class="pg-parish-card-img-el" src="${p.imagen_url}" alt="${p.nombre}" loading="lazy"
+      ? `<img class="pg-parish-card-img-el" src="${p.foto_url}" alt="${p.nombre}" loading="lazy"
              onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
          <img class="pg-parish-card-img-el" src="${AVATAR_URL}" alt="" style="display:none" aria-hidden="true">`
       : `<img class="pg-parish-card-avatar" src="${AVATAR_URL}" alt="" loading="lazy" aria-hidden="true">`;
@@ -739,6 +773,32 @@ function limpiarProvincia() {
     }
   }
 })();
+
+async function toggleAvisoInicio(e) {
+  if (e) e.preventDefault();
+  const btn = document.getElementById('btn-aviso-inicio');
+  const txt = document.getElementById('btn-aviso-inicio-text');
+  if (btn) btn.disabled = true;
+  const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
+  try {
+    const resp = await fetch('/publico/perfil/toggle-avisos/', {
+      method:'POST', headers:{'X-CSRFToken': csrf}
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      if (data.activa) {
+        btn.style.background='rgba(255,255,255,.95)'; btn.style.color='#14315E'; btn.style.borderColor='rgba(255,255,255,.95)';
+        txt.textContent='Activado ✓';
+      } else {
+        btn.style.background='transparent'; btn.style.color='rgba(255,255,255,.9)'; btn.style.borderColor='rgba(255,255,255,.4)';
+        txt.textContent='Activar';
+      }
+    } else {
+      alert(data.error || 'Error al cambiar los avisos');
+    }
+  } catch(e) { alert('Error de conexión'); }
+  finally { if (btn) btn.disabled = false; }
+}
 </script>
 
 <section class="faq-section" aria-labelledby="faq-titulo">
