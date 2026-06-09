@@ -137,19 +137,49 @@ if (!window.pgGrad) {
     </div>
     <div class="pg-rcard-body">
       <div class="pg-rcard-name">{{ item.parroquia.nombre }}</div>
-      <div class="pg-rcard-loc">
+      <div class="pg-rcard-loc" style="{% if item.parroquia.diocesis %}margin-bottom:2px;{% endif %}">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
         </svg>
         {{ item.parroquia.barrio|default:"—" }}
       </div>
+      {% if item.parroquia.diocesis %}
+      <div style="font:500 11px/1 var(--font-ui);color:var(--muted);margin-bottom:7px;padding-left:13px;
+                  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8;">
+        {{ item.parroquia.diocesis }}
+      </div>
+      {% endif %}
       <div class="pg-rcard-tags">
         {% if item.eventos_count > 0 %}
           <span class="tag tag-navy">{{ item.eventos_count }} evento{{ item.eventos_count|pluralize }}</span>
         {% endif %}
-        {% if item.tiene_ig %}<span class="tag tag-ig">IG</span>{% endif %}
-        {% if item.tiene_fb %}<span class="tag tag-fb">FB</span>{% endif %}
-        {% if item.tiene_horarios %}<span class="tag tag-green">Horarios</span>{% endif %}
+        {% if item.tiene_horarios %}
+          <span class="tag tag-green" style="display:inline-flex;align-items:center;gap:4px;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Horarios
+          </span>
+          {% if item.tiene_ig %}
+          <span class="tag tag-ig" style="display:inline-flex;align-items:center;padding:3px 6px;" title="Instagram">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke-width="3"/></svg>
+          </span>
+          {% endif %}
+          {% if item.tiene_fb %}
+          <span class="tag tag-fb" style="display:inline-flex;align-items:center;padding:3px 6px;" title="Facebook">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </span>
+          {% endif %}
+        {% else %}
+          {% if item.tiene_ig %}
+          <span class="tag tag-ig" style="display:inline-flex;align-items:center;padding:3px 6px;" title="Instagram">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke-width="3"/></svg>
+          </span>
+          {% endif %}
+          {% if item.tiene_fb %}
+          <span class="tag tag-fb" style="display:inline-flex;align-items:center;padding:3px 6px;" title="Facebook">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </span>
+          {% endif %}
+        {% endif %}
       </div>
     </div>
   </a>

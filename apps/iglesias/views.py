@@ -1568,6 +1568,7 @@ def parroquias_geo_json(request):
             "nombre": p.nombre,
             "barrio": p.barrio or "",
             "provincia": p.provincia or "",
+            "diocesis": p.diocesis or "",
             "lat": p.latitud,
             "lng": p.longitud,
             "imagen_url": p.imagen_url or "",

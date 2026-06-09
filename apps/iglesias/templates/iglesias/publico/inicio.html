@@ -453,12 +453,20 @@
     <!-- Cerca de ti -->
     <div style="background:var(--paper); border:1px solid var(--line-soft);
                 border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--sh-card);">
-      <div style="padding:14px 16px; border-bottom:1px solid var(--line-soft);
-                  font:700 11px/1 var(--font-ui); text-transform:uppercase;
-                  letter-spacing:.06em; color:var(--muted);">
-        Cerca de ti
-      </div>
       <div style="padding:14px 16px; display:flex; flex-direction:column; gap:10px;">
+
+        <button id="btn-cerca" onclick="buscarCercaMio()"
+                style="width:100%; display:flex; align-items:center; justify-content:center;
+                       gap:8px; padding:10px 16px; border-radius:var(--r-sm);
+                       font:700 13px/1 var(--font-ui); border:1.5px solid var(--navy);
+                       background:var(--navy); color:var(--on-navy); cursor:pointer;
+                       transition:background .15s; box-shadow:0 4px 14px rgba(20,49,94,.18);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+            <path d="M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
+          </svg>
+          <span id="btn-cerca-text">Parroquias cerca mío</span>
+        </button>
 
         <!-- Selector de provincia -->
         <select id="sel-provincia"
@@ -475,19 +483,6 @@
           <option value="{{ prov.provincia }}">{{ prov.provincia }} ({{ prov.total }})</option>
           {% endfor %}
         </select>
-
-        <button id="btn-cerca" onclick="buscarCercaMio()"
-                style="width:100%; display:flex; align-items:center; justify-content:center;
-                       gap:8px; padding:10px 16px; border-radius:var(--r-sm);
-                       font:700 13px/1 var(--font-ui); border:1.5px solid var(--navy);
-                       background:var(--navy); color:var(--on-navy); cursor:pointer;
-                       transition:background .15s; box-shadow:0 4px 14px rgba(20,49,94,.18);">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-            <path d="M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>
-          </svg>
-          <span id="btn-cerca-text">Parroquias cerca mío</span>
-        </button>
         <div id="cerca-error"
              style="display:none; font:500 12px/1 var(--font-ui); color:#dc2626;"></div>
         <div id="ver-todas-wrap" style="display:none; text-align:center;">
@@ -500,29 +495,6 @@
       </div>
     </div>
 
-    <!-- Estadísticas del directorio -->
-    <div style="background:var(--paper); border:1px solid var(--line-soft);
-                border-radius:var(--r-lg); padding:16px 16px 18px; box-shadow:var(--sh-card);">
-      <div style="font:700 11px/1 var(--font-ui); text-transform:uppercase;
-                  letter-spacing:.06em; color:var(--muted); margin-bottom:14px;">
-        Directorio
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:2px;">
-        <div style="text-align:center; padding:12px 8px; background:var(--bg-2);
-                    border-radius:var(--r-md) 0 0 var(--r-md); border:1px solid var(--line-soft);">
-          <div style="font:800 30px/.9 var(--font-display); color:var(--navy);
-                      letter-spacing:-.03em; margin-bottom:5px;">{{ total }}</div>
-          <div style="font:600 11px/1 var(--font-ui); color:var(--muted);">parroquias</div>
-        </div>
-        <div style="text-align:center; padding:12px 8px; background:var(--bg-2);
-                    border-radius:0 var(--r-md) var(--r-md) 0; border:1px solid var(--line-soft);
-                    border-left:0;">
-          <div style="font:800 30px/.9 var(--font-display); color:var(--navy);
-                      letter-spacing:-.03em; margin-bottom:5px;">{{ total_provincias }}</div>
-          <div style="font:600 11px/1 var(--font-ui); color:var(--muted);">zonas</div>
-        </div>
-      </div>
-    </div>
 
     <!-- Gaudium promo -->
     <a href="https://www.gaudium.com" target="_blank" rel="noopener sponsored"
@@ -556,29 +528,6 @@
       </div>
     </a>
 
-    <!-- Colaboradores -->
-    <div style="background:var(--paper); border:1px solid var(--line-soft);
-                border-radius:var(--r-lg); padding:16px; box-shadow:var(--sh-card);">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <div style="font:700 11px/1 var(--font-ui); text-transform:uppercase;
-                    letter-spacing:.06em; color:var(--muted);">
-          Colaboradores
-        </div>
-        <a href="{% url 'iglesias:publico_ranking' %}"
-           style="font:600 12px/1 var(--font-ui); color:var(--navy); text-decoration:none;">
-          Ver ranking →
-        </a>
-      </div>
-      <p style="font:500 13px/1.5 var(--font-ui); color:var(--muted); margin:0;">
-        Comunidad que mantiene actualizada la información de las parroquias.
-      </p>
-      {% if not request.user.is_authenticated %}
-      <a href="{% url 'socialaccount_signup' %}" class="btn btn-accent btn-sm"
-         style="margin-top:14px; width:100%; justify-content:center;">
-        Crear cuenta gratis
-      </a>
-      {% endif %}
-    </div>
 
   </div><!-- /columna derecha -->
 
@@ -687,9 +636,15 @@ function mostrarCercanas(parroquias) {
       </div>
       <div class="pg-parish-card-body">
         <div class="pg-parish-card-name">${p.nombre}</div>
-        <div class="pg-parish-card-loc">
+        <div class="pg-parish-card-loc" style="${p.diocesis ? 'margin-bottom:2px' : ''}">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           ${p.barrio||''} · ${fmt(p.dist)}
+        </div>
+        ${p.diocesis ? `<div style="font:500 11px/1 var(--font-ui);color:var(--muted);margin-bottom:7px;padding-left:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8;">${p.diocesis}</div>` : ''}
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          ${p.tiene_horarios ? `<span class="tag tag-green" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Horarios</span>` : ''}
+          ${p.tiene_ig ? `<span class="tag tag-ig" style="display:inline-flex;align-items:center;padding:3px 6px;" title="Instagram"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke-width="3"/></svg></span>` : ''}
+          ${p.tiene_fb ? `<span class="tag tag-fb" style="display:inline-flex;align-items:center;padding:3px 6px;" title="Facebook"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></span>` : ''}
         </div>
       </div>
     </a>`;
