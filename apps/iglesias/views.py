@@ -1686,7 +1686,7 @@ def publico_detalle(request, pk):
         estado_moderacion='aprobado',
     ).select_related('usuario', 'usuario__perfil')[:30]
 
-    votos = VotoHorario.objects.filter(parroquia=parroquia)
+    votos = VotoHorario.objects.filter(parroquia=parroquia, tipo='oficial')
     votos_up = votos.filter(valor=1).count()
     votos_down = votos.filter(valor=-1).count()
     votos_total = votos_up + votos_down
@@ -1699,6 +1699,20 @@ def publico_detalle(request, pk):
     elif request.session.session_key:
         v = votos.filter(session_key=request.session.session_key, usuario__isnull=True).first()
         voto_usuario = v.valor if v else None
+
+    votos_prop = VotoHorario.objects.filter(parroquia=parroquia, tipo='propuesto')
+    votos_up_prop = votos_prop.filter(valor=1).count()
+    votos_down_prop = votos_prop.filter(valor=-1).count()
+    votos_total_prop = votos_up_prop + votos_down_prop
+    pct_up_prop = round(votos_up_prop / votos_total_prop * 100) if votos_total_prop else 0
+
+    voto_usuario_prop = None
+    if request.user.is_authenticated:
+        v = votos_prop.filter(usuario=request.user).first()
+        voto_usuario_prop = v.valor if v else None
+    elif request.session.session_key:
+        v = votos_prop.filter(session_key=request.session.session_key, usuario__isnull=True).first()
+        voto_usuario_prop = v.valor if v else None
 
     horarios_propuestos = HorarioPropuestoAgregado.objects.filter(
         parroquia=parroquia
@@ -1737,6 +1751,11 @@ def publico_detalle(request, pk):
         "votos_total": votos_total,
         "pct_up": pct_up,
         "voto_usuario": voto_usuario,
+        "votos_up_prop": votos_up_prop,
+        "votos_down_prop": votos_down_prop,
+        "votos_total_prop": votos_total_prop,
+        "pct_up_prop": pct_up_prop,
+        "voto_usuario_prop": voto_usuario_prop,
         "hoy_dia": date.today().weekday(),
         "horarios_propuestos": horarios_propuestos,
         "UMBRAL_CONFIANZA_ALTA": 1.5,
@@ -1754,13 +1773,17 @@ def votar_horario(request, pk):
         return JsonResponse({'error': 'Valor inválido'}, status=400)
     valor = int(valor)
 
+    tipo = request.POST.get('tipo', 'oficial')
+    if tipo not in ('oficial', 'propuesto'):
+        tipo = 'oficial'
+
     if not request.session.session_key:
         request.session.create()
 
     usuario = request.user if request.user.is_authenticated else None
     session_key = '' if usuario else request.session.session_key
 
-    filtro = {'parroquia': parroquia}
+    filtro = {'parroquia': parroquia, 'tipo': tipo}
     if usuario:
         filtro['usuario'] = usuario
     else:
@@ -1778,12 +1801,12 @@ def votar_horario(request, pk):
             voto_existente.save(update_fields=['valor'])
             voto_actual = valor
     else:
-        VotoHorario.objects.create(parroquia=parroquia, usuario=usuario, session_key=session_key, valor=valor)
+        VotoHorario.objects.create(parroquia=parroquia, tipo=tipo, usuario=usuario, session_key=session_key, valor=valor)
         voto_actual = valor
         if usuario:
             PerfilUsuario.objects.filter(user=usuario).update(score=db_models.F('score') + 1)
 
-    votos = VotoHorario.objects.filter(parroquia=parroquia)
+    votos = VotoHorario.objects.filter(parroquia=parroquia, tipo=tipo)
     up = votos.filter(valor=1).count()
     down = votos.filter(valor=-1).count()
     total = up + down

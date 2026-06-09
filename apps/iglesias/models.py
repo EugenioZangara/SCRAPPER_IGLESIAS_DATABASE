@@ -515,7 +515,10 @@ class Banner(models.Model):
 
 
 class VotoHorario(models.Model):
+    TIPO_CHOICES = [('oficial', 'Oficial'), ('propuesto', 'Propuesto')]
+
     parroquia = models.ForeignKey('Parroquia', on_delete=models.CASCADE, related_name='votos_horario')
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES, default='oficial')
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     session_key = models.CharField(max_length=40, blank=True)
     valor = models.SmallIntegerField()  # +1 correcto, -1 incorrecto
@@ -523,12 +526,12 @@ class VotoHorario(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['parroquia', 'usuario'], condition=models.Q(usuario__isnull=False), name='unique_voto_usuario'),
-            models.UniqueConstraint(fields=['parroquia', 'session_key'], condition=models.Q(usuario__isnull=True), name='unique_voto_sesion'),
+            models.UniqueConstraint(fields=['parroquia', 'tipo', 'usuario'], condition=models.Q(usuario__isnull=False), name='unique_voto_usuario'),
+            models.UniqueConstraint(fields=['parroquia', 'tipo', 'session_key'], condition=models.Q(usuario__isnull=True), name='unique_voto_sesion'),
         ]
 
     def __str__(self):
-        return f"Voto {self.valor:+d} — {self.parroquia}"
+        return f"Voto {self.valor:+d} ({self.tipo}) — {self.parroquia}"
 
 
 class ComentarioParroquia(models.Model):

@@ -290,12 +290,20 @@
   .horarios-section { margin-bottom: 0; }
   .horarios-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
   @media (max-width: 600px) { .horarios-grid { grid-template-columns: 1fr; } }
-  .col-horarios { border-radius: 12px; border: 1px solid var(--line-soft); overflow: hidden; }
-  .col-header-oficial { background: var(--navy); color: var(--gold); padding: 10px 14px; font: 600 13px/1 var(--font-ui); display: flex; align-items: center; gap: 8px; }
-  .col-header-projimo { background: #fdf8ec; color: #b8860b; padding: 10px 14px; font: 600 13px/1 var(--font-ui); display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line-soft); }
-  .badge-verificado-col { background: rgba(242,160,7,.22); color: var(--gold); font: 700 10px/1 var(--font-ui); padding: 2px 7px; border-radius: 20px; }
-  .badge-aportes-col { background: #fde9a0; color: #7a5800; font: 700 10px/1 var(--font-ui); padding: 2px 7px; border-radius: 20px; }
-  .col-body { padding: 10px 14px; }
+  .col-horarios { border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+  .col-header { padding: 10px 14px; font: 600 12px/1 var(--font-ui); letter-spacing: .3px; }
+  .col-body { padding: 10px 14px; flex: 1; background: var(--paper); }
+
+  /* Oficial — azul institucional */
+  .col-oficial { border: 1px solid #b8cceb; }
+  .col-oficial .col-header { background: #2a4494; color: #dce8f8; border-bottom: 1px solid #1e3270; }
+  .col-oficial .col-vote-bar { background: #edf2fb; border-top: 1px solid #c5d4ee; }
+
+  /* Prójimo — ámbar comunitario */
+  .col-projimo { border: 1px solid #dfc98a; }
+  .col-projimo .col-header { background: #fdf3dc; color: #7a5800; border-bottom: 1px solid #e8d49a; }
+  .col-projimo .col-vote-bar { background: #fdf8ee; border-top: 1px solid #e8d49a; }
+  .col-vote-bar { margin-top: auto; }
   .dia-row-prop { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--rule-2, #f3f4f6); }
   .dia-row-prop:last-of-type { border-bottom: none; }
   .dia-label-prop { font: 600 12px/1 var(--font-ui); color: var(--muted); min-width: 32px; padding-top: 4px; }
@@ -307,13 +315,16 @@
   .pill-conf { background: #ede9fb; color: #3c2e8a; }
   .pill-eliminado { background: #fceaea; color: #991f1f; text-decoration: line-through; font-size: 11px; }
   .sin-horarios-prop { font: 500 13px/1.4 var(--font-ui); color: var(--muted); font-style: italic; padding: 8px 0; }
-  .confianza-footer { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line-soft); }
-  .confianza-label { font: 600 11px/1 var(--font-ui); color: var(--muted); }
-  .confianza-bar-wrap { flex: 1; height: 4px; background: var(--line-soft); border-radius: 2px; }
-  .confianza-bar-fill { height: 4px; border-radius: 2px; background: #7c6ac0; }
-  .confianza-pct { font: 700 11px/1 var(--font-ui); color: #7c6ac0; min-width: 32px; text-align: right; }
-  .confianza-detalle { font: 500 11px/1.4 var(--font-ui); color: var(--muted); margin: 4px 0 0; }
-  .horarios-leyenda { font: 500 11px/1.4 var(--font-ui); color: var(--muted); margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .col-vote-bar { padding: 11px 14px 10px; border-top: 1px solid var(--line-soft); background: var(--bg-2, #f9fafb); display: flex; flex-direction: column; gap: 8px; }
+  .col-vote-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .col-votebtn { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; border: 1px solid var(--line); background: var(--paper); color: var(--ink-soft); border-radius: 8px; padding: 6px 10px; font: 700 12px/1 var(--font-ui); transition: background .15s, border-color .15s, color .15s; }
+  .col-votebtn:hover { border-color: var(--navy); background: var(--primary-soft, #e8edf8); }
+  .col-votebtn.on-up  { background: rgba(31,138,91,.12); border-color: rgba(31,138,91,.4);  color: #1a7a50; }
+  .col-votebtn.on-down { background: rgba(194,65,12,.10); border-color: rgba(194,65,12,.35); color: #b83a0a; }
+  .col-conf-pct { font: 700 13px/1 var(--font-ui); color: var(--ink-soft); min-width: 34px; text-align: right; }
+  .col-conf-track { height: 7px; border-radius: 4px; background: var(--line); overflow: hidden; }
+  .col-conf-fill { height: 100%; border-radius: 4px; background: #9ca3af; transition: width .4s cubic-bezier(.22,1,.36,1), background-color .4s; }
+  .col-vote-caption { font: 500 11px/1 var(--font-ui); color: var(--muted); }
 </style>
 
 <nav class="detalle-breadcrumb" aria-label="Ruta de navegación">
@@ -422,12 +433,7 @@
 
               <!-- Columna oficial -->
               <div class="col-horarios col-oficial">
-                <div class="col-header-oficial">
-                  <span>Horarios oficiales</span>
-                  {% if parroquia.horarios_verificados %}
-                  <span class="badge-verificado-col">verificado</span>
-                  {% endif %}
-                </div>
+                <div class="col-header">Nuestros Horarios</div>
                 <div class="col-body">
                   {% for h in horarios %}
                   <div class="dia-row-prop{% if h.dia_semana == hoy_dia %} is-today{% endif %}">
@@ -446,14 +452,36 @@
                   <p class="sin-horarios-prop">Sin horarios oficiales cargados aún.</p>
                   {% endfor %}
                 </div>
+                <div class="col-vote-bar">
+                  <div class="col-vote-row">
+                    <div style="display:flex;gap:5px;">
+                      <button class="col-votebtn{% if voto_usuario == 1 %} on-up{% endif %}"
+                              id="btn-up"
+                              onclick="votarHorario({{ parroquia.pk }}, 1, 'oficial')"
+                              aria-label="Los horarios oficiales están correctos">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                        <span id="count-up">{{ votos_up }}</span>
+                      </button>
+                      <button class="col-votebtn{% if voto_usuario == -1 %} on-down{% endif %}"
+                              id="btn-down"
+                              onclick="votarHorario({{ parroquia.pk }}, -1, 'oficial')"
+                              aria-label="Los horarios oficiales tienen errores">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(180deg)" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                        <span id="count-down">{{ votos_down }}</span>
+                      </button>
+                    </div>
+                    <span class="col-conf-pct" id="conf-pct">{% if votos_total > 0 %}{{ pct_up }}%{% else %}—{% endif %}</span>
+                  </div>
+                  <div class="col-conf-track">
+                    <div class="col-conf-fill" id="conf-fill" data-pct="{{ pct_up }}" style="width:{{ pct_up }}%;"></div>
+                  </div>
+                  <p class="col-vote-caption">{% if votos_total > 0 %}{{ votos_total }} voto{{ votos_total|pluralize }}{% else %}Sin votos aún{% endif %}</p>
+                </div>
               </div>
 
               <!-- Columna prójimo -->
               <div class="col-horarios col-projimo">
-                <div class="col-header-projimo">
-                  <span>El prójimo dice</span>
-                  <span class="badge-aportes-col">{{ horarios_propuestos|length }} día{% if horarios_propuestos|length != 1 %}s{% endif %} con aportes</span>
-                </div>
+                <div class="col-header">El prójimo dice</div>
                 <div class="col-body">
                   {% for hp in horarios_propuestos %}
                   <div class="dia-row-prop">
@@ -475,28 +503,34 @@
                     </div>
                   </div>
                   {% endfor %}
-
-                  {% with pct=horarios_propuestos|confianza_promedio %}
-                  <div class="confianza-footer">
-                    <span class="confianza-label">Confianza</span>
-                    <div class="confianza-bar-wrap">
-                      <div class="confianza-bar-fill" style="width:{{ pct }}%;"></div>
+                </div>
+                <div class="col-vote-bar">
+                  <div class="col-vote-row">
+                    <div style="display:flex;gap:5px;">
+                      <button class="col-votebtn{% if voto_usuario_prop == 1 %} on-up{% endif %}"
+                              id="btn-up-prop"
+                              onclick="votarHorario({{ parroquia.pk }}, 1, 'propuesto')"
+                              aria-label="Los horarios propuestos son correctos">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                        <span id="count-up-prop">{{ votos_up_prop }}</span>
+                      </button>
+                      <button class="col-votebtn{% if voto_usuario_prop == -1 %} on-down{% endif %}"
+                              id="btn-down-prop"
+                              onclick="votarHorario({{ parroquia.pk }}, -1, 'propuesto')"
+                              aria-label="Los horarios propuestos tienen errores">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(180deg)" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                        <span id="count-down-prop">{{ votos_down_prop }}</span>
+                      </button>
                     </div>
-                    <span class="confianza-pct">{{ pct }}%</span>
+                    <span class="col-conf-pct" id="conf-pct-prop">{% if votos_total_prop > 0 %}{{ pct_up_prop }}%{% else %}—{% endif %}</span>
                   </div>
-                  {% endwith %}
-                  <p class="confianza-detalle">{{ horarios_propuestos|total_aportes }} aporte{% if horarios_propuestos|total_aportes != 1 %}s{% endif %} · {{ horarios_propuestos|aportes_historial }} con historial aprobado</p>
+                  <div class="col-conf-track">
+                    <div class="col-conf-fill" id="conf-fill-prop" data-pct="{{ pct_up_prop }}" style="width:{{ pct_up_prop }}%;"></div>
+                  </div>
+                  <p class="col-vote-caption">{% if votos_total_prop > 0 %}{{ votos_total_prop }} voto{{ votos_total_prop|pluralize }}{% else %}Sin votos aún{% endif %}</p>
                 </div>
               </div>
 
-            </div>
-
-            <!-- Leyenda -->
-            <div class="horarios-leyenda" aria-label="Leyenda de colores">
-              <span class="pill-prop pill-oficial-col leg">8:00</span> oficial &nbsp;
-              <span class="pill-prop pill-coincide leg">8:00</span> confirmado &nbsp;
-              <span class="pill-prop pill-nuevo leg">18:30</span> propuesto &nbsp;
-              <span class="pill-prop pill-conf leg">19:00</span> alta coincidencia
             </div>
 
             {% else %}
@@ -531,41 +565,35 @@
               <p class="pg-notimes" style="padding:20px 0;text-align:center;">Horarios no disponibles aún.</p>
               {% endfor %}
             </div>
+            <div class="pg-card pg-sched" style="margin-top:12px;padding:10px 16px;">
+              <div class="col-vote-row">
+                <div style="display:flex;gap:6px;">
+                  <button class="col-votebtn{% if voto_usuario == 1 %} on-up{% endif %}"
+                          id="btn-up"
+                          onclick="votarHorario({{ parroquia.pk }}, 1, 'oficial')"
+                          aria-label="Los horarios están correctos">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                    <span id="count-up">{{ votos_up }}</span>
+                  </button>
+                  <button class="col-votebtn{% if voto_usuario == -1 %} on-down{% endif %}"
+                          id="btn-down"
+                          onclick="votarHorario({{ parroquia.pk }}, -1, 'oficial')"
+                          aria-label="Los horarios tienen errores">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(180deg)" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                    <span id="count-down">{{ votos_down }}</span>
+                  </button>
+                </div>
+                <span class="col-conf-pct" id="conf-pct">{% if votos_total > 0 %}{{ pct_up }}%{% else %}—{% endif %}</span>
+              </div>
+              <div class="col-conf-track" style="margin-top:8px;">
+                <div class="col-conf-fill" id="conf-fill" data-pct="{{ pct_up }}" style="width:{{ pct_up }}%;"></div>
+              </div>
+              {% if votos_total > 0 %}
+              <p class="col-vote-caption">{{ votos_total }} voto{{ votos_total|pluralize }}</p>
+              {% endif %}
+            </div>
             {% endif %}
           </section>
-
-          <!-- Votos sobre los horarios -->
-          <div class="pg-card pg-sched" style="margin-top:12px;">
-            <div class="pg-vote" aria-label="¿Los horarios están correctos?">
-              <div class="pg-vote-btns">
-                <button class="pg-votebtn{% if voto_usuario == 1 %} on-up{% endif %}"
-                        id="btn-up"
-                        onclick="votarHorario({{ parroquia.pk }}, 1)"
-                        aria-label="Los horarios están correctos"
-                        title="Confirmar que los horarios son correctos">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                  <span id="count-up">{{ votos_up }}</span>
-                </button>
-                <button class="pg-votebtn{% if voto_usuario == -1 %} on-down{% endif %}"
-                        id="btn-down"
-                        onclick="votarHorario({{ parroquia.pk }}, -1)"
-                        aria-label="Los horarios están incorrectos"
-                        title="Indicar que los horarios tienen errores">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(180deg)" aria-hidden="true"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
-                  <span id="count-down">{{ votos_down }}</span>
-                </button>
-              </div>
-              <div class="pg-vote-pct" id="voto-pct" aria-live="polite">
-                {% if votos_total > 0 %}<b>{{ pct_up }}%</b> confirma{% endif %}
-              </div>
-            </div>
-            <div class="pg-vote-bar" role="progressbar" aria-valuenow="{{ pct_up }}" aria-valuemin="0" aria-valuemax="100">
-              <i id="pct-fill" style="width:{{ pct_up }}%;"></i>
-            </div>
-            {% if votos_total > 0 %}
-            <p class="pg-vote-caption">{{ votos_total }} persona{{ votos_total|pluralize }} votó estos horarios</p>
-            {% endif %}
-          </div>
         </div>
 
         <!-- COLUMNA DERECHA: Comentarios -->
@@ -831,7 +859,9 @@
 {% if banner_detalle %}
 <div style="margin-top:24px;text-align:center;" aria-label="Publicidad">
   {% if banner_detalle.url_destino %}<a href="{{ banner_detalle.url_destino }}" target="_blank" rel="noopener sponsored" style="display:inline-block;text-decoration:none;">{% endif %}
-  {% if banner_detalle.imagen %}
+  {% if banner_detalle.imagen_static %}
+    <img src="{% static banner_detalle.imagen_static %}" alt="{{ banner_detalle.texto_alternativo|default:banner_detalle.titulo }}" loading="lazy" style="max-width:100%;height:auto;border-radius:var(--r-md);">
+  {% elif banner_detalle.imagen %}
     <img src="{{ banner_detalle.imagen.url }}" alt="{{ banner_detalle.texto_alternativo|default:banner_detalle.titulo }}" loading="lazy" style="max-width:100%;height:auto;border-radius:var(--r-md);">
   {% else %}
     <div style="background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 20px;display:inline-block;font:500 12px/1 var(--font-ui);color:var(--muted);">Publicidad · {{ banner_detalle.titulo }}</div>
@@ -862,25 +892,37 @@ function switchTab(name) {
 
 const CSRF = '{{ csrf_token }}';
 
-async function votarHorario(pk, valor) {
+function pctToColor(pct) {
+  if (!pct) return '#9ca3af';
+  return `hsl(${Math.round(pct * 1.2)}, 62%, 40%)`;
+}
+
+async function votarHorario(pk, valor, tipo) {
+  const sfx = tipo === 'propuesto' ? '-prop' : '';
   try {
     const resp = await fetch(`/publico/${pk}/votar-horario/`, {
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': CSRF},
-      body: `valor=${valor}`,
+      body: `valor=${valor}&tipo=${tipo}`,
     });
     const d = await resp.json();
     if (d.up !== undefined) {
-      document.getElementById('count-up').textContent = d.up;
-      document.getElementById('count-down').textContent = d.down;
-      document.getElementById('voto-pct').textContent = d.total > 0 ? d.pct + '% confirma' : '';
-      const fill = document.getElementById('pct-fill');
-      if (fill) fill.style.width = d.pct + '%';
-      document.getElementById('btn-up').className = 'pg-votebtn' + (d.voto_actual === 1 ? ' on-up' : '');
-      document.getElementById('btn-down').className = 'pg-votebtn' + (d.voto_actual === -1 ? ' on-down' : '');
+      document.getElementById('count-up' + sfx).textContent = d.up;
+      document.getElementById('count-down' + sfx).textContent = d.down;
+      const pctEl = document.getElementById('conf-pct' + sfx);
+      if (pctEl) pctEl.textContent = d.total > 0 ? d.pct + '%' : '—';
+      const fill = document.getElementById('conf-fill' + sfx);
+      if (fill) { fill.style.width = d.pct + '%'; fill.style.backgroundColor = pctToColor(d.pct); }
+      document.getElementById('btn-up' + sfx).className = 'col-votebtn' + (d.voto_actual === 1 ? ' on-up' : '');
+      document.getElementById('btn-down' + sfx).className = 'col-votebtn' + (d.voto_actual === -1 ? ' on-down' : '');
     }
   } catch(e) { console.error('Error votando:', e); }
 }
+
+document.querySelectorAll('.col-conf-fill[data-pct]').forEach(el => {
+  const pct = parseInt(el.dataset.pct, 10);
+  if (pct > 0) el.style.backgroundColor = pctToColor(pct);
+});
 
 document.getElementById('texto-comentario')?.addEventListener('input', function() {
   document.getElementById('char-count').textContent = this.value.length + '/500';

@@ -1214,5 +1214,440 @@
   "959": {
     "resultado": "ok",
     "descripcion": "Interior de una iglesia con bancas y vitrales coloridos"
+  },
+  "960": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar y crucifijo"
+  },
+  "961": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar y vitrales"
+  },
+  "962": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "964": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con torre campanario"
+  },
+  "966": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar, crucifijo y figuras religiosas"
+  },
+  "967": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia blanca con torre y cruz"
+  },
+  "968": {
+    "resultado": "sin_imagen_valida"
+  },
+  "969": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia con torre campanario"
+  },
+  "970": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia blanca con detalles azules"
+  },
+  "972": {
+    "resultado": "sin_imagen_valida"
+  },
+  "973": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancos y altar"
+  },
+  "974": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con torre campanario y cruz"
+  },
+  "975": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia blanca con detalles dorados"
+  },
+  "977": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "981": {
+    "resultado": "ok",
+    "descripcion": "altar de una iglesia con cruz, flores y objetos religiosos"
+  },
+  "982": {
+    "resultado": "sin_imagen_valida"
+  },
+  "983": {
+    "resultado": "sin_imagen_valida"
+  },
+  "984": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia blanca con campanario"
+  },
+  "985": {
+    "resultado": "sin_imagen_valida"
+  },
+  "986": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "987": {
+    "resultado": "ok",
+    "descripcion": "fachada exterior de una pequeña iglesia"
+  },
+  "989": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con detalles artisticos"
+  },
+  "990": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "991": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con un crucifijo y estatuas"
+  },
+  "992": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "993": {
+    "resultado": "sin_imagen_valida"
+  },
+  "995": {
+    "resultado": "ok",
+    "descripcion": "vista aerea de una iglesia con domo y estacionamiento"
+  },
+  "996": {
+    "resultado": "sin_imagen_valida"
+  },
+  "997": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar y bancas"
+  },
+  "998": {
+    "resultado": "sin_imagen_valida"
+  },
+  "999": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia con cúpula y cruz"
+  },
+  "1000": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "1001": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia con una pintura de la virgen"
+  },
+  "1002": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1003": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1004": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia blanca con detalles amarillos y una torre campanario"
+  },
+  "1005": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1006": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia con cruz en el techo"
+  },
+  "1007": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1008": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia con cruz y camino de acceso"
+  },
+  "1009": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1010": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con torre campanario"
+  },
+  "567": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con un campanario y una entrada con arco"
+  },
+  "569": {
+    "resultado": "ok",
+    "descripcion": "Torre campanario de una iglesia con detalles arquitectónicos"
+  },
+  "571": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "572": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "573": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar y decoraciones"
+  },
+  "575": {
+    "resultado": "sin_imagen_valida"
+  },
+  "576": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con torres y arco de entrada"
+  },
+  "578": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia roja con torre campanario"
+  },
+  "579": {
+    "resultado": "sin_imagen_valida"
+  },
+  "580": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con torre campanario"
+  },
+  "1478": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1479": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia con torre campanario"
+  },
+  "1480": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1481": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1482": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1483": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1484": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1485": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y decoraciones religiosas"
+  },
+  "1486": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1487": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1488": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1489": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia blanca con pinturas y el nombre ITATI"
+  },
+  "1490": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1543": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar y decoraciones religiosas"
+  },
+  "1544": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "1545": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1546": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1547": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1548": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1549": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con el nombre Parroquia San José Obrero"
+  },
+  "1550": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1551": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar y bancas"
+  },
+  "1552": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1553": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1555": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1556": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1557": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia blanca con torre campanario"
+  },
+  "1558": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia rosa con campanario y cruz"
+  },
+  "1559": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con torre campanario y cruces"
+  },
+  "1560": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia blanca con torre campanario"
+  },
+  "1561": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1562": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia con torre campanario"
+  },
+  "1563": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia blanca con arcos y columnas"
+  },
+  "1564": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1565": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia de ladrillo rojo con campanario y cruz"
+  },
+  "1566": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia con torre campanario"
+  },
+  "373": {
+    "resultado": "sin_imagen_valida"
+  },
+  "374": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con estatuas y decoraciones religiosas"
+  },
+  "376": {
+    "resultado": "sin_imagen_valida"
+  },
+  "378": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "379": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "380": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con torre campanario y cruz"
+  },
+  "381": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "382": {
+    "resultado": "sin_imagen_valida"
+  },
+  "383": {
+    "resultado": "sin_imagen_valida"
+  },
+  "384": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con torre y reloj"
+  },
+  "385": {
+    "resultado": "sin_imagen_valida"
+  },
+  "386": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia con torres y detalles arquitectónicos"
+  },
+  "387": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia blanca con detalles dorados"
+  },
+  "388": {
+    "resultado": "sin_imagen_valida"
+  },
+  "389": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia blanca con cruces y torre"
+  },
+  "391": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y vitrales"
+  },
+  "392": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia blanca con cruces y arcos"
+  },
+  "393": {
+    "resultado": "sin_imagen_valida"
+  },
+  "394": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con cruz y detalles arquitectónicos"
+  },
+  "395": {
+    "resultado": "sin_imagen_valida"
+  },
+  "396": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con estatuas y bancas"
+  },
+  "397": {
+    "resultado": "sin_imagen_valida"
+  },
+  "399": {
+    "resultado": "sin_imagen_valida"
+  },
+  "400": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia con puerta y vitral"
+  },
+  "403": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar y vitrales"
+  },
+  "404": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "405": {
+    "resultado": "sin_imagen_valida"
+  },
+  "406": {
+    "resultado": "sin_imagen_valida"
+  },
+  "407": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "408": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con vitral y crucifijo"
+  },
+  "409": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia blanca con detalles arquitectónicos y una imagen religiosa"
+  },
+  "410": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "413": {
+    "resultado": "sin_imagen_valida"
   }
 }

@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Enviar avisos de misa
         run: |
-          response=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+          response=$(curl -s -L -o /tmp/response.json -w "%{http_code}" \
             -X POST \
             -H "X-Scraper-Token: ${{ secrets.SCRAPER_SECRET_TOKEN }}" \
             ${{ secrets.SCRAPER_URL_BASE }}/api/avisos/enviar/)
