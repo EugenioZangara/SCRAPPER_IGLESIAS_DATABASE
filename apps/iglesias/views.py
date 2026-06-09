@@ -13,7 +13,9 @@ from django.views.decorators.http import require_POST
 from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, ValidacionHorario, Banner, VotoHorario, ComentarioParroquia, PerfilUsuario, HorarioPropuestoAgregado
 
 from django.conf import settings
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.text import slugify
+from urllib.parse import urlparse
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.contrib import messages
@@ -263,6 +265,7 @@ def detalle_parroquia(request, pk):
     )
 
 
+@staff_member_required
 @require_POST
 def verificar_red_social(request, pk):
     try:
@@ -310,6 +313,7 @@ def eliminar_parroquia(request, pk):
     return redirect("iglesias:lista_parroquias")
 
 
+@staff_member_required
 @require_POST
 def eliminar_red_social(request, pk):
     red = get_object_or_404(RedSocial, pk=pk)
@@ -334,6 +338,8 @@ def eliminar_red_social(request, pk):
 
 @require_POST
 def aprobar_evento(request, pk):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
     evento = get_object_or_404(Evento, pk=pk)
     evento.verificado = True
     evento.activo = True
@@ -347,6 +353,8 @@ def aprobar_evento(request, pk):
 
 @require_POST
 def rechazar_evento(request, pk):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
     evento = get_object_or_404(Evento, pk=pk)
     evento.activo = False
     evento.verificado = False
@@ -433,6 +441,8 @@ def moderacion_eventos_pasados(request):
 
 
 def scraper_estado(request):
+    if not request.user.is_staff:
+        return JsonResponse({"activo": False})
     from datetime import timedelta
     from django.utils import timezone as tz
 
@@ -463,7 +473,8 @@ def scraper_estado(request):
 
 
 def scraper_estado_resultado(request):
-    """Endpoint separado para obtener el resultado del último job."""
+    if not request.user.is_staff:
+        return JsonResponse({"hay_resultado": False})
     from datetime import timedelta
     from django.utils import timezone as tz
 
@@ -721,6 +732,8 @@ def detener_scraper(request):
 
 
 def editar_evento(request, pk):
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
     evento = get_object_or_404(Evento, pk=pk)
     parroquia = evento.parroquia
     categorias = CategoriaEvento.objects.filter(activo=True)
@@ -773,8 +786,8 @@ def editar_evento(request, pk):
 
         edad_desde = request.POST.get("edad_desde", "").strip()
         edad_hasta = request.POST.get("edad_hasta", "").strip()
-        evento.edad_desde = int(edad_desde) if edad_desde else 0
-        evento.edad_hasta = int(edad_hasta) if edad_hasta else 100
+        evento.edad_desde = max(0, min(120, int(edad_desde))) if edad_desde and edad_desde.isdigit() else 0
+        evento.edad_hasta = max(0, min(120, int(edad_hasta))) if edad_hasta and edad_hasta.isdigit() else 100
 
         evento.gratuito = request.POST.get("gratuito") == "si"
         capacidad_str = request.POST.get("capacidad", "").strip()
@@ -873,8 +886,8 @@ def aprobar_extendido(request, pk):
 
         edad_desde = request.POST.get("edad_desde", "").strip()
         edad_hasta = request.POST.get("edad_hasta", "").strip()
-        evento.edad_desde = int(edad_desde) if edad_desde else 0
-        evento.edad_hasta = int(edad_hasta) if edad_hasta else 100
+        evento.edad_desde = max(0, min(120, int(edad_desde))) if edad_desde and edad_desde.isdigit() else 0
+        evento.edad_hasta = max(0, min(120, int(edad_hasta))) if edad_hasta and edad_hasta.isdigit() else 100
 
         evento.gratuito = request.POST.get("gratuito") == "si"
         capacidad_str = request.POST.get("capacidad", "").strip()
@@ -962,8 +975,11 @@ def agregar_red_social(request, pk):
         messages.error(request, "Tipo de red social inválido.")
         return redirect("iglesias:detalle_parroquia", pk=pk)
 
-    if not url.startswith("http"):
-        url = "https://" + url
+    parsed = urlparse(url if url.startswith("http") else "https://" + url)
+    if parsed.scheme not in ('http', 'https'):
+        messages.error(request, "URL inválida.")
+        return redirect(request.META.get('HTTP_REFERER') or 'iglesias:lista_parroquias')
+    url = parsed.geturl()
 
     from .models import RedSocial
     _, creada = RedSocial.objects.get_or_create(
@@ -2057,7 +2073,7 @@ def aplicar_reporte(request, pk):
     for i in range(7):
         dia_str = request.POST.get(f"dia_{i}", "").strip()
         horario_val = request.POST.get(f"horario_{i}", "").strip()
-        if dia_str.isdigit():
+        if dia_str.isdigit() and 0 <= int(dia_str) <= 6:
             cambios.append({"dia": int(dia_str), "horario": horario_val})
     if not cambios:
         cambios = reporte.propuesta_ia or []
@@ -2514,7 +2530,10 @@ def aprobar_comentario(request, pk):
     comentario.oculto = False
     comentario.save(update_fields=['estado_moderacion', 'oculto'])
     messages.success(request, 'Comentario aprobado.')
-    return redirect(request.META.get('HTTP_REFERER') or 'iglesias:moderacion_comentarios')
+    referer = request.META.get('HTTP_REFERER', '')
+    if url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
+        return redirect(referer)
+    return redirect('iglesias:moderacion_comentarios')
 
 
 @staff_member_required
@@ -2526,7 +2545,10 @@ def rechazar_comentario(request, pk):
     comentario.razon_rechazo = request.POST.get('razon', 'Rechazado manualmente')
     comentario.save(update_fields=['estado_moderacion', 'oculto', 'razon_rechazo'])
     messages.success(request, 'Comentario rechazado.')
-    return redirect(request.META.get('HTTP_REFERER') or 'iglesias:moderacion_comentarios')
+    referer = request.META.get('HTTP_REFERER', '')
+    if url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
+        return redirect(referer)
+    return redirect('iglesias:moderacion_comentarios')
 
 
 @login_required

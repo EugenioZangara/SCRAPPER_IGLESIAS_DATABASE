@@ -65,6 +65,15 @@ def _llamar_openrouter(prompt: str, modelo: str) -> str:
     return response.choices[0].message.content
 
 
+def _validar_resultado_ia(resultado: dict) -> dict:
+    horarios = resultado.get("horarios_detectados", [])
+    resultado["horarios_detectados"] = [
+        h for h in horarios
+        if isinstance(h.get("dia"), int) and 0 <= h["dia"] <= 6
+    ]
+    return resultado
+
+
 def _parsear_respuesta(text: str) -> dict:
     text = text.strip()
     if "```" in text:
@@ -76,7 +85,8 @@ def _parsear_respuesta(text: str) -> dict:
             elif part.strip().startswith("{"):
                 text = part.strip()
                 break
-    return json.loads(text.strip())
+    resultado = json.loads(text.strip())
+    return _validar_resultado_ia(resultado)
 
 
 def _cargar_env():

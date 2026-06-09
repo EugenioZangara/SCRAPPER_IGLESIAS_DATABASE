@@ -45,6 +45,9 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 INSTALLED_APPS = [
     "axes",
+    "corsheaders",
+    "django_permissions_policy",
+    "csp",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -109,10 +112,13 @@ SOCIALACCOUNT_PROVIDERS = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django_permissions_policy.PermissionsPolicyMiddleware',
+    'csp.middleware.CSPMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'axes.middleware.AxesMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -196,6 +202,98 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# CORS
+CORS_ALLOWED_ORIGINS = [
+    o for o in [
+        "https://scrapper-iglesias-database.onrender.com",
+        f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME', '')}" if os.environ.get('RENDER_EXTERNAL_HOSTNAME') else None,
+    ] if o
+]
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+]
+CORS_ALLOW_HEADERS = [
+    "content-type",
+    "x-csrftoken",
+    "x-scraper-token",
+]
+CORS_ALLOW_CREDENTIALS = False
+CORS_ALLOW_ALL_ORIGINS = False
+
+# ── Security Headers ──────────────────────────────────────────────
+
+# HTTPS
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Cookies seguras
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Headers anti-clickjacking y sniffing
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True  # legacy, no hace daño
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Permissions Policy (deshabilitar features no usadas)
+SECURE_PERMISSIONS_POLICY = {
+    "geolocation": "(self)",
+    "camera": "()",
+    "microphone": "()",
+    "payment": "()",
+    "usb": "()",
+}
+
+# CSP — ajustado al stack real del proyecto
+CONTENT_SECURITY_POLICY = {
+    "DIRECTIVES": {
+        "default-src": ["'self'"],
+        "script-src": [
+            "'self'",
+            "https://unpkg.com",
+            "https://cdnjs.cloudflare.com",
+            "https://accounts.google.com",
+            "https://connect.facebook.net",
+            "'unsafe-inline'",
+        ],
+        "style-src": [
+            "'self'",
+            "https://cdnjs.cloudflare.com",
+            "https://fonts.googleapis.com",
+            "'unsafe-inline'",
+        ],
+        "font-src": [
+            "'self'",
+            "https://fonts.gstatic.com",
+            "https://cdnjs.cloudflare.com",
+        ],
+        "img-src": [
+            "'self'",
+            "data:",
+            "https:",
+        ],
+        "connect-src": [
+            "'self'",
+            "https://scrapper-iglesias-database.onrender.com",
+        ],
+        "frame-src": [
+            "https://accounts.google.com",
+            "https://www.facebook.com",
+        ],
+        "object-src": ["'none'"],
+        "base-uri": ["'self'"],
+        "form-action": ["'self'"],
+    }
+}
 
 LOGGING = {
     'version': 1,
