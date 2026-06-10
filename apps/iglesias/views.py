@@ -1,4 +1,5 @@
 import glob as _glob
+import math
 import os
 from datetime import date, datetime, time as dtime, timedelta
 from django.views.decorators.csrf import csrf_exempt
@@ -1597,11 +1598,37 @@ def parroquias_geo_json(request):
     return JsonResponse({"parroquias": resultado})
 
 
+def _haversine(lat1, lon1, lat2, lon2):
+    R = 6371
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def _fmt_dist(km):
+    if km is None:
+        return None
+    if km < 1:
+        return f"{round(km * 1000)}m"
+    return f"{km:.1f}km"
+
+
 def publico_buscar(request):
     q = request.GET.get("q", "").strip()
     barrio = request.GET.get("barrio", "").strip()
     filtro = request.GET.get("filtro", "todas").strip()
     provincia = request.GET.get("provincia", "").strip()
+    user_lat = user_lng = None
+    try:
+        lat_s = request.GET.get("lat", "").strip()
+        lng_s = request.GET.get("lng", "").strip()
+        if lat_s and lng_s:
+            _lt, _lg = float(lat_s), float(lng_s)
+            if -90 <= _lt <= 90 and -180 <= _lg <= 180:
+                user_lat, user_lng = _lt, _lg
+    except ValueError:
+        pass
 
     parroquias = Parroquia.objects.all()
 
@@ -1634,9 +1661,10 @@ def publico_buscar(request):
             redes__verificado=True,
         ).distinct()
 
+    limit = 200 if user_lat is not None else 80
     parroquias = parroquias.prefetch_related(
         "redes", "eventos", "horarios_misa"
-    ).order_by("nombre")[:40]
+    ).order_by("nombre")[:limit]
 
     hoy = date.today()
 
@@ -1648,6 +1676,9 @@ def publico_buscar(request):
             if e.activo and e.verificado and e.fecha and e.fecha >= hoy
         ]
         tiene_horarios = p.horarios_misa.exists()
+        dist = None
+        if user_lat is not None and p.latitud and p.longitud:
+            dist = _haversine(user_lat, user_lng, p.latitud, p.longitud)
         resultados.append({
             "parroquia": p,
             "redes": redes_verificadas,
@@ -1655,7 +1686,13 @@ def publico_buscar(request):
             "tiene_horarios": tiene_horarios,
             "tiene_ig": any(r.tipo == "instagram" for r in redes_verificadas),
             "tiene_fb": any(r.tipo == "facebook" for r in redes_verificadas),
+            "distancia": dist,
+            "distancia_fmt": _fmt_dist(dist),
         })
+
+    if user_lat is not None:
+        resultados.sort(key=lambda x: x["distancia"] if x["distancia"] is not None else float("inf"))
+        resultados = resultados[:40]
 
     banners = list(Banner.objects.filter(posicion="resultados", activo=True))
 
