@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Case, Count, IntegerField, Q, Value, When
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -1349,8 +1349,8 @@ def publico_inicio(request):
     if request.user.is_authenticated:
         try:
             perfil = request.user.perfil
-            if perfil.parroquia_favorita:
-                p = perfil.parroquia_favorita
+            p = perfil.parroquias_favoritas.first()
+            if p:
                 p_redes = list(p.redes.all())
                 p_eventos = list(p.eventos.all())
                 p_horarios = list(p.horarios_misa.all())
@@ -1368,6 +1368,20 @@ def publico_inicio(request):
                     "eventos_count": len(eventos_p),
                     "proxima_misa": _proxima_misa(p_horarios),
                 }
+        except Exception:
+            pass
+
+    mis_favoritas = []
+    if request.user.is_authenticated:
+        try:
+            perfil = request.user.perfil
+            for p in perfil.parroquias_favoritas.prefetch_related('horarios_misa').all():
+                if mi_parroquia and p.pk == mi_parroquia['pk']:
+                    continue
+                p_horarios = list(p.horarios_misa.all())
+                p.proxima_misa = _proxima_misa(p_horarios)
+                p.tiene_horarios = bool(p_horarios)
+                mis_favoritas.append(p)
         except Exception:
             pass
 
@@ -1403,6 +1417,7 @@ def publico_inicio(request):
         ).distinct().count(),
         "todas_parroquias": Parroquia.objects.all().order_by("nombre"),
         "mi_parroquia": mi_parroquia,
+        "mis_favoritas": mis_favoritas,
         "provincias": provincias,
         "total_provincias": provincias.count(),
         "nivel_info": nivel_info,
@@ -1414,38 +1429,36 @@ def publico_favoritas(request):
     if not request.user.is_authenticated:
         return render(request, "iglesias/publico/favoritas.html", {"login_required": True})
 
-    parroquia_favorita = None
-    proxima_misa = None
+    perfil = getattr(request.user, 'perfil', None)
+    favoritas = perfil.parroquias_favoritas.all() if perfil else Parroquia.objects.none()
 
-    try:
-        perfil = request.user.perfil
-        if perfil.parroquia_favorita:
-            p = perfil.parroquia_favorita
-            parroquia_favorita = p
-            horarios = list(p.horarios_misa.all().order_by("dia_semana"))
-            pm_raw = _proxima_misa(horarios)
-            if pm_raw:
-                proxima_misa = {
-                    "dia": pm_raw["dia_label"],
-                    "hora": pm_raw["hora"],
-                    "es_hoy": pm_raw["dia_label"] == "Hoy",
-                }
-    except Exception:
-        pass
+    # Enriquecer cada favorita con próxima misa y estado de suscripción
+    from .models import SuscripcionAvisoMisa
+    subs_activas = set(
+        SuscripcionAvisoMisa.objects.filter(
+            usuario=request.user, activa=True
+        ).values_list('parroquia_id', flat=True)
+    ) if request.user.is_authenticated else set()
 
-    suscripcion_activa = False
-    if parroquia_favorita and request.user.is_authenticated:
-        from .models import SuscripcionAvisoMisa
-        suscripcion_activa = SuscripcionAvisoMisa.objects.filter(
-            usuario=request.user,
-            parroquia=parroquia_favorita,
-            activa=True
-        ).exists()
+    favoritas_data = []
+    for p in favoritas:
+        horarios = list(p.horarios_misa.all().order_by("dia_semana"))
+        pm_raw = _proxima_misa(horarios)
+        proxima_misa = None
+        if pm_raw:
+            proxima_misa = {
+                "dia": pm_raw["dia_label"],
+                "hora": pm_raw["hora"],
+                "es_hoy": pm_raw["dia_label"] == "Hoy",
+            }
+        favoritas_data.append({
+            "parroquia": p,
+            "proxima_misa": proxima_misa,
+            "suscripcion_activa": p.pk in subs_activas,
+        })
 
     return render(request, "iglesias/publico/favoritas.html", {
-        "parroquia_favorita": parroquia_favorita,
-        "proxima_misa": proxima_misa,
-        "suscripcion_activa": suscripcion_activa,
+        "favoritas": favoritas_data,
     })
 
 
@@ -1503,9 +1516,7 @@ def publico_perfil(request):
         from django.contrib.auth.views import redirect_to_login
         return redirect_to_login(request.get_full_path())
 
-    perfil, _ = PerfilUsuario.objects.select_related(
-        "parroquia_favorita"
-    ).get_or_create(user=request.user)
+    perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
     nivel_info = _nivel_nuevo(perfil.score)
 
     ranking = list(
@@ -1526,16 +1537,18 @@ def publico_perfil(request):
     )
 
     from .models import SuscripcionAvisoMisa
+    primera_favorita = perfil.parroquias_favoritas.first()
     suscripcion_activa = False
-    if perfil.parroquia_favorita:
+    if primera_favorita:
         suscripcion_activa = SuscripcionAvisoMisa.objects.filter(
             usuario=request.user,
-            parroquia=perfil.parroquia_favorita,
+            parroquia=primera_favorita,
             activa=True
         ).exists()
 
     return render(request, "iglesias/publico/perfil.html", {
         "perfil": perfil,
+        "primera_favorita": primera_favorita,
         "nivel_info": nivel_info,
         "ranking": ranking,
         "ranking_pos": ranking_pos,
@@ -1545,24 +1558,33 @@ def publico_perfil(request):
     })
 
 
+@csrf_exempt
 @require_POST
 def set_parroquia_favorita(request, pk):
-    from django.http import JsonResponse
-    from .models import PerfilUsuario
     if not request.user.is_authenticated:
         return JsonResponse({"ok": False, "login_required": True})
 
     parroquia = get_object_or_404(Parroquia, pk=pk)
     perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
 
-    if perfil.parroquia_favorita == parroquia:
-        perfil.parroquia_favorita = None
-        perfil.save(update_fields=["parroquia_favorita"])
+    if perfil.parroquias_favoritas.filter(pk=pk).exists():
+        perfil.parroquias_favoritas.remove(parroquia)
         return JsonResponse({"ok": True, "favorita": False})
     else:
-        perfil.parroquia_favorita = parroquia
-        perfil.save(update_fields=["parroquia_favorita"])
-        return JsonResponse({"ok": True, "favorita": True})
+        perfil.parroquias_favoritas.add(parroquia)
+        horarios = list(parroquia.horarios_misa.all().order_by("dia_semana"))
+        pm = _proxima_misa(horarios)
+        return JsonResponse({
+            "ok": True,
+            "favorita": True,
+            "parroquia": {
+                "pk": parroquia.pk,
+                "nombre": parroquia.nombre,
+                "barrio": parroquia.barrio or "",
+                "tiene_horarios": bool(horarios),
+                "proxima_misa": pm,
+            },
+        })
 
 
 def parroquias_geo_json(request):
@@ -1642,6 +1664,15 @@ def publico_buscar(request):
             | Q(ciudad__icontains=q)
             | Q(parroco__icontains=q)
             | Q(direccion__icontains=q)
+        ).annotate(
+            relevancia=Case(
+                When(nombre__istartswith=q, then=Value(0)),
+                When(nombre__icontains=q, then=Value(1)),
+                When(barrio__icontains=q, then=Value(2)),
+                When(ciudad__icontains=q, then=Value(3)),
+                default=Value(4),
+                output_field=IntegerField(),
+            )
         )
 
     if barrio:
@@ -1662,9 +1693,23 @@ def publico_buscar(request):
         ).distinct()
 
     limit = 200 if user_lat is not None else 80
-    parroquias = parroquias.prefetch_related(
-        "redes", "eventos", "horarios_misa"
-    ).order_by("nombre")[:limit]
+    if q:
+        parroquias = parroquias.prefetch_related(
+            "redes", "eventos", "horarios_misa"
+        ).order_by("relevancia", "nombre")[:limit]
+    else:
+        parroquias = parroquias.prefetch_related(
+            "redes", "eventos", "horarios_misa"
+        ).order_by("nombre")[:limit]
+
+    favoritas_pks = set()
+    if request.user.is_authenticated:
+        try:
+            favoritas_pks = set(
+                request.user.perfil.parroquias_favoritas.values_list('pk', flat=True)
+            )
+        except Exception:
+            pass
 
     hoy = date.today()
 
@@ -1688,6 +1733,7 @@ def publico_buscar(request):
             "tiene_fb": any(r.tipo == "facebook" for r in redes_verificadas),
             "distancia": dist,
             "distancia_fmt": _fmt_dist(dist),
+            "es_favorita": p.pk in favoritas_pks,
         })
 
     if user_lat is not None:
@@ -1728,7 +1774,7 @@ def publico_detalle(request, pk):
     if request.user.is_authenticated:
         try:
             perfil = request.user.perfil
-            es_favorita = perfil.parroquia_favorita_id == parroquia.pk
+            es_favorita = perfil.parroquias_favoritas.filter(pk=parroquia.pk).exists()
         except Exception:
             pass
 
@@ -2631,7 +2677,7 @@ def toggle_avisos_view(request):
     from .models import SuscripcionAvisoMisa, PerfilUsuario
 
     perfil = get_object_or_404(PerfilUsuario, user=request.user)
-    parroquia_favorita = perfil.parroquia_favorita
+    parroquia_favorita = perfil.parroquias_favoritas.first()
 
     if not parroquia_favorita:
         return JsonResponse({'error': 'No tenés parroquia favorita seleccionada'}, status=400)

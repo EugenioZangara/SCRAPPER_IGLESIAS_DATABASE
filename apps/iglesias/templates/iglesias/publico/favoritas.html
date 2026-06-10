@@ -47,11 +47,11 @@
     Tu parroquia guardada con su próxima misa siempre visible.
   </p>
 
-  {% if parroquia_favorita %}
-  {% with p=parroquia_favorita %}
+  {% for item in favoritas %}
+  {% with p=item.parroquia proxima_misa=item.proxima_misa suscripcion_activa=item.suscripcion_activa %}
   <div style="background:var(--paper); border:1px solid var(--line-soft);
               border-radius:var(--r-lg); overflow:hidden;
-              box-shadow:var(--sh-card);">
+              box-shadow:var(--sh-card); margin-bottom:16px;">
 
     <!-- Header con gradiente -->
     <div id="fav-grad-{{ p.pk }}"
@@ -72,7 +72,6 @@
 
       <!-- Botón quitar favorita (corazón) -->
       <button onclick="quitarFavorita({{ p.pk }})"
-              id="btn-quitar"
               style="position:absolute; top:12px; right:12px;
                      width:36px; height:36px; border-radius:50%;
                      background:#4f46e5; border:none; cursor:pointer;
@@ -142,8 +141,9 @@
           🔔 <strong>Avisos de misa</strong><br>
           <span style="font-weight:400; color:#64748b;">Email 1 hora antes</span>
         </div>
-        <button id="btn-aviso-fav"
-                onclick="toggleAvisoFav(event)"
+        <button class="btn-aviso-fav"
+                onclick="toggleAvisoFav(event, {{ p.pk }})"
+                data-pk="{{ p.pk }}"
                 style="flex-shrink:0; padding:7px 16px; border-radius:999px;
                        font:700 13px/1 var(--font-ui); cursor:pointer;
                        transition:background .15s, color .15s;
@@ -152,9 +152,7 @@
                        {% else %}
                        background:transparent; color:#14315E; border:1.5px solid #14315E;
                        {% endif %}">
-          <span id="btn-aviso-fav-text">
-            {% if suscripcion_activa %}Activado ✓{% else %}Activar{% endif %}
-          </span>
+          <span>{% if suscripcion_activa %}Activado ✓{% else %}Activar{% endif %}</span>
         </button>
       </div>
 
@@ -178,8 +176,7 @@
     </div>
   </div>
   {% endwith %}
-
-  {% else %}
+  {% empty %}
   <div style="text-align:center; padding:60px 24px;">
     <div style="font-size:48px; margin-bottom:16px;">📍</div>
     <div style="font:700 18px/1.3 var(--font-display); color:var(--ink); margin-bottom:8px;">
@@ -197,7 +194,7 @@
       Buscar parroquias
     </a>
   </div>
-  {% endif %}{# parroquia_favorita #}
+  {% endfor %}
 
   {% endif %}{# login_required #}
 
@@ -231,10 +228,10 @@ async function quitarFavorita(pk) {
   }
 }
 
-async function toggleAvisoFav(e) {
+async function toggleAvisoFav(e, pk) {
   if (e) e.preventDefault();
-  const btn = document.getElementById('btn-aviso-fav');
-  const txt = document.getElementById('btn-aviso-fav-text');
+  const btn = e ? e.currentTarget : document.querySelector('[data-pk="'+pk+'"]');
+  const txt = btn ? btn.querySelector('span') : null;
   if (btn) btn.disabled = true;
   try {
     const resp = await fetch('/publico/perfil/toggle-avisos/', {
@@ -244,10 +241,10 @@ async function toggleAvisoFav(e) {
     if (resp.ok) {
       if (data.activa) {
         btn.style.background='#14315E'; btn.style.color='#fff'; btn.style.borderColor='#14315E';
-        txt.textContent='Activado ✓';
+        if (txt) txt.textContent='Activado ✓';
       } else {
         btn.style.background='transparent'; btn.style.color='#14315E'; btn.style.borderColor='#14315E';
-        txt.textContent='Activar';
+        if (txt) txt.textContent='Activar';
       }
     } else {
       alert(data.error || 'Error al cambiar los avisos');

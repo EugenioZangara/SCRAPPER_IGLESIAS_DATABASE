@@ -54,17 +54,19 @@
     position: absolute; top: 8px; right: 8px; z-index: 2;
   }
   .pg-rcard-fav:hover { background: rgba(255,255,255,.35); }
-  .pg-rcard-body { padding: 12px; }
+  .pg-rcard-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 0; }
   .pg-rcard-name {
     font: 700 14px/1.25 var(--font-display); color: var(--ink);
     margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .pg-rcard-loc {
     font: 500 12px/1 var(--font-ui); color: var(--muted);
-    display: flex; align-items: center; gap: 3px; margin-bottom: 7px;
+    display: flex; align-items: center; gap: 3px; margin-bottom: 4px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .pg-rcard-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pg-rcard-name { margin-bottom: 2px; }
+  .pg-rcard-tags { display: flex; flex-wrap: wrap; gap: 4px; min-height: 0; }
+  .pg-rcard-tags:empty { display: none; }
   .pg-rcard-next {
     font: 700 11px/1 var(--font-ui); color: var(--accent-deep);
     margin-top: 6px;
@@ -128,8 +130,12 @@ if (!window.pgGrad) {
       <button class="pg-rcard-fav"
               data-favorita-pk="{{ item.parroquia.pk }}"
               onclick="event.stopPropagation(); event.preventDefault(); toggleFavorita({{ item.parroquia.pk }});"
-              aria-label="Marcar como favorita">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+              aria-label="Marcar como favorita"
+              style="{% if item.es_favorita %}background:rgba(79,70,229,.15);{% endif %}">
+        <svg width="12" height="12" viewBox="0 0 24 24"
+             fill="{% if item.es_favorita %}#4f46e5{% else %}none{% endif %}"
+             stroke="{% if item.es_favorita %}#4f46e5{% else %}white{% endif %}"
+             stroke-width="2">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
       </button>
@@ -143,7 +149,7 @@ if (!window.pgGrad) {
         {{ item.parroquia.barrio|default:"—" }}{% if item.distancia_fmt %} · <span style="color:var(--navy);font-weight:700;">{{ item.distancia_fmt }}</span>{% endif %}
       </div>
       {% if item.parroquia.diocesis %}
-      <div style="font:500 11px/1 var(--font-ui);color:var(--muted);margin-bottom:7px;padding-left:13px;
+      <div style="font:500 11px/1 var(--font-ui);color:var(--muted);margin-bottom:4px;padding-left:13px;
                   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8;">
         {{ item.parroquia.diocesis }}
       </div>

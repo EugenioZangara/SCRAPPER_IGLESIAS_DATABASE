@@ -435,6 +435,68 @@
     </div><!-- /mi-parroquia -->
     {% endif %}
 
+    <!-- Cards de favoritas adicionales (server-rendered) -->
+    {% if mis_favoritas %}
+    {% for p in mis_favoritas %}
+    {% cycle '#2d6a4f' '#6d3b8e' '#8b3a2a' '#1a6b7a' '#1E4585' as fav_c1 silent %}
+    {% cycle '#1b4332' '#4a1f6e' '#5c1f10' '#0d3d47' '#0E2647' as fav_c2 silent %}
+    <div id="mi-parroquia-{{ p.pk }}"
+         style="background:linear-gradient(135deg,{{ fav_c1 }} 0%,{{ fav_c2 }} 100%);
+                border-radius:var(--r-xl); overflow:hidden;
+                box-shadow:0 14px 36px rgba(14,38,71,.32);
+                margin-bottom:24px; transition:box-shadow .18s, transform .15s;"
+         onmouseenter="this.style.boxShadow='0 20px 48px rgba(14,38,71,.42)';this.style.transform='translateY(-2px)'"
+         onmouseleave="this.style.boxShadow='0 14px 36px rgba(14,38,71,.32)';this.style.transform=''">
+      <a href="{% url 'iglesias:publico_detalle' p.pk %}"
+         class="pg-mip {% if p.proxima_misa %}has-badge{% endif %}"
+         style="background:transparent; border-radius:0; margin-bottom:0; box-shadow:none; display:flex;">
+        <svg class="pg-mip-hills" viewBox="0 0 800 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M0,50 C120,15 240,65 360,30 C480,0 600,55 720,25 C760,12 780,40 800,20 L800,80 L0,80 Z" fill="white"/>
+          <path d="M0,65 C150,35 300,75 450,50 C600,25 700,65 800,45 L800,80 L0,80 Z" fill="white" opacity=".45"/>
+        </svg>
+        {% if p.proxima_misa %}
+        <div class="pg-mip-badge">
+          <span class="pg-mip-badge-dot"></span>
+          PRÓXIMA MISA
+        </div>
+        <div class="pg-mip-time">{{ p.proxima_misa.hora }}</div>
+        {% else %}
+        <div style="position:relative;">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="rgba(242,160,7,.45)" stroke="none"/>
+          </svg>
+        </div>
+        {% endif %}
+        <div class="pg-mip-body">
+          {% if p.proxima_misa %}
+          <div class="pg-mip-top">
+            <span class="pg-mip-day">{{ p.proxima_misa.dia_label }}</span>
+            <span class="pg-mip-countdown">{{ p.proxima_misa.countdown }}</span>
+          </div>
+          {% else %}
+          <div style="font:700 11px/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:rgba(251,244,228,.5);margin-bottom:6px;">Mi parroquia</div>
+          {% endif %}
+          <div class="pg-mip-nombre">{{ p.nombre }}</div>
+          {% if p.barrio %}
+          <div class="pg-mip-barrio">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            {{ p.barrio }}
+          </div>
+          {% endif %}
+        </div>
+        <div class="pg-mip-cta">
+          {% if p.tiene_horarios %}Ver horarios →{% else %}Ver detalle →{% endif %}
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Cards de favoritas agregadas dinámicamente -->
+    <div id="favoritas-dinamicas"></div>
+
     <!-- Aviso de filtro por provincia -->
     <div id="provincia-aviso" style="display:none; margin-bottom:12px;
          background:#e8edf8; border:1px solid #c7d4ef; border-radius:var(--r-sm);
@@ -663,6 +725,57 @@ function limpiarProvincia() {
     }
   }
 })();
+
+/* ── Favoritas dinámicas ── */
+const FAV_PALETA = [
+  ['#2d6a4f','#1b4332'], ['#6d3b8e','#4a1f6e'],
+  ['#8b3a2a','#5c1f10'], ['#1a6b7a','#0d3d47'], ['#1E4585','#0E2647']
+];
+function buildFavoritaCard(p, colorIdx) {
+  const idx = (colorIdx !== undefined) ? colorIdx % FAV_PALETA.length : p.pk % FAV_PALETA.length;
+  const [c1, c2] = FAV_PALETA[idx];
+  const pm = p.proxima_misa;
+  const hills = '<svg class="pg-mip-hills" viewBox="0 0 800 80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M0,50 C120,15 240,65 360,30 C480,0 600,55 720,25 C760,12 780,40 800,20 L800,80 L0,80 Z" fill="white"/><path d="M0,65 C150,35 300,75 450,50 C600,25 700,65 800,45 L800,80 L0,80 Z" fill="white" opacity=".45"/></svg>';
+  let badge = '', time = '', bodyTop = '';
+  if (pm) {
+    badge = '<div class="pg-mip-badge"><span class="pg-mip-badge-dot"></span>PRÓXIMA MISA</div>';
+    time  = '<div class="pg-mip-time">' + pm.hora + '</div>';
+    bodyTop = '<div class="pg-mip-top"><span class="pg-mip-day">' + pm.dia_label + '</span><span class="pg-mip-countdown">' + pm.countdown + '</span></div>';
+  } else {
+    time = '<div style="position:relative;"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="rgba(242,160,7,.45)" stroke="none"/></svg></div>';
+    bodyTop = '<div style="font:700 11px/1 var(--font-ui);letter-spacing:.1em;text-transform:uppercase;color:rgba(251,244,228,.5);margin-bottom:6px;">Mi parroquia</div>';
+  }
+  const barrio = p.barrio ? '<div class="pg-mip-barrio"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' + p.barrio + '</div>' : '';
+  const cta = p.tiene_horarios ? 'Ver horarios →' : 'Ver detalle →';
+  return '<div id="fav-dyn-' + p.pk + '" '
+    + 'style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ');border-radius:var(--r-xl);overflow:hidden;'
+    + 'box-shadow:0 14px 36px rgba(14,38,71,.32);margin-bottom:24px;transition:box-shadow .18s,transform .15s;" '
+    + 'onmouseenter="this.style.boxShadow=\'0 20px 48px rgba(14,38,71,.42)\';this.style.transform=\'translateY(-2px)\'" '
+    + 'onmouseleave="this.style.boxShadow=\'0 14px 36px rgba(14,38,71,.32)\';this.style.transform=\'\'">'
+    + '<a href="/publico/' + p.pk + '/" class="pg-mip ' + (pm ? 'has-badge' : '') + '" '
+    + 'style="background:transparent;border-radius:0;margin-bottom:0;box-shadow:none;display:flex;">'
+    + hills + badge + time
+    + '<div class="pg-mip-body">' + bodyTop + '<div class="pg-mip-nombre">' + p.nombre + '</div>' + barrio + '</div>'
+    + '<div class="pg-mip-cta">' + cta + '</div>'
+    + '</a></div>';
+}
+
+document.addEventListener('favoritaToggled', function(e) {
+  const {pk, favorita, parroquia} = e.detail;
+  const container = document.getElementById('favoritas-dinamicas');
+  if (!container) return;
+  if (favorita && parroquia) {
+    if (document.getElementById('fav-dyn-' + pk) || document.getElementById('mi-parroquia-' + pk)) return;
+    // count server-rendered extras + dynamic cards already present to get next palette index
+    const serverExtras = document.querySelectorAll('[id^="mi-parroquia-"]').length;
+    const dynCards = document.querySelectorAll('[id^="fav-dyn-"]').length;
+    const colorIdx = serverExtras + dynCards;
+    container.insertAdjacentHTML('beforeend', buildFavoritaCard(parroquia, colorIdx));
+  } else {
+    const card = document.getElementById('fav-dyn-' + pk) || document.getElementById('mi-parroquia-' + pk);
+    if (card) card.remove();
+  }
+});
 
 async function toggleAvisoInicio(e) {
   if (e) e.preventDefault();

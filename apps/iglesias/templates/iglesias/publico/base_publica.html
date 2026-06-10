@@ -556,26 +556,83 @@
 <script>
 {% if request.user.is_authenticated %}
 function toggleFavorita(pk) {
-  const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
-  fetch('/publico/'+pk+'/favorita/', {method:'POST', headers:{'X-CSRFToken':csrf}})
-  .then(r=>r.json()).then(data=>{
+  const btns = document.querySelectorAll('[data-favorita-pk="' + pk + '"]');
+
+  // Leer estado actual
+  const btn = btns[0];
+  if (!btn) return;
+  const path = btn.querySelector('path');
+  const esFavorita = path && path.getAttribute('fill') !== 'none' && path.getAttribute('fill') !== '';
+
+  // Optimistic update: cambiar UI inmediatamente
+  btns.forEach(b => {
+    const p = b.querySelector('path');
+    if (!p) return;
+    if (esFavorita) {
+      b.style.background = 'rgba(255,255,255,.2)';
+      p.setAttribute('fill', 'none');
+      p.setAttribute('stroke', 'white');
+    } else {
+      b.style.background = 'rgba(79,70,229,.15)';
+      p.setAttribute('fill', '#4f46e5');
+      p.setAttribute('stroke', '#4f46e5');
+    }
+  });
+
+  // POST en background — revertir si falla
+  const csrf = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='))?.split('=')[1] || '';
+  fetch('/publico/' + pk + '/favorita/', {
+    method: 'POST',
+    headers: { 'X-CSRFToken': csrf }
+  })
+  .then(r => r.json())
+  .then(data => {
     if (data.login_required) {
+      btns.forEach(b => {
+        const p = b.querySelector('path');
+        if (!p) return;
+        b.style.background = 'rgba(255,255,255,.2)';
+        p.setAttribute('fill', 'none');
+        p.setAttribute('stroke', 'white');
+      });
       sessionStorage.setItem('pendingFavorita', pk);
       window.location.href = '/accounts/login/?next=' + window.location.pathname;
       return;
     }
-    document.querySelectorAll('[data-favorita-pk="'+pk+'"]').forEach(btn=>{
-      if (data.favorita) {
-        btn.style.background = 'rgba(79,70,229,.15)';
-        btn.querySelector('path').setAttribute('fill','#4f46e5');
-        btn.querySelector('path').setAttribute('stroke','#4f46e5');
+    if (!data.ok) {
+      btns.forEach(b => {
+        const p = b.querySelector('path');
+        if (!p) return;
+        if (esFavorita) {
+          b.style.background = 'rgba(79,70,229,.15)';
+          p.setAttribute('fill', '#4f46e5');
+          p.setAttribute('stroke', '#4f46e5');
+        } else {
+          b.style.background = 'rgba(255,255,255,.2)';
+          p.setAttribute('fill', 'none');
+          p.setAttribute('stroke', 'white');
+        }
+      });
+    }
+    document.dispatchEvent(new CustomEvent('favoritaToggled', {
+      detail: { pk: pk, favorita: data.favorita, parroquia: data.parroquia || null }
+    }));
+  })
+  .catch(() => {
+    btns.forEach(b => {
+      const p = b.querySelector('path');
+      if (!p) return;
+      if (esFavorita) {
+        b.style.background = 'rgba(79,70,229,.15)';
+        p.setAttribute('fill', '#4f46e5');
+        p.setAttribute('stroke', '#4f46e5');
       } else {
-        btn.style.background = 'rgba(255,255,255,.2)';
-        btn.querySelector('path').setAttribute('fill','none');
-        btn.querySelector('path').setAttribute('stroke','white');
+        b.style.background = 'rgba(255,255,255,.2)';
+        p.setAttribute('fill', 'none');
+        p.setAttribute('stroke', 'white');
       }
     });
-  }).catch(()=>{});
+  });
 }
 {% else %}
 function toggleFavorita(pk) {
