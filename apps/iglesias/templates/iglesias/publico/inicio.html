@@ -407,18 +407,29 @@
       </a>
       {% if request.user.is_authenticated %}
       <div style="border-top:1px solid rgba(255,255,255,.12);
-                  padding:10px 24px;
-                  display:flex; align-items:center; justify-content:space-between; gap:12px;">
-        <span style="color:rgba(255,255,255,.75); font:500 12px/1 var(--font-ui);
-                     display:flex; align-items:center; gap:7px;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".8">
+                  padding:10px 20px;
+                  display:flex; align-items:center; gap:10px;">
+        <button onclick="toggleFavorita({{ mi_parroquia.pk }})"
+                data-favorita-pk="{{ mi_parroquia.pk }}"
+                title="Quitar de favoritas"
+                style="flex-shrink:0; width:30px; height:30px; border-radius:50%;
+                       background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+                       cursor:pointer; display:flex; align-items:center; justify-content:center;
+                       transition:background .15s;">
+          <svg width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="rgba(242,160,7,.9)" fill="rgba(242,160,7,.9)">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+        <span style="color:rgba(255,255,255,.7); font:500 11px/1.3 var(--font-ui);
+                     display:flex; align-items:center; gap:6px; flex:1;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".7">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
-          Avisame 1 hora antes de la misa
+          Avisame 1 hora antes
         </span>
-        <button id="btn-aviso-inicio"
-                onclick="toggleAvisoInicio(event)"
-                style="flex-shrink:0; padding:6px 16px; border-radius:999px;
+        <button id="btn-aviso-{{ mi_parroquia.pk }}"
+                onclick="toggleAvisoCard(event, {{ mi_parroquia.pk }})"
+                style="flex-shrink:0; padding:6px 14px; border-radius:999px;
                        font:700 12px/1 var(--font-ui); cursor:pointer;
                        transition:background .15s, color .15s, border-color .15s;
                        {% if suscripcion_activa %}
@@ -426,9 +437,7 @@
                        {% else %}
                        background:transparent; color:rgba(255,255,255,.9); border:1.5px solid rgba(255,255,255,.4);
                        {% endif %}">
-          <span id="btn-aviso-inicio-text">
-            {% if suscripcion_activa %}Activado ✓{% else %}Activar{% endif %}
-          </span>
+          {% if suscripcion_activa %}Activado ✓{% else %}Activar{% endif %}
         </button>
       </div>
       {% endif %}
@@ -490,6 +499,42 @@
           {% if p.tiene_horarios %}Ver horarios →{% else %}Ver detalle →{% endif %}
         </div>
       </a>
+      {% if request.user.is_authenticated %}
+      <div style="border-top:1px solid rgba(255,255,255,.12);
+                  padding:10px 20px;
+                  display:flex; align-items:center; gap:10px;">
+        <button onclick="toggleFavorita({{ p.pk }})"
+                data-favorita-pk="{{ p.pk }}"
+                title="Quitar de favoritas"
+                style="flex-shrink:0; width:30px; height:30px; border-radius:50%;
+                       background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+                       cursor:pointer; display:flex; align-items:center; justify-content:center;
+                       transition:background .15s;">
+          <svg width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="rgba(242,160,7,.9)" fill="rgba(242,160,7,.9)">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </button>
+        <span style="color:rgba(255,255,255,.7); font:500 11px/1.3 var(--font-ui);
+                     display:flex; align-items:center; gap:6px; flex:1;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".7">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          Avisame 1 hora antes
+        </span>
+        <button id="btn-aviso-{{ p.pk }}"
+                onclick="toggleAvisoCard(event, {{ p.pk }})"
+                style="flex-shrink:0; padding:6px 14px; border-radius:999px;
+                       font:700 12px/1 var(--font-ui); cursor:pointer;
+                       transition:background .15s, color .15s, border-color .15s;
+                       {% if p.suscripcion_activa %}
+                       background:rgba(255,255,255,.95); color:#14315E; border:1.5px solid rgba(255,255,255,.95);
+                       {% else %}
+                       background:transparent; color:rgba(255,255,255,.9); border:1.5px solid rgba(255,255,255,.4);
+                       {% endif %}">
+          {% if p.suscripcion_activa %}Activado ✓{% else %}Activar{% endif %}
+        </button>
+      </div>
+      {% endif %}
     </div>
     {% endfor %}
     {% endif %}
@@ -747,6 +792,18 @@ function buildFavoritaCard(p, colorIdx) {
   }
   const barrio = p.barrio ? '<div class="pg-mip-barrio"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' + p.barrio + '</div>' : '';
   const cta = p.tiene_horarios ? 'Ver horarios →' : 'Ver detalle →';
+  const heartSvg = '<svg width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="rgba(242,160,7,.9)" fill="rgba(242,160,7,.9)"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+  const bellSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
+  const actionStrip = '<div style="border-top:1px solid rgba(255,255,255,.12);padding:10px 20px;display:flex;align-items:center;gap:10px;">'
+    + '<button onclick="toggleFavorita(' + p.pk + ')" data-favorita-pk="' + p.pk + '" title="Quitar de favoritas" '
+    + 'style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;">'
+    + heartSvg + '</button>'
+    + '<span style="color:rgba(255,255,255,.7);font:500 11px/1.3 var(--font-ui);display:flex;align-items:center;gap:6px;flex:1;">'
+    + bellSvg + 'Avisame 1 hora antes</span>'
+    + '<button id="btn-aviso-' + p.pk + '" onclick="toggleAvisoCard(event,' + p.pk + ')" '
+    + 'style="flex-shrink:0;padding:6px 14px;border-radius:999px;font:700 12px/1 var(--font-ui);cursor:pointer;transition:background .15s,color .15s,border-color .15s;background:transparent;color:rgba(255,255,255,.9);border:1.5px solid rgba(255,255,255,.4);">'
+    + 'Activar</button>'
+    + '</div>';
   return '<div id="fav-dyn-' + p.pk + '" '
     + 'style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ');border-radius:var(--r-xl);overflow:hidden;'
     + 'box-shadow:0 14px 36px rgba(14,38,71,.32);margin-bottom:24px;transition:box-shadow .18s,transform .15s;" '
@@ -757,7 +814,7 @@ function buildFavoritaCard(p, colorIdx) {
     + hills + badge + time
     + '<div class="pg-mip-body">' + bodyTop + '<div class="pg-mip-nombre">' + p.nombre + '</div>' + barrio + '</div>'
     + '<div class="pg-mip-cta">' + cta + '</div>'
-    + '</a></div>';
+    + '</a>' + actionStrip + '</div>';
 }
 
 document.addEventListener('favoritaToggled', function(e) {
@@ -766,41 +823,52 @@ document.addEventListener('favoritaToggled', function(e) {
   if (!container) return;
   if (favorita && parroquia) {
     if (document.getElementById('fav-dyn-' + pk) || document.getElementById('mi-parroquia-' + pk)) return;
-    // count server-rendered extras + dynamic cards already present to get next palette index
     const serverExtras = document.querySelectorAll('[id^="mi-parroquia-"]').length;
     const dynCards = document.querySelectorAll('[id^="fav-dyn-"]').length;
     const colorIdx = serverExtras + dynCards;
     container.insertAdjacentHTML('beforeend', buildFavoritaCard(parroquia, colorIdx));
   } else {
-    const card = document.getElementById('fav-dyn-' + pk) || document.getElementById('mi-parroquia-' + pk);
+    const card = document.getElementById('fav-dyn-' + pk)
+               || document.getElementById('mi-parroquia-' + pk)
+               || (document.getElementById('mi-parroquia')?.querySelector('[data-favorita-pk="' + pk + '"]') && document.getElementById('mi-parroquia'));
     if (card) card.remove();
   }
 });
 
-async function toggleAvisoInicio(e) {
+function _setAvisoBtn(btn, activa) {
+  if (activa) {
+    btn.style.background = 'rgba(255,255,255,.95)'; btn.style.color = '#14315E'; btn.style.borderColor = 'rgba(255,255,255,.95)';
+    btn.textContent = 'Activado ✓';
+  } else {
+    btn.style.background = 'transparent'; btn.style.color = 'rgba(255,255,255,.9)'; btn.style.borderColor = 'rgba(255,255,255,.4)';
+    btn.textContent = 'Activar';
+  }
+}
+
+async function toggleAvisoCard(e, pk) {
   if (e) e.preventDefault();
-  const btn = document.getElementById('btn-aviso-inicio');
-  const txt = document.getElementById('btn-aviso-inicio-text');
-  if (btn) btn.disabled = true;
-  const csrf = document.cookie.split(';').find(c=>c.trim().startsWith('csrftoken='))?.split('=')[1]||'';
+  const btn = e ? e.currentTarget : document.getElementById('btn-aviso-' + pk);
+  if (!btn) return;
+  const estaActivo = btn.textContent.trim().startsWith('Activado');
+  // Optimistic update
+  _setAvisoBtn(btn, !estaActivo);
+  const csrf = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='))?.split('=')[1] || '';
+  const body = new URLSearchParams({ parroquia_pk: pk });
   try {
     const resp = await fetch('/publico/perfil/toggle-avisos/', {
-      method:'POST', headers:{'X-CSRFToken': csrf}
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
     });
     const data = await resp.json();
     if (resp.ok) {
-      if (data.activa) {
-        btn.style.background='rgba(255,255,255,.95)'; btn.style.color='#14315E'; btn.style.borderColor='rgba(255,255,255,.95)';
-        txt.textContent='Activado ✓';
-      } else {
-        btn.style.background='transparent'; btn.style.color='rgba(255,255,255,.9)'; btn.style.borderColor='rgba(255,255,255,.4)';
-        txt.textContent='Activar';
-      }
+      _setAvisoBtn(btn, data.activa);
     } else {
-      alert(data.error || 'Error al cambiar los avisos');
+      _setAvisoBtn(btn, estaActivo); // revert
     }
-  } catch(e) { alert('Error de conexión'); }
-  finally { if (btn) btn.disabled = false; }
+  } catch(err) {
+    _setAvisoBtn(btn, estaActivo); // revert on network error
+  }
 }
 </script>
 

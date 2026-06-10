@@ -1374,13 +1374,19 @@ def publico_inicio(request):
     mis_favoritas = []
     if request.user.is_authenticated:
         try:
+            from .models import SuscripcionAvisoMisa as _SuscAviso
             perfil = request.user.perfil
+            subs_pks = set(
+                _SuscAviso.objects.filter(usuario=request.user, activa=True)
+                .values_list('parroquia_id', flat=True)
+            )
             for p in perfil.parroquias_favoritas.prefetch_related('horarios_misa').all():
                 if mi_parroquia and p.pk == mi_parroquia['pk']:
                     continue
                 p_horarios = list(p.horarios_misa.all())
                 p.proxima_misa = _proxima_misa(p_horarios)
                 p.tiene_horarios = bool(p_horarios)
+                p.suscripcion_activa = p.pk in subs_pks
                 mis_favoritas.append(p)
         except Exception:
             pass
@@ -2673,11 +2679,19 @@ def enviar_avisos_view(request):
 @login_required
 @require_POST
 def toggle_avisos_view(request):
-    """Toggle para activar/desactivar avisos de la parroquia favorita."""
+    """Toggle avisos para la parroquia favorita. Acepta parroquia_pk en POST para multi-favoritas."""
     from .models import SuscripcionAvisoMisa, PerfilUsuario
 
     perfil = get_object_or_404(PerfilUsuario, user=request.user)
-    parroquia_favorita = perfil.parroquias_favoritas.first()
+
+    parroquia_pk = request.POST.get('parroquia_pk')
+    if parroquia_pk:
+        try:
+            parroquia_favorita = perfil.parroquias_favoritas.get(pk=int(parroquia_pk))
+        except Exception:
+            return JsonResponse({'error': 'Parroquia no válida'}, status=400)
+    else:
+        parroquia_favorita = perfil.parroquias_favoritas.first()
 
     if not parroquia_favorita:
         return JsonResponse({'error': 'No tenés parroquia favorita seleccionada'}, status=400)
