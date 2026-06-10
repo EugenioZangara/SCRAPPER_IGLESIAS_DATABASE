@@ -124,14 +124,26 @@
     flex-shrink: 0; transition: background .15s; font-family: inherit;
   }
   .hero-search-btn:hover { background: #d98f06; }
+  .hero-search-btn-secondary {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: transparent; color: #6b7280;
+    font-size: 13px; font-weight: 700; padding: 9px 16px;
+    border: 1.5px solid #e5e7eb; border-radius: 999px; cursor: pointer;
+    flex-shrink: 0; transition: background .15s, border-color .15s; font-family: inherit;
+  }
+  .hero-search-btn-secondary:hover { background: #f3f4f6; border-color: #d1d5db; }
+  .hero-search-btns { display: flex; gap: 6px; flex-shrink: 0; }
   @media (max-width: 640px) {
     .hero-banner { padding: 28px 16px 24px; }
     .hero-inner { gap: 18px; }
     .hero-logo { width: 100px; height: 100px; border-radius: 14px; }
     .hero-title { font-size: clamp(22px, 6vw, 32px); }
     .hero-search-box { flex-direction: column; border-radius: 12px; padding: 12px; gap: 10px; }
+    .hero-search-icon { display: none; }
     .hero-search-input { width: 100%; font-size: 16px; }
-    .hero-search-btn { width: 100%; justify-content: center; padding: 11px; }
+    .hero-search-btns { width: 100%; }
+    .hero-search-btns .hero-search-btn,
+    .hero-search-btns .hero-search-btn-secondary { flex: 1; justify-content: center; padding: 11px; }
   }
   @media (max-width: 420px) {
     .hero-inner { flex-direction: column; align-items: flex-start; }
@@ -189,13 +201,22 @@
           <input type="hidden" name="provincia" id="hidden-provincia" value="">
           <input type="hidden" name="lat" id="hidden-lat" value="">
           <input type="hidden" name="lng" id="hidden-lng" value="">
-          <button type="button" id="btn-cerca" onclick="buscarCercaMio()"
-                  class="hero-search-btn" aria-label="Parroquias cerca mío">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-            </svg>
-            <span id="btn-cerca-text">Cerca mío</span>
-          </button>
+          <div class="hero-search-btns">
+            <button type="button" onclick="buscarYScrollear()"
+                    class="hero-search-btn" aria-label="Buscar parroquias">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              Buscar
+            </button>
+            <button type="button" id="btn-cerca" onclick="buscarCercaMio()"
+                    class="hero-search-btn-secondary" aria-label="Parroquias cerca mío">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+              </svg>
+              <span id="btn-cerca-text">Cerca mío</span>
+            </button>
+          </div>
         </div>
       </form>
       <div id="cerca-error" style="display:none; margin-top:8px; font:500 12px/1.4 var(--font-ui); color:#fca5a5; text-align:center;"></div>
@@ -496,6 +517,15 @@ function haversine(lat1,lng1,lat2,lng2) {
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 function fmt(km) { return km<1 ? Math.round(km*1000)+'m' : km.toFixed(1)+'km'; }
+
+function buscarYScrollear() {
+  const inp = document.getElementById('main-search');
+  if (inp) htmx.trigger(inp, 'keyup');
+  setTimeout(() => {
+    const el = document.getElementById('resultados');
+    if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 500);
+}
 
 function buscarCercaMio() {
   const btn = document.getElementById('btn-cerca');
