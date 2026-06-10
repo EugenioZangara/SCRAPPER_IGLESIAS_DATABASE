@@ -103,78 +103,111 @@
     </a>
     {% endif %}
 
-    <!-- Formulario con los 7 días: actual por defecto, IA override via JS -->
+    <!-- Grilla comparativa: actuales (izq) vs propuesta IA editable (der) -->
     {% with horarios_actuales=reporte.parroquia.horarios_misa.all %}
     <form id="form-rep-{{ reporte.pk }}" method="post"
-          action="{% url 'iglesias:aplicar_reporte' reporte.pk %}">
+          action="{% url 'iglesias:aplicar_reporte' reporte.pk %}"
+          style="margin-bottom:14px;">
         {% csrf_token %}
-        <div style="background:#eeedfe; border-radius:8px; padding:14px; margin-bottom:14px;">
-            <div style="font-size:10px; font-weight:600; text-transform:uppercase;
-                         letter-spacing:0.06em; color:#534ab7; margin-bottom:10px;
-                         display:flex; align-items:center; gap:6px;">
-                ✦ Revisión de horarios completos
-                <span style="font-weight:400; color:#6b7280; font-size:11px;
-                              text-transform:none; letter-spacing:0;">
-                    — editá antes de aplicar
-                </span>
-            </div>
-            <div style="font-size:11px; color:#534ab7; margin-bottom:12px;">
-                Los días marcados en azul tienen cambios propuestos por la IA.
-                Dejá el campo vacío para indicar que no hay misa ese día.
+        <div class="horarios-grid" style="border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
+
+            <!-- Headers -->
+            <div style="display:grid; grid-template-columns:1fr 1fr;">
+                <div style="background:#f9fafb; padding:9px 12px;
+                             border-right:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;
+                             font-size:10px; font-weight:600; text-transform:uppercase;
+                             letter-spacing:0.07em; color:#6b7280;">
+                    Horarios actuales
+                </div>
+                <div style="background:#eeedfe; padding:9px 12px;
+                             border-bottom:1px solid #ded9f5;
+                             font-size:10px; font-weight:600; text-transform:uppercase;
+                             letter-spacing:0.07em; color:#534ab7;
+                             display:flex; align-items:center; gap:5px;">
+                    ✦ Propuesta IA
+                    <span style="font-weight:400; color:#9ca3af; text-transform:none; letter-spacing:0; font-size:10px;">
+                        — editá antes de aplicar
+                    </span>
+                </div>
             </div>
 
+            <!-- Una fila por día, compartida entre ambas columnas -->
             {% for dia_num in "0123456" %}
-            <div style="display:grid; grid-template-columns:110px 1fr auto;
-                         gap:8px; align-items:center; padding:6px 0;
-                         border-bottom:1px solid #ded9f5;">
-                <input type="hidden" name="dia_{{ forloop.counter0 }}" value="{{ dia_num }}">
-                <label style="font-size:13px; font-weight:500; color:#374151;">
-                    {% if dia_num == "0" %}Lunes
-                    {% elif dia_num == "1" %}Martes
-                    {% elif dia_num == "2" %}Miércoles
-                    {% elif dia_num == "3" %}Jueves
-                    {% elif dia_num == "4" %}Viernes
-                    {% elif dia_num == "5" %}Sábado
-                    {% elif dia_num == "6" %}Domingo
-                    {% endif %}
-                </label>
-                <input type="text"
-                       name="horario_{{ forloop.counter0 }}"
-                       placeholder="vacío = sin misa · ej: 8:00 · 19:00"
-                       data-has-ia="{% for c in reporte.propuesta_ia %}{% if c.dia|stringformat:'s' == dia_num %}yes{% endif %}{% endfor %}"
-                       data-ia-value="{% for c in reporte.propuesta_ia %}{% if c.dia|stringformat:'s' == dia_num %}{{ c.horario }}{% endif %}{% endfor %}"
-                       value="{% for h in horarios_actuales %}{% if h.dia_semana|stringformat:'s' == dia_num %}{{ h.horarios }}{% endif %}{% endfor %}"
-                       style="border:1px solid #afa9ec; border-radius:6px;
-                              padding:6px 10px; font-size:13px;
-                              font-family:inherit; color:#1e1b4b;
-                              background:white; width:100%; box-sizing:border-box;">
-                <span class="dia-badge-{{ reporte.pk }}"
-                      style="font-size:10px; color:#9ca3af; white-space:nowrap;">
-                    actual
-                </span>
+            <div style="display:grid; grid-template-columns:1fr 1fr;
+                         {% if not forloop.last %}border-bottom:1px solid #e5e7eb;{% endif %}">
+
+                <!-- Celda izquierda: valor actual -->
+                <div style="background:#f9fafb; padding:6px 12px;
+                             display:grid; grid-template-columns:80px 1fr;
+                             align-items:center; gap:6px;
+                             border-right:1px solid #e5e7eb;">
+                    <span style="font-size:12px; font-weight:500; color:#374151;">
+                        {% if dia_num == "0" %}Lunes{% elif dia_num == "1" %}Martes{% elif dia_num == "2" %}Miércoles{% elif dia_num == "3" %}Jueves{% elif dia_num == "4" %}Viernes{% elif dia_num == "5" %}Sábado{% elif dia_num == "6" %}Domingo{% endif %}
+                    </span>
+                    <span style="font-size:12px; color:#1e1b4b; font-family:monospace;"
+                          data-dia-actual="{{ dia_num }}-{{ reporte.pk }}">
+                        {% for h in horarios_actuales %}{% if h.dia_semana|stringformat:'s' == dia_num %}{{ h.horarios }}{% endif %}{% endfor %}
+                    </span>
+                </div>
+
+                <!-- Celda derecha: input editable con propuesta IA -->
+                <div style="background:#eeedfe; padding:5px 12px;
+                             display:grid; grid-template-columns:80px 1fr auto;
+                             align-items:center; gap:5px;">
+                    <input type="hidden" name="dia_{{ forloop.counter0 }}" value="{{ dia_num }}">
+                    <label style="font-size:12px; font-weight:500; color:#374151;">
+                        {% if dia_num == "0" %}Lunes{% elif dia_num == "1" %}Martes{% elif dia_num == "2" %}Miércoles{% elif dia_num == "3" %}Jueves{% elif dia_num == "4" %}Viernes{% elif dia_num == "5" %}Sábado{% elif dia_num == "6" %}Domingo{% endif %}
+                    </label>
+                    <input type="text"
+                           name="horario_{{ forloop.counter0 }}"
+                           placeholder="vacío = sin misa"
+                           data-has-ia="{% for c in reporte.propuesta_ia %}{% if c.dia|stringformat:'s' == dia_num %}yes{% endif %}{% endfor %}"
+                           data-ia-value="{% for c in reporte.propuesta_ia %}{% if c.dia|stringformat:'s' == dia_num %}{{ c.horario }}{% endif %}{% endfor %}"
+                           value="{% for h in horarios_actuales %}{% if h.dia_semana|stringformat:'s' == dia_num %}{{ h.horarios }}{% endif %}{% endfor %}"
+                           style="border:1px solid #afa9ec; border-radius:5px;
+                                  padding:4px 7px; font-size:12px; font-family:monospace;
+                                  color:#1e1b4b; background:white;
+                                  width:100%; box-sizing:border-box;">
+                    <span class="dia-badge-{{ reporte.pk }}"
+                          style="font-size:10px; color:#9ca3af; white-space:nowrap; min-width:18px; text-align:right;">
+                    </span>
+                </div>
+
             </div>
             {% endfor %}
 
             {% if reporte.resumen_cambios %}
-            <div style="font-size:12px; color:#534ab7; margin-top:10px;
-                         padding-top:8px; border-top:1px solid #afa9ec; font-style:italic;">
-                IA sugiere: {{ reporte.resumen_cambios }}
+            <div style="background:#eeedfe; padding:8px 12px; border-top:1px solid #ded9f5;
+                         font-size:11px; color:#534ab7; font-style:italic;">
+                {{ reporte.resumen_cambios }}
             </div>
             {% endif %}
-        </div>
 
-        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <button type="submit"
-                    style="background:#4f46e5; color:white; border:none;
-                           border-radius:8px; padding:9px 18px; font-size:13px;
-                           font-weight:500; cursor:pointer;">
-                ✓ Aplicar cambios
-            </button>
-            <span style="font-size:12px; color:#6b7280;">
-                Podés editar cualquier día antes de aplicar
-            </span>
         </div>
     </form>
+
+    <!-- Acciones -->
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button type="submit" form="form-rep-{{ reporte.pk }}"
+                style="background:#4f46e5; color:white; border:none;
+                       border-radius:8px; padding:9px 18px; font-size:13px;
+                       font-weight:500; cursor:pointer;">
+            ✓ Aplicar cambios
+        </button>
+        <form method="post"
+              action="{% url 'iglesias:descartar_reporte' reporte.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                    style="background:none; border:1px solid #fca5a5;
+                           color:#dc2626; border-radius:8px; padding:8px 14px;
+                           font-size:13px; font-weight:500; cursor:pointer;">
+                ✕ Descartar y mantener actuales
+            </button>
+        </form>
+        <span style="font-size:12px; color:#9ca3af;">
+            Podés editar cualquier campo antes de aplicar
+        </span>
+    </div>
 
     <script>
     (function() {
@@ -189,28 +222,21 @@
                 var lbl = row.querySelector('label');
                 var badge = row.querySelector('.dia-badge-{{ reporte.pk }}');
                 if (lbl) lbl.style.color = '#4f46e5';
-                if (badge) {
-                    badge.textContent = '✦ IA';
-                    badge.style.color = '#4f46e5';
-                    badge.style.fontWeight = '600';
-                }
+                if (badge) { badge.textContent = '✦'; badge.style.color = '#4f46e5'; badge.style.fontWeight = '600'; }
             }
+        });
+        /* Marcar con guión los días sin horario en la columna actual */
+        document.querySelectorAll('[data-dia-actual]').forEach(function(el) {
+            if (!el.textContent.trim()) el.textContent = '—';
         });
     })();
     </script>
     {% endwith %}
-
-    <form method="post"
-          action="{% url 'iglesias:descartar_reporte' reporte.pk %}"
-          style="margin-top:8px;">
-        {% csrf_token %}
-        <button type="submit"
-                style="background:none; border:1px solid #fca5a5;
-                       color:#dc2626; border-radius:8px; padding:7px 14px;
-                       font-size:12px; font-weight:500; cursor:pointer;">
-            ✕ Descartar
-        </button>
-    </form>
+    <style>
+    @media (max-width: 680px) {
+        #reporte-card-{{ reporte.pk }} .horarios-grid { grid-template-columns: 1fr !important; }
+    }
+    </style>
 </div>
 
 {% else %}
