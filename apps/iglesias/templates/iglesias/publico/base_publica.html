@@ -363,13 +363,15 @@
   <meta property="og:title" content="{% block og_title %}ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires{% endblock %}">
   <meta property="og:description" content="{% block og_description %}Directorio de parroquias católicas de la Arquidiócesis de Buenos Aires con horarios de misas y eventos.{% endblock %}">
   <meta property="og:url" content="{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
-  <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}/static/iglesias/img/parroguia_logo.png{% endblock %}">
-  <meta property="og:image:width" content="{% block og_image_width %}512{% endblock %}">
-  <meta property="og:image:height" content="{% block og_image_height %}512{% endblock %}">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}/static/iglesias/img/og_parroguia.png{% endblock %}">
+  <meta property="og:image:width" content="{% block og_image_width %}1200{% endblock %}">
+  <meta property="og:image:height" content="{% block og_image_height %}630{% endblock %}">
+  <meta property="og:image:alt" content="{% block og_image_alt %}ParroGuía — Encontrá tu próxima misa a un click{% endblock %}">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{% block twitter_title %}ParroGuía — Parroquias de Buenos Aires{% endblock %}">
   <meta name="twitter:description" content="{% block twitter_description %}Directorio de parroquias católicas de la Arquidiócesis de Buenos Aires.{% endblock %}">
-  <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}/static/iglesias/img/parroguia_logo.png{% endblock %}">
+  <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}/static/iglesias/img/og_parroguia.png{% endblock %}">
+  <meta name="twitter:image:alt" content="{% block twitter_image_alt %}ParroGuía — Encontrá tu próxima misa a un click{% endblock %}">
   <link rel="canonical" href="{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
   <meta name="theme-color" content="#14315E">
   {% block meta_extra %}{% endblock %}
