@@ -1871,9 +1871,30 @@ def publico_detalle(request, pk):
     })
 
 
+_RESEND_API_URL = "https://api.resend.com/emails"
+
+
+def _enviar_email_resend(to, subject, html_body, reply_to=None):
+    import requests as _requests
+    headers = {
+        "Authorization": f"Bearer {settings.RESEND_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "from": settings.DEFAULT_FROM_EMAIL,
+        "to": [to],
+        "subject": subject,
+        "html": html_body,
+    }
+    if reply_to:
+        payload["reply_to"] = reply_to
+    response = _requests.post(_RESEND_API_URL, json=payload, headers=headers, timeout=10)
+    response.raise_for_status()
+    return response
+
+
 def contacto_parroquia(request, pk):
     import logging
-    from django.core.mail import send_mail
     from .forms import ContactoParroquiaForm
 
     parroquia = get_object_or_404(Parroquia, pk=pk)
@@ -1911,33 +1932,33 @@ def contacto_parroquia(request, pk):
     )
     ciudad = parroquia.ciudad or parroquia.barrio or "—"
 
-    cuerpo_equipo = (
-        f"Nueva consulta de contacto desde ParroGuía\n\n"
-        f"Parroquia: {parroquia.nombre}\n"
-        f"Ciudad: {ciudad}\n"
-        f"Panel admin: {admin_url}\n\n"
-        f"Nombre: {nombre}\n"
-        f"Email: {email}\n"
-        f"Rol: {rol_label}\n\n"
-        f"Mensaje:\n{mensaje}\n"
+    html_equipo = (
+        f"<p><strong>Nueva consulta de contacto desde ParroGuía</strong></p>"
+        f"<p>Parroquia: {parroquia.nombre}<br>"
+        f"Ciudad: {ciudad}<br>"
+        f"Panel admin: <a href='{admin_url}'>{admin_url}</a></p>"
+        f"<p>Nombre: {nombre}<br>"
+        f"Email: {email}<br>"
+        f"Rol: {rol_label}</p>"
+        f"<p>Mensaje:<br>{mensaje}</p>"
+    )
+    html_confirmacion = (
+        f"<p>Hola {nombre},</p>"
+        f"<p>Recibimos tu mensaje sobre <strong>{parroquia.nombre}</strong>. "
+        f"Te contactaremos a la brevedad a este email.</p>"
+        f"<p>— El equipo de ParroGuía</p>"
     )
     try:
-        send_mail(
+        _enviar_email_resend(
+            to=settings.CONTACTO_EMAIL,
             subject=f"[Contacto parroquia] {parroquia.nombre}",
-            message=cuerpo_equipo,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[settings.CONTACTO_EMAIL],
-            fail_silently=False,
+            html_body=html_equipo,
+            reply_to=email,
         )
-        send_mail(
+        _enviar_email_resend(
+            to=email,
             subject="Recibimos tu mensaje — Parroguía",
-            message=(
-                f"Hola {nombre}, recibimos tu mensaje sobre {parroquia.nombre}. "
-                f"Te contactaremos a la brevedad a este email."
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
+            html_body=html_confirmacion,
         )
     except Exception as exc:
         logging.getLogger(__name__).error(f"[contacto_parroquia] Error al enviar email pk={pk}: {exc}")
