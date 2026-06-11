@@ -452,6 +452,7 @@
                   <p class="sin-horarios-prop">Sin horarios oficiales cargados aún.</p>
                   {% endfor %}
                 </div>
+                {% if horarios %}
                 <div class="col-vote-bar">
                   <div class="col-vote-row">
                     <div style="display:flex;gap:5px;">
@@ -477,6 +478,7 @@
                   </div>
                   <p class="col-vote-caption">{% if votos_total > 0 %}{{ votos_total }} voto{{ votos_total|pluralize }}{% else %}Sin votos aún{% endif %}</p>
                 </div>
+                {% endif %}
               </div>
 
               <!-- Columna prójimo -->
@@ -565,6 +567,7 @@
               <p class="pg-notimes" style="padding:20px 0;text-align:center;">Horarios no disponibles aún.</p>
               {% endfor %}
             </div>
+            {% if horarios %}
             <div class="pg-card pg-sched" style="margin-top:12px;padding:10px 16px;">
               <div class="col-vote-row">
                 <div style="display:flex;gap:6px;">
@@ -592,6 +595,7 @@
               <p class="col-vote-caption">{{ votos_total }} voto{{ votos_total|pluralize }}</p>
               {% endif %}
             </div>
+            {% endif %}
             {% endif %}
           </section>
         </div>

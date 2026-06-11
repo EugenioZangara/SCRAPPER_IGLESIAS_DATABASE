@@ -165,6 +165,11 @@
       display: flex; align-items: center; justify-content: center;
       font: 700 11px/1 var(--font-display); color: var(--on-navy);
     }
+    .pg-pill-name {
+      font: 600 13px/1 var(--font-ui); max-width: 140px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    @media (max-width: 600px) { .pg-pill-name { display: none; } }
     .pg-top-login {
       padding: 8px 18px; border-radius: 999px;
       background: var(--navy); color: var(--on-navy);
@@ -406,6 +411,7 @@
       </svg>
       <span class="pg-nav-label">Mis aportes</span>
     </a>
+    {% if request.user.is_authenticated %}
     <a href="{% url 'iglesias:publico_perfil' %}"
        class="pg-top-navitem {% if request.resolver_match.url_name == 'publico_perfil' %}active{% endif %}">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -413,6 +419,7 @@
       </svg>
       <span class="pg-nav-label">Perfil</span>
     </a>
+    {% endif %}
     <a href="{% url 'iglesias:como_funciona' %}"
        class="pg-top-navitem {% if request.resolver_match.url_name == 'como_funciona' %}active{% endif %}">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -429,6 +436,7 @@
       <div class="pg-top-pill-av">
         {{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
       </div>
+      <span class="pg-pill-name">{{ request.user.first_name|default:request.user.email|truncatechars:20 }}</span>
       ✨ {% if nivel_info %}{{ request.user.perfil.score }}{% else %}0{% endif %} pts
     </a>
     {% else %}
@@ -530,6 +538,7 @@
     </svg>
     Aportes
   </a>
+  {% if request.user.is_authenticated %}
   <a href="{% url 'iglesias:publico_perfil' %}"
      class="pg-mob-item {% if request.resolver_match.url_name == 'publico_perfil' %}active{% endif %}">
     <svg class="mob-ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -537,6 +546,14 @@
     </svg>
     Perfil
   </a>
+  {% else %}
+  <a href="{% url 'account_login' %}" class="pg-mob-item">
+    <svg class="mob-ic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+    </svg>
+    Ingresar
+  </a>
+  {% endif %}
 </nav>
 
 <script src="https://unpkg.com/htmx.org@1.9.12"></script>

@@ -1985,6 +1985,11 @@ def votar_horario(request, pk):
     if tipo not in ('oficial', 'propuesto'):
         tipo = 'oficial'
 
+    if tipo == 'oficial' and not parroquia.horarios_misa.filter(horarios__gt="").exists():
+        return JsonResponse({'error': 'Sin horarios'}, status=400)
+    if tipo == 'propuesto' and not HorarioPropuestoAgregado.objects.filter(parroquia=parroquia).exists():
+        return JsonResponse({'error': 'Sin horarios propuestos'}, status=400)
+
     if not request.session.session_key:
         request.session.create()
 
