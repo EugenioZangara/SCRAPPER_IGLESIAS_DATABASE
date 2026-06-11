@@ -136,6 +136,7 @@
   @media (max-width: 640px) {
     .hero-banner { padding: 28px 16px 24px; }
     .hero-inner { gap: 18px; }
+    .hero-logo-link { display: none; }
     .hero-logo { width: 100px; height: 100px; border-radius: 14px; }
     .hero-title { font-size: clamp(22px, 6vw, 32px); }
     .hero-search-box { flex-direction: column; border-radius: 12px; padding: 12px; gap: 10px; }
@@ -290,12 +291,13 @@
   .pg-mip.has-badge { padding-top: 38px; min-height: 100px; }
 
   /* ── Cerca de ti (results grid) ── */
-  .pg-cerca-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 28px; }
+  .pg-cerca-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 28px; align-items: start; }
 
   .pg-parish-card {
     border-radius: var(--r-lg); overflow: hidden;
     background: var(--paper); border: 1px solid var(--line-soft);
-    box-shadow: var(--sh-card); text-decoration: none; display: block;
+    box-shadow: var(--sh-card); text-decoration: none;
+    display: flex; flex-direction: column;
     transition: transform .16s, box-shadow .18s, border-color .16s;
   }
   .pg-parish-card:hover { transform: translateY(-3px); box-shadow: var(--sh-pop); border-color: var(--navy-300); }
@@ -325,15 +327,15 @@
     cursor: pointer; border: 0; transition: background .15s;
   }
   .pg-parish-card-fav:hover { background: rgba(255,255,255,.35); }
-  .pg-parish-card-body { padding: 12px; }
+  .pg-parish-card-body { padding: 8px 10px 6px; display: flex; flex-direction: column; }
   .pg-parish-card-name {
     font: 700 14px/1.25 var(--font-display); color: var(--ink);
-    margin-bottom: 3px;
+    margin-bottom: 1px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .pg-parish-card-loc {
     font: 500 12px/1 var(--font-ui); color: var(--muted);
-    display: flex; align-items: center; gap: 3px;
+    display: flex; align-items: center; gap: 3px; margin-bottom: 3px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
@@ -697,7 +699,7 @@ function mostrarCercanas(parroquias) {
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           ${p.barrio||''} · ${fmt(p.dist)}
         </div>
-        ${p.diocesis ? `<div style="font:500 11px/1 var(--font-ui);color:var(--muted);margin-bottom:7px;padding-left:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8;">${p.diocesis}</div>` : ''}
+        ${p.diocesis ? `<div style="font:500 11px/1 var(--font-ui);color:var(--muted);margin-bottom:3px;padding-left:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8;">${p.diocesis}</div>` : ''}
         <div style="display:flex;flex-wrap:wrap;gap:4px;">
           ${p.tiene_horarios ? `<span class="tag tag-green" style="display:inline-flex;align-items:center;gap:4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Horarios</span>` : ''}
           ${p.tiene_ig ? `<span class="tag tag-ig" style="display:inline-flex;align-items:center;padding:3px 6px;" title="Instagram"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" stroke-width="3"/></svg></span>` : ''}

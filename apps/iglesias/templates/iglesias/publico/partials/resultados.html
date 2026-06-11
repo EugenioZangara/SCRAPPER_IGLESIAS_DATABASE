@@ -10,6 +10,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1.5rem;
+    align-items: start;
   }
   .pg-rcard {
     background: var(--paper);
@@ -18,7 +19,7 @@
     overflow: hidden;
     box-shadow: var(--sh-card);
     text-decoration: none;
-    display: block;
+    display: flex; flex-direction: column;
     transition: transform .16s, box-shadow .18s, border-color .16s;
   }
   .pg-rcard:hover { transform: translateY(-3px); box-shadow: var(--sh-pop); border-color: var(--navy-300); }
@@ -54,17 +55,16 @@
     position: absolute; top: 8px; right: 8px; z-index: 2;
   }
   .pg-rcard-fav:hover { background: rgba(255,255,255,.35); }
-  .pg-rcard-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 0; }
+  .pg-rcard-body { padding: 8px 10px 6px; display: flex; flex-direction: column; gap: 0; }
   .pg-rcard-name {
     font: 700 14px/1.25 var(--font-display); color: var(--ink);
-    margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .pg-rcard-loc {
     font: 500 12px/1 var(--font-ui); color: var(--muted);
-    display: flex; align-items: center; gap: 3px; margin-bottom: 4px;
+    display: flex; align-items: center; gap: 3px; margin-bottom: 3px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .pg-rcard-name { margin-bottom: 2px; }
   .pg-rcard-tags { display: flex; flex-wrap: wrap; gap: 4px; min-height: 0; }
   .pg-rcard-tags:empty { display: none; }
   .pg-rcard-next {
@@ -149,7 +149,7 @@ if (!window.pgGrad) {
         {{ item.parroquia.barrio|default:"—" }}{% if item.distancia_fmt %} · <span style="color:var(--navy);font-weight:700;">{{ item.distancia_fmt }}</span>{% endif %}
       </div>
       {% if item.parroquia.diocesis %}
-      <div style="font:500 11px/1 var(--font-ui);color:var(--muted);margin-bottom:4px;padding-left:13px;
+      <div style="font:500 11px/1 var(--font-ui);color:var(--muted);margin-bottom:3px;padding-left:13px;
                   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.8;">
         {{ item.parroquia.diocesis }}
       </div>
@@ -192,6 +192,23 @@ if (!window.pgGrad) {
   {% if forloop.counter|divisibleby:6 and not forloop.last %}
   {% load static %}
   <div style="grid-column:1/-1;margin:6px 0;" aria-label="Publicidad">
+    {% if forloop.counter|divisibleby:24 %}
+    <a href="https://apostol.ar/remeras-adultos/argentina/" target="_blank" rel="noopener sponsored"
+       style="display:block;text-decoration:none;border-radius:var(--r-md);overflow:hidden;
+              border:1px solid var(--line);box-shadow:var(--sh-card);">
+      <img src="{% static 'iglesias/img/ad_apostol2.jpg' %}"
+           alt="Apostol — Remeras de Argentina"
+           style="width:100%;height:auto;display:block;">
+    </a>
+    {% elif forloop.counter|divisibleby:12 %}
+    <a href="https://apostol.ar/remeras-adultos/argentina/" target="_blank" rel="noopener sponsored"
+       style="display:block;text-decoration:none;border-radius:var(--r-md);overflow:hidden;
+              border:1px solid var(--line);box-shadow:var(--sh-card);">
+      <img src="{% static 'iglesias/img/ad_apostol1.jpg' %}"
+           alt="Apostol — Remeras de Argentina"
+           style="width:100%;height:auto;display:block;">
+    </a>
+    {% else %}
     <a href="https://www.gaudium.com" target="_blank" rel="noopener sponsored"
        style="display:block;text-decoration:none;border-radius:var(--r-md);overflow:hidden;
               border:1px solid var(--line);box-shadow:var(--sh-card);">
@@ -202,6 +219,7 @@ if (!window.pgGrad) {
              style="width:100%;height:auto;display:block;">
       </picture>
     </a>
+    {% endif %}
   </div>
   {% endif %}
 

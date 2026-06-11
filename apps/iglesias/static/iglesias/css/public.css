@@ -198,6 +198,11 @@ a[style*="background:#2a4494"]:hover {
   transform: translateY(-2px);
 }
 
+/* Parish cards: always natural height, never stretched by grid row */
+.pg-rcard       { align-self: start !important; }
+.pg-parish-card { align-self: start !important; }
+.pg-results-grid, .pg-cerca-grid { align-items: start; }
+
 #resultados a > div,
 .pub-section,
 #favorita-section,
