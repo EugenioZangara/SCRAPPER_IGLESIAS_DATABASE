@@ -73,17 +73,35 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
-ACCOUNT_EMAIL_VERIFICATION = "none"
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "[Parroguía] "
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+PASSWORD_RESET_TIMEOUT = 259200  # 3 días
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
-LOGIN_REDIRECT_URL = "/publico/"
-LOGOUT_REDIRECT_URL = "/publico/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
 LOGIN_URL = "/accounts/login/"
 
 FACEBOOK_APP_ID = env("FACEBOOK_APP_ID", default="")
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 SITE_URL = env("SITE_URL", default="https://parroguia.com")
+
+# ── Email (Resend SMTP) ───────────────────────────────────────────
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.resend.com"
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = "resend"
+EMAIL_HOST_PASSWORD = env("RESEND_API_KEY", default="")
+DEFAULT_FROM_EMAIL = "Parroguía <noreply@parroguia.com>"
+SERVER_EMAIL = "noreply@parroguia.com"
 SCRAPER_SECRET_TOKEN = env("SCRAPER_SECRET_TOKEN", default="")
 # Render: agregar IMAGEKIT_URL_ENDPOINT como variable de entorno
 IMAGEKIT_URL_ENDPOINT = env("IMAGEKIT_URL_ENDPOINT", default="")

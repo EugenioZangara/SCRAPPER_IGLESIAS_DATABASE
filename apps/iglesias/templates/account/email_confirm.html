@@ -1,0 +1,55 @@
+{% extends "iglesias/publico/base_publica.html" %}
+
+{% block page_title %}Confirmar email — ParroGuía{% endblock %}
+
+{% block meta_extra %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<style>
+  .auth-card { max-width:440px; margin:32px auto; background:var(--paper);
+    border:1px solid var(--line-soft); border-radius:var(--r-lg);
+    box-shadow:var(--sh-card); padding:40px 36px; text-align:center; }
+  .auth-icon { font-size:48px; margin-bottom:16px; line-height:1; }
+  .auth-title { font:800 22px/1.2 var(--font-display); color:var(--ink); margin-bottom:12px; }
+  .auth-body { font:500 15px/1.6 var(--font-ui); color:var(--ink-soft); margin-bottom:24px; }
+  .auth-email { font-weight:700; color:var(--ink); }
+  .auth-alert { background:rgba(196,61,61,.08); border:1px solid rgba(196,61,61,.25);
+    border-radius:var(--r-sm); padding:10px 14px; margin-bottom:20px;
+    font:500 13px/1.4 var(--font-ui); color:#c43d3d; text-align:left; }
+  @media (max-width:480px) {
+    .auth-card { margin:16px; padding:28px 20px; border-radius:var(--r-md); }
+  }
+</style>
+
+<div class="auth-card">
+  {% if confirmation %}
+    <div class="auth-icon" aria-hidden="true">✅</div>
+    <h1 class="auth-title">Confirmá tu dirección</h1>
+    <p class="auth-body">
+      Confirmá que <span class="auth-email">{{ confirmation.email_address.email }}</span>
+      es tu dirección de email y querés activar tu cuenta en ParroGuía.
+    </p>
+    <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-accent" style="width:100%;">
+        Confirmar email
+      </button>
+    </form>
+  {% else %}
+    <div class="auth-icon" aria-hidden="true">⚠️</div>
+    <h1 class="auth-title">Link inválido</h1>
+    <div class="auth-alert">
+      Este link de confirmación ya fue usado o expiró.
+    </div>
+    <p class="auth-body" style="margin-bottom:24px;">
+      Si aún no confirmaste tu cuenta, podés volver a iniciar sesión
+      para recibir un nuevo link.
+    </p>
+    <a href="{% url 'account_login' %}" class="btn btn-accent" style="display:block;text-align:center;">
+      Ir a iniciar sesión
+    </a>
+  {% endif %}
+</div>
+{% endblock %}

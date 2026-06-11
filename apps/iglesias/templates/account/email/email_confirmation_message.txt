@@ -1,0 +1,13 @@
+{% autoescape off %}Hola, gracias por registrarte en Parroguía.
+
+Para activar tu cuenta, visitá el siguiente link:
+
+{{ activate_url }}
+
+El link es válido por 3 días.
+
+Si no creaste esta cuenta, ignorá este email.
+
+— El equipo de Parroguía
+https://parroguia.com
+{% endautoescape %}

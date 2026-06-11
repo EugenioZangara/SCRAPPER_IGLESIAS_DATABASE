@@ -1,0 +1,37 @@
+{% extends "iglesias/publico/base_publica.html" %}
+
+{% block page_title %}Revisá tu email — ParroGuía{% endblock %}
+
+{% block meta_extra %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<style>
+  .auth-card { max-width:440px; margin:32px auto; background:var(--paper);
+    border:1px solid var(--line-soft); border-radius:var(--r-lg);
+    box-shadow:var(--sh-card); padding:40px 36px; text-align:center; }
+  .auth-icon { font-size:48px; margin-bottom:16px; line-height:1; }
+  .auth-title { font:800 22px/1.2 var(--font-display); color:var(--ink); margin-bottom:12px; }
+  .auth-body { font:500 15px/1.6 var(--font-ui); color:var(--ink-soft); margin-bottom:8px; }
+  .auth-hint { font:500 13px/1.4 var(--font-ui); color:var(--muted); margin-bottom:28px; }
+  @media (max-width:480px) {
+    .auth-card { margin:16px; padding:28px 20px; border-radius:var(--r-md); }
+  }
+</style>
+
+<div class="auth-card">
+  <div class="auth-icon" aria-hidden="true">✉️</div>
+  <h1 class="auth-title">Revisá tu email</h1>
+  <p class="auth-body">
+    Te enviamos un link de confirmación a tu casilla de correo.
+    Hacé clic en el link para activar tu cuenta.
+  </p>
+  <p class="auth-hint">
+    Si no lo encontrás, revisá la carpeta de spam o correo no deseado.
+  </p>
+  <a href="{% url 'iglesias:publico_inicio' %}" class="btn btn-ghost btn-sm">
+    Volver al inicio
+  </a>
+</div>
+{% endblock %}

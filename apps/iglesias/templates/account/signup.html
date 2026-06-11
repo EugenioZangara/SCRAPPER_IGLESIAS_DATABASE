@@ -1,0 +1,147 @@
+{% extends "iglesias/publico/base_publica.html" %}
+
+{% block page_title %}Crear cuenta — ParroGuía{% endblock %}
+
+{% block canonical %}https://www.parroguia.com{% url 'account_signup' %}{% endblock %}
+
+{% block meta_extra %}
+<meta name="description" content="Creá tu cuenta en ParroGuía para guardar parroquias favoritas, reportar horarios y colaborar con la comunidad.">
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<style>
+  .auth-card { max-width:440px; margin:32px auto; background:var(--paper);
+    border:1px solid var(--line-soft); border-radius:var(--r-lg);
+    box-shadow:var(--sh-card); padding:40px 36px; }
+  .auth-logo { display:flex; flex-direction:column; align-items:center; margin-bottom:24px; }
+  .auth-logo img { width:56px; height:56px; border-radius:14px; object-fit:cover; margin-bottom:12px; }
+  .auth-title { font:800 22px/1.2 var(--font-display); color:var(--ink); margin-bottom:4px; text-align:center; }
+  .auth-sub { font:500 14px/1.4 var(--font-ui); color:var(--muted); text-align:center; }
+  .auth-fields { display:flex; flex-direction:column; gap:14px; margin:20px 0; }
+  .auth-label { display:block; font:700 11px/1 var(--font-ui); letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink-soft); margin-bottom:5px; }
+  .field-err { border-color:#c43d3d!important; }
+  .field-err:focus { box-shadow:0 0 0 4px rgba(196,61,61,.12)!important; }
+  .auth-error { font:500 12px/1.4 var(--font-ui); color:#c43d3d; margin-top:4px; }
+  .auth-alert { background:rgba(196,61,61,.08); border:1px solid rgba(196,61,61,.25);
+    border-radius:var(--r-sm); padding:10px 14px; margin-bottom:16px;
+    font:500 13px/1.4 var(--font-ui); color:#c43d3d; }
+  .auth-info { display:flex; align-items:flex-start; gap:8px; background:var(--bg-2);
+    border:1px solid var(--line); border-radius:var(--r-sm); padding:10px 14px;
+    margin-bottom:20px; font:500 13px/1.4 var(--font-ui); color:var(--ink-soft); }
+  .auth-divider { display:flex; align-items:center; gap:10px; margin:22px 0; }
+  .auth-divider::before, .auth-divider::after { content:''; flex:1; height:1px; background:var(--line); }
+  .auth-divider-text { font:500 12px/1 var(--font-ui); color:var(--muted); white-space:nowrap; }
+  .oauth-btns { display:flex; flex-direction:column; gap:10px; }
+  .oauth-btn { display:flex; align-items:center; justify-content:center; gap:10px;
+    padding:11px 16px; border-radius:var(--r-md); border:1.5px solid var(--line);
+    background:var(--paper); font:700 14px/1 var(--font-ui); color:var(--ink);
+    text-decoration:none; transition:background .15s, border-color .15s; }
+  .oauth-btn:hover { background:var(--bg-2); border-color:var(--navy-300); }
+  .oauth-btn-fb { background:#1877f2; border-color:#1877f2; color:#fff; }
+  .oauth-btn-fb:hover { background:#1565d8; border-color:#1565d8; }
+  .auth-footer { text-align:center; margin-top:24px;
+    font:500 13px/1.4 var(--font-ui); color:var(--muted); }
+  .auth-footer a { color:var(--navy); font-weight:700; text-decoration:none; }
+  .auth-footer a:hover { text-decoration:underline; }
+  @media (max-width:480px) {
+    .auth-card { margin:16px; padding:28px 20px; border-radius:var(--r-md); }
+  }
+</style>
+
+<div class="auth-card">
+  <div class="auth-logo">
+    <img src="/static/iglesias/img/parroguia_logo.png" alt="ParroGuía">
+    <h1 class="auth-title">Crear cuenta</h1>
+    <p class="auth-sub">Guardá favoritas, reportá horarios y colaborá</p>
+  </div>
+
+  {% if form.errors %}
+  <div class="auth-alert">
+    {% for error in form.non_field_errors %}{{ error }}<br>{% endfor %}
+    {% if not form.non_field_errors %}Revisá los datos ingresados.{% endif %}
+  </div>
+  {% endif %}
+
+  <div class="auth-divider"><span class="auth-divider-text">registrarse con</span></div>
+
+  <div class="oauth-btns" style="margin-bottom:22px;">
+    <a href="{% url 'google_login' %}" class="oauth-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Continuar con Google
+    </a>
+    <a href="{% url 'facebook_login' %}" class="oauth-btn oauth-btn-fb">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+      </svg>
+      Continuar con Facebook
+    </a>
+  </div>
+
+  <div class="auth-divider"><span class="auth-divider-text">o con email</span></div>
+
+  <form method="post" action="{% url 'account_signup' %}" novalidate>
+    {% csrf_token %}
+    {% if redirect_field_value %}
+    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+    {% endif %}
+
+    <div class="auth-fields">
+      <div>
+        <label class="auth-label" for="id_email">Email</label>
+        <input type="email" id="id_email" name="email"
+               class="field{% if form.email.errors %} field-err{% endif %}"
+               value="{{ form.email.value|default:'' }}"
+               placeholder="tu@email.com"
+               autocomplete="email" autofocus required>
+        {% for error in form.email.errors %}
+        <p class="auth-error">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      <div>
+        <label class="auth-label" for="id_password1">Contraseña</label>
+        <input type="password" id="id_password1" name="password1"
+               class="field{% if form.password1.errors %} field-err{% endif %}"
+               placeholder="Mínimo 8 caracteres"
+               autocomplete="new-password" required>
+        {% for error in form.password1.errors %}
+        <p class="auth-error">{{ error }}</p>
+        {% endfor %}
+      </div>
+
+      <div>
+        <label class="auth-label" for="id_password2">Repetir contraseña</label>
+        <input type="password" id="id_password2" name="password2"
+               class="field{% if form.password2.errors %} field-err{% endif %}"
+               placeholder="Repetí la contraseña"
+               autocomplete="new-password" required>
+        {% for error in form.password2.errors %}
+        <p class="auth-error">{{ error }}</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="auth-info">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      Te enviaremos un email para confirmar tu cuenta.
+    </div>
+
+    <button type="submit" class="btn btn-accent" style="width:100%;">
+      Crear cuenta
+    </button>
+  </form>
+
+  <p class="auth-footer">
+    ¿Ya tenés cuenta? <a href="{% url 'account_login' %}">Iniciá sesión</a>
+  </p>
+</div>
+{% endblock %}
