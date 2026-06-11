@@ -102,6 +102,8 @@ EMAIL_HOST_USER = "resend"
 EMAIL_HOST_PASSWORD = env("RESEND_API_KEY", default="")
 DEFAULT_FROM_EMAIL = "Parroguía <noreply@parroguia.com>"
 SERVER_EMAIL = "noreply@parroguia.com"
+CONTACTO_EMAIL = "parroguia@gmail.com"
+#CONTACTO_EMAIL = "contacto@parroguia.com"
 SCRAPER_SECRET_TOKEN = env("SCRAPER_SECRET_TOKEN", default="")
 # Render: agregar IMAGEKIT_URL_ENDPOINT como variable de entorno
 IMAGEKIT_URL_ENDPOINT = env("IMAGEKIT_URL_ENDPOINT", default="")

@@ -128,6 +128,7 @@ urlpatterns = [
     path("publico/como-funciona/", views.como_funciona, name="como_funciona"),
     path("publico/<int:pk>/votar-horario/", views.votar_horario, name="votar_horario"),
     path("publico/<int:pk>/comentar/", views.agregar_comentario, name="agregar_comentario"),
+    path("publico/<int:pk>/contacto/", views.contacto_parroquia, name="contacto_parroquia"),
     path(
         "parroquias/<int:pk>/toggle-verificacion/",
         views.toggle_verificacion,

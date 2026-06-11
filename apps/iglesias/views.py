@@ -1775,6 +1775,7 @@ def publico_detalle(request, pk):
 
     ya_valido = bool(request.COOKIES.get(f"validado_{pk}"))
     ya_reporto = bool(request.COOKIES.get(f"reportado_{pk}"))
+    contacto_ya_enviado = bool(request.COOKIES.get(f"contacto_parroquia_{pk}"))
 
     es_favorita = False
     if request.user.is_authenticated:
@@ -1866,7 +1867,87 @@ def publico_detalle(request, pk):
         "horarios_propuestos": horarios_propuestos,
         "UMBRAL_CONFIANZA_ALTA": 1.5,
         "opening_hours_schema": _generar_opening_hours(horarios),
+        "contacto_ya_enviado": contacto_ya_enviado,
     })
+
+
+def contacto_parroquia(request, pk):
+    import logging
+    from django.core.mail import send_mail
+    from .forms import ContactoParroquiaForm
+
+    parroquia = get_object_or_404(Parroquia, pk=pk)
+    cookie_key = f"contacto_parroquia_{pk}"
+
+    if request.method == "GET":
+        form = ContactoParroquiaForm()
+        return render(request, "iglesias/publico/partials/contacto_parroquia_form.html", {
+            "form": form,
+            "parroquia": parroquia,
+        })
+
+    # POST
+    if request.COOKIES.get(cookie_key):
+        return render(request, "iglesias/publico/partials/contacto_parroquia_exito.html", {
+            "ya_enviado": True,
+            "parroquia": parroquia,
+        })
+
+    form = ContactoParroquiaForm(request.POST)
+    if not form.is_valid():
+        return render(request, "iglesias/publico/partials/contacto_parroquia_form.html", {
+            "form": form,
+            "parroquia": parroquia,
+        })
+
+    nombre = form.cleaned_data["nombre"]
+    email = form.cleaned_data["email"]
+    rol_key = form.cleaned_data["rol"]
+    rol_label = dict(form.fields["rol"].choices).get(rol_key, rol_key)
+    mensaje = form.cleaned_data["mensaje"]
+
+    admin_url = request.build_absolute_uri(
+        reverse("iglesias:detalle_parroquia", args=[pk])
+    )
+    ciudad = parroquia.ciudad or parroquia.barrio or "—"
+
+    cuerpo_equipo = (
+        f"Nueva consulta de contacto desde ParroGuía\n\n"
+        f"Parroquia: {parroquia.nombre}\n"
+        f"Ciudad: {ciudad}\n"
+        f"Panel admin: {admin_url}\n\n"
+        f"Nombre: {nombre}\n"
+        f"Email: {email}\n"
+        f"Rol: {rol_label}\n\n"
+        f"Mensaje:\n{mensaje}\n"
+    )
+    try:
+        send_mail(
+            subject=f"[Contacto parroquia] {parroquia.nombre}",
+            message=cuerpo_equipo,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.CONTACTO_EMAIL],
+            fail_silently=False,
+        )
+        send_mail(
+            subject="Recibimos tu mensaje — Parroguía",
+            message=(
+                f"Hola {nombre}, recibimos tu mensaje sobre {parroquia.nombre}. "
+                f"Te contactaremos a la brevedad a este email."
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+    except Exception as exc:
+        logging.getLogger(__name__).error(f"[contacto_parroquia] Error al enviar email pk={pk}: {exc}")
+
+    response = render(request, "iglesias/publico/partials/contacto_parroquia_exito.html", {
+        "email": email,
+        "parroquia": parroquia,
+    })
+    response.set_cookie(cookie_key, "1", max_age=30 * 24 * 3600, samesite="Lax", httponly=True)
+    return response
 
 
 @require_POST

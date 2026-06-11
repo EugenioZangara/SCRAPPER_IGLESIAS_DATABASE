@@ -870,6 +870,38 @@
 </div>
 {% endif %}
 
+<!-- Contacto para responsables de parroquia -->
+<section style="margin-top:28px;" aria-label="Contacto para responsables">
+  {% if contacto_ya_enviado %}
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;
+              background:rgba(31,138,91,.08);border:1px solid rgba(31,138,91,.25);
+              border-radius:var(--r-sm);">
+    <span style="font-size:16px;" aria-hidden="true">✅</span>
+    <span style="font:500 13px/1.4 var(--font-ui);color:var(--ink-soft);">
+      Ya nos escribiste — te contactaremos a la brevedad.
+    </span>
+  </div>
+  {% else %}
+  <button
+    class="btn btn-ghost btn-sm"
+    style="display:flex;align-items:center;gap:8px;color:var(--muted);border-color:var(--line);
+           font:500 13px/1 var(--font-ui);"
+    hx-get="{% url 'iglesias:contacto_parroquia' parroquia.pk %}"
+    hx-target="#contacto-form-container"
+    hx-swap="innerHTML"
+    hx-trigger="click once"
+  >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+    ¿Trabajás en esta parroquia?
+  </button>
+  <div id="contacto-form-container"></div>
+  {% endif %}
+</section>
+
 <script>
 /* Set gradient color from pk */
 (function() {

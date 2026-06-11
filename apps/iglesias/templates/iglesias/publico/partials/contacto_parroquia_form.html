@@ -1,0 +1,143 @@
+<div id="contacto-resultado">
+  <div style="background:var(--paper);border:1px solid var(--line-soft);border-radius:var(--r-md);
+              padding:24px 20px;margin-top:12px;">
+
+    <h3 style="font:800 16px/1.2 var(--font-display);color:var(--ink);margin:0 0 4px;">
+      ¿Tenés un rol oficial en esta parroquia?
+    </h3>
+    <p style="font:500 13px/1.5 var(--font-ui);color:var(--muted);margin:0 0 20px;">
+      Escribinos para coordinar información verificada sobre horarios,
+      eventos y datos de contacto.
+    </p>
+
+    {% if form.non_field_errors %}
+    <div style="background:rgba(196,61,61,.08);border:1px solid rgba(196,61,61,.25);
+                border-radius:var(--r-sm);padding:9px 13px;margin-bottom:16px;
+                font:500 12px/1.4 var(--font-ui);color:#c43d3d;">
+      {% for err in form.non_field_errors %}{{ err }}<br>{% endfor %}
+    </div>
+    {% endif %}
+
+    <style>
+      @keyframes pg-spin { to { transform: rotate(360deg); } }
+      .pg-contact-form.htmx-request .pg-btn-text { display: none; }
+      .pg-contact-form.htmx-request .pg-btn-loading { display: inline-flex !important; }
+      .pg-contact-form.htmx-request button[type=submit] { opacity: .75; pointer-events: none; }
+    </style>
+
+    <form
+      class="pg-contact-form"
+      hx-post="{% url 'iglesias:contacto_parroquia' parroquia.pk %}"
+      hx-target="#contacto-resultado"
+      hx-swap="outerHTML"
+      hx-disabled-elt="find button[type=submit]"
+      novalidate
+      style="display:flex;flex-direction:column;gap:14px;"
+    >
+      {% csrf_token %}
+
+      <div>
+        <label style="display:block;font:700 11px/1 var(--font-ui);letter-spacing:.06em;
+                      text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px;">
+          Nombre
+        </label>
+        <input
+          type="text" name="nombre"
+          value="{{ form.nombre.value|default:'' }}"
+          placeholder="Tu nombre completo"
+          maxlength="100"
+          style="width:100%;box-sizing:border-box;{% if form.nombre.errors %}border-color:#c43d3d;{% endif %}"
+          class="field"
+          required
+        >
+        {% for err in form.nombre.errors %}
+        <p style="font:500 11px/1.4 var(--font-ui);color:#c43d3d;margin:3px 0 0;">{{ err }}</p>
+        {% endfor %}
+      </div>
+
+      <div>
+        <label style="display:block;font:700 11px/1 var(--font-ui);letter-spacing:.06em;
+                      text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px;">
+          Email
+        </label>
+        <input
+          type="email" name="email"
+          value="{{ form.email.value|default:'' }}"
+          placeholder="tu@email.com"
+          style="width:100%;box-sizing:border-box;{% if form.email.errors %}border-color:#c43d3d;{% endif %}"
+          class="field"
+          required
+        >
+        {% for err in form.email.errors %}
+        <p style="font:500 11px/1.4 var(--font-ui);color:#c43d3d;margin:3px 0 0;">{{ err }}</p>
+        {% endfor %}
+      </div>
+
+      <div>
+        <label style="display:block;font:700 11px/1 var(--font-ui);letter-spacing:.06em;
+                      text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px;">
+          Rol en la parroquia
+        </label>
+        <select
+          name="rol"
+          style="width:100%;box-sizing:border-box;{% if form.rol.errors %}border-color:#c43d3d;{% endif %}"
+          class="field"
+        >
+          {% for value, label in form.fields.rol.choices %}
+          <option value="{{ value }}"{% if form.rol.value == value %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% for err in form.rol.errors %}
+        <p style="font:500 11px/1.4 var(--font-ui);color:#c43d3d;margin:3px 0 0;">{{ err }}</p>
+        {% endfor %}
+      </div>
+
+      <div>
+        <label style="display:block;font:700 11px/1 var(--font-ui);letter-spacing:.06em;
+                      text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px;">
+          Mensaje
+        </label>
+        <textarea
+          name="mensaje"
+          rows="4"
+          maxlength="1000"
+          placeholder="Contanos cómo podemos ayudarte a tener la información de la parroquia actualizada."
+          style="width:100%;box-sizing:border-box;resize:vertical;{% if form.mensaje.errors %}border-color:#c43d3d;{% endif %}"
+          class="field"
+          required
+        >{{ form.mensaje.value|default:'' }}</textarea>
+        {% for err in form.mensaje.errors %}
+        <p style="font:500 11px/1.4 var(--font-ui);color:#c43d3d;margin:3px 0 0;">{{ err }}</p>
+        {% endfor %}
+      </div>
+
+      <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;">
+        <input
+          type="checkbox" name="acepta_contacto"
+          {% if form.acepta_contacto.value %}checked{% endif %}
+          style="margin-top:2px;flex-shrink:0;accent-color:var(--navy);"
+        >
+        <span style="font:500 12px/1.5 var(--font-ui);color:var(--ink-soft);">
+          Acepto que Parroguía se comunique conmigo para verificar esta información
+        </span>
+      </label>
+      {% for err in form.acepta_contacto.errors %}
+      <p style="font:500 11px/1.4 var(--font-ui);color:#c43d3d;margin:-10px 0 0;">{{ err }}</p>
+      {% endfor %}
+
+      <button type="submit" class="btn btn-accent" style="width:100%;justify-content:center;">
+        <span class="pg-btn-text">Enviar mensaje</span>
+        <span class="pg-btn-loading" style="display:none;align-items:center;gap:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round"
+               style="animation:pg-spin .75s linear infinite;flex-shrink:0;" aria-hidden="true">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83
+                     M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+          Enviando...
+        </span>
+      </button>
+    </form>
+
+  </div>
+</div>

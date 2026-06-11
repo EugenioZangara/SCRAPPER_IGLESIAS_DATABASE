@@ -1,0 +1,21 @@
+<div id="contacto-resultado">
+  <div style="background:rgba(31,138,91,.08);border:1px solid rgba(31,138,91,.25);
+              border-radius:var(--r-md);padding:20px;margin-top:12px;
+              display:flex;align-items:flex-start;gap:14px;">
+    <span style="font-size:26px;line-height:1;flex-shrink:0;" aria-hidden="true">✅</span>
+    <div>
+      <p style="font:700 15px/1.2 var(--font-display);color:#1F8A5B;margin:0 0 6px;">
+        ¡Mensaje enviado!
+      </p>
+      {% if ya_enviado %}
+      <p style="font:500 13px/1.5 var(--font-ui);color:var(--ink-soft);margin:0;">
+        Ya nos escribiste para esta parroquia. Te contactaremos a la brevedad.
+      </p>
+      {% else %}
+      <p style="font:500 13px/1.5 var(--font-ui);color:var(--ink-soft);margin:0;">
+        Te contactaremos a la brevedad en <strong>{{ email }}</strong>.
+      </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
