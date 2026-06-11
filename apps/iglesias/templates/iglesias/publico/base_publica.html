@@ -411,15 +411,6 @@
       </svg>
       <span class="pg-nav-label">Mis aportes</span>
     </a>
-    {% if request.user.is_authenticated %}
-    <a href="{% url 'iglesias:publico_perfil' %}"
-       class="pg-top-navitem {% if request.resolver_match.url_name == 'publico_perfil' %}active{% endif %}">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-      </svg>
-      <span class="pg-nav-label">Perfil</span>
-    </a>
-    {% endif %}
     <a href="{% url 'iglesias:como_funciona' %}"
        class="pg-top-navitem {% if request.resolver_match.url_name == 'como_funciona' %}active{% endif %}">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -436,7 +427,7 @@
       <div class="pg-top-pill-av">
         {{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
       </div>
-      <span class="pg-pill-name">{{ request.user.first_name|default:request.user.email|truncatechars:20 }}</span>
+      {{ request.user.first_name|default:request.user.email|truncatechars:15 }}
       ✨ {% if nivel_info %}{{ request.user.perfil.score }}{% else %}0{% endif %} pts
     </a>
     {% else %}
