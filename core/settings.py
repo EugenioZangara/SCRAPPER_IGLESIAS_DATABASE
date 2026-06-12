@@ -93,6 +93,10 @@ FACEBOOK_APP_ID = env("FACEBOOK_APP_ID", default="")
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 SITE_URL = env("SITE_URL", default="https://parroguia.com")
 
+IMAGEKIT_PUBLIC_KEY   = env("IMAGEKIT_PUBLIC_KEY",   default="")
+IMAGEKIT_PRIVATE_KEY  = env("IMAGEKIT_PRIVATE_KEY",  default="")
+IMAGEKIT_URL_ENDPOINT = env("IMAGEKIT_URL_ENDPOINT", default="")
+
 # ── Email (Resend SMTP) ───────────────────────────────────────────
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.resend.com"

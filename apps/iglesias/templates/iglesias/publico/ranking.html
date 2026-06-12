@@ -170,9 +170,9 @@
       </div>
 
       <div class="rk-avatar">
-        {% if perfil.avatar_url %}
-          <img src="{{ perfil.avatar_url }}" alt="{{ perfil.user.username }}"
-               style="width:38px; height:38px; object-fit:cover;">
+        {% if perfil.get_avatar %}
+          <img src="{{ perfil.get_avatar }}" alt="{{ perfil.user.username }}"
+               style="width:38px; height:38px; object-fit:cover; border-radius:50%;">
         {% else %}
           {{ perfil.user.first_name|slice:":1"|upper|default:perfil.user.username|slice:":1"|upper }}
         {% endif %}

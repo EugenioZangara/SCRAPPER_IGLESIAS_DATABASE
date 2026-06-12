@@ -1564,6 +1564,60 @@ def publico_perfil(request):
     })
 
 
+@require_POST
+def upload_avatar(request):
+    import logging
+    from django.http import JsonResponse
+    from imagekitio import ImageKit
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"ok": False}, status=403)
+
+    if not settings.IMAGEKIT_PRIVATE_KEY:
+        logging.getLogger(__name__).error("[upload_avatar] IMAGEKIT_PRIVATE_KEY no configurada")
+        return JsonResponse({"ok": False, "error": "Servicio de imágenes no configurado"}, status=500)
+
+    f = request.FILES.get("avatar")
+    if not f:
+        return JsonResponse({"ok": False, "error": "Sin archivo"}, status=400)
+    if f.size > 2 * 1024 * 1024:
+        return JsonResponse({"ok": False, "error": "Imagen demasiado grande (máx 2 MB)"}, status=400)
+
+    try:
+        ik = ImageKit(
+            public_key=settings.IMAGEKIT_PUBLIC_KEY,
+            private_key=settings.IMAGEKIT_PRIVATE_KEY,
+            url_endpoint=settings.IMAGEKIT_URL_ENDPOINT,
+        )
+        file_name = f"avatar_{request.user.pk}_{f.name}"
+        result = ik.upload_file(
+            file=f.read(),
+            file_name=file_name,
+            options={"folder": "/avatars/"},
+        )
+        perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
+        perfil.avatar_url = result.url
+        perfil.save(update_fields=["avatar_url"])
+        return JsonResponse({"ok": True, "url": result.url})
+    except Exception as e:
+        logging.getLogger(__name__).error(f"[upload_avatar] Error ImageKit: {e}")
+        return JsonResponse({"ok": False, "error": "Error al subir la imagen"}, status=500)
+
+
+@require_POST
+def delete_avatar(request):
+    from django.http import JsonResponse
+    if not request.user.is_authenticated:
+        return JsonResponse({"ok": False}, status=403)
+    try:
+        perfil = request.user.perfil
+    except Exception:
+        return JsonResponse({"ok": False}, status=404)
+    perfil.avatar_url = ""
+    perfil.save(update_fields=["avatar_url"])
+    return JsonResponse({"ok": True})
+
+
 @csrf_exempt
 @require_POST
 def set_parroquia_favorita(request, pk):

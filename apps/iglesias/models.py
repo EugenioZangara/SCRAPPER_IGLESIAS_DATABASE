@@ -351,6 +351,10 @@ class PerfilUsuario(models.Model):
         }
         return colores.get(self.nivel, "#6b7280")
 
+    @property
+    def get_avatar(self):
+        return self.avatar_url or None
+
     NIVEL_COLORES = {
         'explorador': ('#dbeafe', '#1e40af'),
         'vecino':     ('#dcfce7', '#166534'),

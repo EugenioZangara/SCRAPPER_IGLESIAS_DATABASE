@@ -19,7 +19,15 @@ def actualizar_proveedor_social(sender, request, sociallogin, **kwargs):
     try:
         perfil = sociallogin.user.perfil
         perfil.proveedor = sociallogin.account.provider
-        perfil.save(update_fields=["proveedor"])
+        extra = sociallogin.account.extra_data or {}
+        if not perfil.avatar_url:
+            if sociallogin.account.provider == 'google':
+                perfil.avatar_url = extra.get('picture', '') or ''
+            elif sociallogin.account.provider == 'facebook':
+                pic = extra.get('picture', {})
+                if isinstance(pic, dict):
+                    perfil.avatar_url = pic.get('data', {}).get('url', '') or ''
+        perfil.save(update_fields=["proveedor", "avatar_url"])
     except Exception:
         pass
 
