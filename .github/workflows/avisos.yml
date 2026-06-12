@@ -10,6 +10,12 @@ jobs:
   enviar-avisos:
     runs-on: ubuntu-latest
     steps:
+      - name: Wake-up servidor
+        run: |
+          curl -s -o /dev/null -w "Wake-up status: %{http_code}\n" \
+            https://scrapper-iglesias-database.onrender.com/ || true
+          sleep 30
+
       - name: Enviar avisos de misa
         run: |
           response=$(curl -s -L -o /tmp/response.json -w "%{http_code}" \

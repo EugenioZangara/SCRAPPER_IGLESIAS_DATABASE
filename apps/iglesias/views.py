@@ -1,4 +1,5 @@
 import glob as _glob
+import logging
 import math
 import os
 from datetime import date, datetime, time as dtime, timedelta
@@ -10,6 +11,8 @@ from django.db.models import Case, Count, IntegerField, Q, Value, When
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+
+logger = logging.getLogger(__name__)
 
 from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, ValidacionHorario, Banner, VotoHorario, ComentarioParroquia, PerfilUsuario, HorarioPropuestoAgregado
 
@@ -2822,6 +2825,7 @@ def apelar_comentario(request, pk):
 @csrf_exempt
 def enviar_avisos_view(request):
     """Endpoint llamado por GitHub Actions cada hora para enviar avisos de misa."""
+    logger.info("enviar_avisos_view alcanzado")
     if request.method != 'POST':
         return JsonResponse({'error': 'Método no permitido'}, status=405)
 
