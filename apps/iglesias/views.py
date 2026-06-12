@@ -1574,7 +1574,7 @@ def upload_avatar(request):
         return JsonResponse({"ok": False}, status=403)
 
     if not settings.IMAGEKIT_PRIVATE_KEY:
-        logging.getLogger(__name__).error("[upload_avatar] IMAGEKIT_PRIVATE_KEY no configurada")
+        logging.getLogger(__name__).error("[upload_avatar] IMAGEKIT_PRIVA_KEY no configurada")
         return JsonResponse({"ok": False, "error": "Servicio de imágenes no configurado"}, status=500)
 
     f = request.FILES.get("avatar")
@@ -1585,20 +1585,21 @@ def upload_avatar(request):
 
     try:
         ik = ImageKit(
-            public_key=settings.IMAGEKIT_PUBLIC_KEY,
             private_key=settings.IMAGEKIT_PRIVATE_KEY,
+            public_key=settings.IMAGEKIT_PUBLIC_KEY,
             url_endpoint=settings.IMAGEKIT_URL_ENDPOINT,
         )
         file_name = f"avatar_{request.user.pk}_{f.name}"
-        result = ik.upload_file(
+        result = ik.upload(
             file=f.read(),
             file_name=file_name,
             options={"folder": "/avatars/"},
         )
+        url = result.response_metadata.raw["url"]
         perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
-        perfil.avatar_url = result.url
+        perfil.avatar_url = url
         perfil.save(update_fields=["avatar_url"])
-        return JsonResponse({"ok": True, "url": result.url})
+        return JsonResponse({"ok": True, "url": url})
     except Exception as e:
         logging.getLogger(__name__).error(f"[upload_avatar] Error ImageKit: {e}")
         return JsonResponse({"ok": False, "error": "Error al subir la imagen"}, status=500)
