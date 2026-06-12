@@ -2266,5 +2266,12 @@
   },
   "1068": {
     "resultado": "sin_imagen_valida"
+  },
+  "1069": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1071": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia de ladrillo con torre campanario"
   }
 }
