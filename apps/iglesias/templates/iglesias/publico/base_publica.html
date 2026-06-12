@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token }}">
   <title>{% block page_title %}ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires{% endblock %}</title>
   <link rel="icon" type="image/png" href="/static/iglesias/img/parroguia_logo.png">
   <link rel="apple-touch-icon" href="/static/iglesias/img/parroguia_logo.png">
@@ -580,7 +581,9 @@ function toggleFavorita(pk) {
   });
 
   // POST en background — revertir si falla
-  const csrf = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='))?.split('=')[1] || '';
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+    || document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith('csrftoken='))?.split('=')[1]?.split('%')[0]
+    || '';
   fetch('/publico/' + pk + '/favorita/', {
     method: 'POST',
     headers: { 'X-CSRFToken': csrf }
@@ -649,8 +652,9 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!pendingPk) return;
   {% if request.user.is_authenticated %}
   sessionStorage.removeItem('pendingFavorita');
-  const csrf = document.cookie.split(';')
-    .find(c => c.trim().startsWith('csrftoken='))?.split('=')[1] || '';
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+    || document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith('csrftoken='))?.split('=')[1]?.split('%')[0]
+    || '';
   fetch('/publico/' + pendingPk + '/favorita/', {
     method: 'POST', headers: { 'X-CSRFToken': csrf }
   }).then(r => r.json()).then(data => {

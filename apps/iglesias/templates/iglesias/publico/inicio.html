@@ -347,6 +347,49 @@
   }
   .pg-sh a { font: 600 12px/1 var(--font-ui); color: var(--navy); text-decoration: none; text-transform: none; letter-spacing: 0; }
 
+  /* ── pg-mip mobile ── */
+  @media (max-width: 640px) {
+    .pg-mip {
+      flex-wrap: wrap;
+      padding: 16px 16px 14px 16px;
+      gap: 10px;
+      min-height: unset;
+    }
+    .pg-mip.has-badge {
+      padding-top: 34px;
+      min-height: unset;
+    }
+    .pg-mip-time {
+      font-size: 36px;
+      flex-shrink: 0;
+    }
+    .pg-mip-body {
+      flex: 1;
+      min-width: 0;
+    }
+    .pg-mip-nombre {
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pg-mip-cta {
+      flex: 0 0 100%;
+      text-align: center;
+      padding: 10px;
+      font-size: 13px;
+      border-radius: 10px;
+    }
+    .pg-mip-badge {
+      top: 10px;
+      left: 16px;
+      font-size: 9px;
+      padding: 3px 8px;
+    }
+    .pg-mip-countdown {
+      font-size: 11px;
+    }
+  }
 
 </style>
 
@@ -854,7 +897,9 @@ async function toggleAvisoCard(e, pk) {
   const estaActivo = btn.textContent.trim().startsWith('Activado');
   // Optimistic update
   _setAvisoBtn(btn, !estaActivo);
-  const csrf = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='))?.split('=')[1] || '';
+  const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+    || document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith('csrftoken='))?.split('=')[1]?.split('%')[0]
+    || '';
   const body = new URLSearchParams({ parroquia_pk: pk });
   try {
     const resp = await fetch('/publico/perfil/toggle-avisos/', {

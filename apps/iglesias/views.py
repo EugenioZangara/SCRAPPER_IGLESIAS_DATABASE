@@ -2838,24 +2838,29 @@ def enviar_avisos_view(request):
     return JsonResponse(resultado)
 
 
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_avisos_view(request):
     """Toggle avisos para la parroquia favorita. Acepta parroquia_pk en POST para multi-favoritas."""
+    import logging
+    logger = logging.getLogger(__name__)
     from .models import SuscripcionAvisoMisa, PerfilUsuario
 
-    perfil = get_object_or_404(PerfilUsuario, user=request.user)
+    perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
 
     parroquia_pk = request.POST.get('parroquia_pk')
     if parroquia_pk:
         try:
             parroquia_favorita = perfil.parroquias_favoritas.get(pk=int(parroquia_pk))
         except Exception:
+            logger.warning(f"toggle_avisos: parroquia_pk={parroquia_pk} no válida para user={request.user}")
             return JsonResponse({'error': 'Parroquia no válida'}, status=400)
     else:
         parroquia_favorita = perfil.parroquias_favoritas.first()
 
     if not parroquia_favorita:
+        logger.warning(f"toggle_avisos: user={request.user} no tiene favoritas")
         return JsonResponse({'error': 'No tenés parroquia favorita seleccionada'}, status=400)
 
     suscripcion, created = SuscripcionAvisoMisa.objects.get_or_create(
