@@ -130,11 +130,8 @@
       </svg>
       <div class="pf-hero-top">
         <label class="pf-avatar" for="avatar-input" title="Cambiar foto de perfil">
-          {% if perfil.get_avatar %}
-            <img id="pf-avatar-img" src="{{ perfil.get_avatar }}" alt="{{ request.user.get_full_name|default:request.user.username }}">
-          {% else %}
-            <span id="pf-avatar-letter">{{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}</span>
-          {% endif %}
+          <img id="pf-avatar-img" src="{{ perfil.get_avatar|default:'' }}" alt="{{ request.user.get_full_name|default:request.user.username }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;{% if not perfil.get_avatar %}display:none;{% endif %}">
+          <span id="pf-avatar-letter"{% if perfil.get_avatar %} style="display:none;"{% endif %}>{{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}</span>
           <div class="pf-av-overlay">📷</div>
           <div id="avatar-spinner" style="display:none;">
             <div class="spinner-ring"></div>
@@ -146,11 +143,9 @@
           <div class="pf-hero-name">{{ request.user.get_full_name|default:request.user.username }}</div>
           <div class="pf-hero-nivel">{{ nivel_info.nivel }}</div>
           <div class="pf-hero-rank">#{{ ranking_pos }} en el ranking</div>
-          {% if perfil.avatar_url %}
-          <button onclick="deleteAvatar()" style="margin-top:6px;background:none;border:none;color:rgba(255,255,255,.55);font:500 11px/1 var(--font-ui);cursor:pointer;padding:0;text-decoration:underline;">
+          <button id="btn-quitar-avatar" onclick="deleteAvatar()" style="margin-top:6px;background:none;border:none;color:rgba(255,255,255,.55);font:500 11px/1 var(--font-ui);cursor:pointer;padding:0;text-decoration:underline;{% if not perfil.avatar_url %}display:none;{% endif %}">
             Quitar foto propia
           </button>
-          {% endif %}
         </div>
         <div style="margin-left:auto;font:800 28px/1 var(--font-display);color:var(--gold);position:relative;">
           {{ perfil.score }}<span style="font:600 12px/1 var(--font-ui);color:var(--gold-soft);margin-left:3px;">pts</span>
@@ -476,21 +471,15 @@ async function uploadAvatar(input) {
     });
     const data = await resp.json();
     if (data.ok && data.url) {
-      const wrap = document.querySelector('label.pf-avatar');
-      let img = document.getElementById('pf-avatar-img');
-      if (!img) {
-        img = document.createElement('img');
-        img.id = 'pf-avatar-img';
-        img.style = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;';
-        const letter = wrap.querySelector('#pf-avatar-letter');
-        if (letter) letter.replaceWith(img);
-        else wrap.prepend(img);
-      }
+      const img = document.getElementById('pf-avatar-img');
       img.src = data.url;
-      const delBtn = wrap.closest('.pf-hero-top')?.querySelector('button[onclick="deleteAvatar()"]');
-      if (delBtn) delBtn.style.display = '';
+      img.style.display = 'block';
+      const letter = document.getElementById('pf-avatar-letter');
+      if (letter) letter.style.display = 'none';
+      const delBtn = document.getElementById('btn-quitar-avatar');
+      if (delBtn) delBtn.style.display = 'inline';
       const modalImg = document.querySelector('#modal-del-avatar img');
-      if (modalImg) modalImg.src = data.url;
+      if (modalImg) { modalImg.src = data.url; modalImg.style.display = 'block'; }
     } else {
       alert(data.error || 'Error al subir la foto');
     }
@@ -529,7 +518,16 @@ async function confirmarDeleteAvatar() {
       method: 'POST', headers: {'X-CSRFToken': getCsrf()}
     });
     const data = await resp.json();
-    if (data.ok) location.reload();
+    if (data.ok) {
+      const img = document.getElementById('pf-avatar-img');
+      if (img) { img.style.display = 'none'; img.src = ''; }
+      const letter = document.getElementById('pf-avatar-letter');
+      if (letter) letter.style.display = '';
+      const delBtn = document.getElementById('btn-quitar-avatar');
+      if (delBtn) delBtn.style.display = 'none';
+      const modalImg = document.querySelector('#modal-del-avatar img');
+      if (modalImg) { modalImg.src = ''; modalImg.style.display = 'none'; }
+    }
   } catch(e) {
     alert('Error de conexión');
   }
