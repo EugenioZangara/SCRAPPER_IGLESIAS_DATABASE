@@ -12,8 +12,10 @@ jobs:
     steps:
       - name: Wake-up servidor
         run: |
-          curl -s -o /dev/null -w "Wake-up status: %{http_code}\n" \
-            https://scrapper-iglesias-database.onrender.com/ || true
+          echo "Despertando servidor..."
+          curl -s -o /dev/null -w "Wake-up status: %{http_code}" \
+            https://www.parroguia.com/ || true
+          echo ""
           sleep 30
 
       - name: Enviar avisos de misa
@@ -21,7 +23,7 @@ jobs:
           response=$(curl -s -L -o /tmp/response.json -w "%{http_code}" \
             -X POST \
             -H "X-Scraper-Token: ${{ secrets.SCRAPER_SECRET_TOKEN }}" \
-            https://scrapper-iglesias-database.onrender.com/api/avisos/enviar/)
+            https://www.parroguia.com/api/avisos/enviar/)
           echo "HTTP Status: $response"
           cat /tmp/response.json
           if [ "$response" != "200" ]; then

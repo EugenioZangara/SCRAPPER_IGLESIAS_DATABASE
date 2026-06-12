@@ -2126,5 +2126,145 @@
   },
   "1053": {
     "resultado": "sin_imagen_valida"
+  },
+  "552": {
+    "resultado": "sin_imagen_valida"
+  },
+  "559": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1012": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia blanca con torre campanario"
+  },
+  "1014": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1015": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1017": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia con torre campanario"
+  },
+  "1018": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1022": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1023": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia con cruz y cartel"
+  },
+  "1024": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1026": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con torre campanario"
+  },
+  "1027": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "1028": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con torres y cúpulas"
+  },
+  "1031": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia con campanario y cruz"
+  },
+  "1032": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con torre campanario"
+  },
+  "1033": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia con estatuas y murales"
+  },
+  "1036": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una capilla blanca con arco y puerta de madera"
+  },
+  "1038": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia iluminada por la noche"
+  },
+  "1039": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "1041": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia blanca con torre campanario"
+  },
+  "1042": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia de piedra con campanario"
+  },
+  "1044": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1046": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1047": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1048": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1050": {
+    "resultado": "ok",
+    "descripcion": "fachada exterior de una iglesia"
+  },
+  "1051": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "1052": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "1055": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con un altar y un pesebre"
+  },
+  "1056": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con bancas y altar"
+  },
+  "1057": {
+    "resultado": "ok",
+    "descripcion": "Fachada de una iglesia rosa con torre campanario"
+  },
+  "1059": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1060": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar y decoraciones"
+  },
+  "1061": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1062": {
+    "resultado": "ok",
+    "descripcion": "Estatua de una figura religiosa en una iglesia"
+  },
+  "1063": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia blanca con campanario y cruces"
+  },
+  "1066": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1067": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1068": {
+    "resultado": "sin_imagen_valida"
   }
 }
