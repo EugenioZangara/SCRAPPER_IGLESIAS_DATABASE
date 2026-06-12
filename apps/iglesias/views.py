@@ -1584,18 +1584,14 @@ def upload_avatar(request):
         return JsonResponse({"ok": False, "error": "Imagen demasiado grande (máx 2 MB)"}, status=400)
 
     try:
-        ik = ImageKit(
-            private_key=settings.IMAGEKIT_PRIVATE_KEY,
-            public_key=settings.IMAGEKIT_PUBLIC_KEY,
-            url_endpoint=settings.IMAGEKIT_URL_ENDPOINT,
-        )
+        imagekit = ImageKit(private_key=settings.IMAGEKIT_PRIVATE_KEY)
         file_name = f"avatar_{request.user.pk}_{f.name}"
-        result = ik.upload(
+        result = imagekit.files.upload(
             file=f.read(),
             file_name=file_name,
-            options={"folder": "/avatars/"},
+            folder="/avatars/",
         )
-        url = result.response_metadata.raw["url"]
+        url = f"{settings.IMAGEKIT_URL_ENDPOINT}/{result.file_path}"
         perfil, _ = PerfilUsuario.objects.get_or_create(user=request.user)
         perfil.avatar_url = url
         perfil.save(update_fields=["avatar_url"])
