@@ -720,6 +720,7 @@ def ejecutar_scraper_completo(request):
     return redirect("iglesias:moderacion_eventos")
 
 
+@csrf_exempt
 @require_POST
 def detener_scraper(request):
     if not request.user.is_staff:
