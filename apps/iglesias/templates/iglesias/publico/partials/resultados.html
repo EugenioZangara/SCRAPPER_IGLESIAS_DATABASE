@@ -112,6 +112,7 @@ if (!window.pgGrad) {
       <img class="pg-rcard-top-avatar"
            src="{% static 'iglesias/img/parroquia-header-detalle.png' %}"
            alt=""
+           width="400" height="300"
            style="display:none"
            aria-hidden="true">
       <div class="pg-rcard-top-overlay"></div>
@@ -120,6 +121,7 @@ if (!window.pgGrad) {
            src="{% static 'iglesias/img/parroquia-header-detalle.png' %}"
            alt=""
            loading="lazy"
+           width="400" height="300"
            aria-hidden="true">
       {% endif %}
       {% if item.tiene_horarios %}
@@ -198,6 +200,7 @@ if (!window.pgGrad) {
               border:1px solid var(--line);box-shadow:var(--sh-card);">
       <img src="{% static 'iglesias/img/ad_apostol2.jpg' %}"
            alt="Apostol — Remeras de Argentina"
+           loading="lazy" width="600" height="400"
            style="width:100%;height:auto;display:block;">
     </a>
     {% elif forloop.counter|divisibleby:12 %}
@@ -206,6 +209,7 @@ if (!window.pgGrad) {
               border:1px solid var(--line);box-shadow:var(--sh-card);">
       <img src="{% static 'iglesias/img/ad_apostol1.jpg' %}"
            alt="Apostol — Remeras de Argentina"
+           loading="lazy" width="600" height="400"
            style="width:100%;height:auto;display:block;">
     </a>
     {% else %}
@@ -216,6 +220,7 @@ if (!window.pgGrad) {
         <source media="(max-width:600px)" srcset="{% static 'iglesias/img/ad_gaudium2.jpg' %}">
         <img src="{% static 'iglesias/img/ad_gaudium1.jpeg' %}"
              alt="Gaudium — Todos los eventos católicos en un solo lugar"
+             loading="lazy" width="600" height="400"
              style="width:100%;height:auto;display:block;">
       </picture>
     </a>

@@ -363,7 +363,7 @@
          loading="eager" decoding="async"
          onerror="this.src='{% static 'iglesias/img/parroquia-header-detalle.png' %}';this.className='pd-hero-avatar-img'">
     {% else %}
-    <img src="{% static 'iglesias/img/parroquia-header-detalle.png' %}" alt="" class="pd-hero-avatar-img" aria-hidden="true" loading="lazy">
+    <img src="{% static 'iglesias/img/parroquia-header-detalle.png' %}" alt="" class="pd-hero-avatar-img" aria-hidden="true" loading="lazy" width="1200" height="630">
     {% endif %}
     <a href="{% url 'iglesias:publico_inicio' %}" class="pd-hero-back">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
@@ -917,9 +917,9 @@
 <div style="margin-top:24px;text-align:center;" aria-label="Publicidad">
   {% if banner_detalle.url_destino %}<a href="{{ banner_detalle.url_destino }}" target="_blank" rel="noopener sponsored" style="display:inline-block;text-decoration:none;">{% endif %}
   {% if banner_detalle.imagen_static %}
-    <img src="{% static banner_detalle.imagen_static %}" alt="{{ banner_detalle.texto_alternativo|default:banner_detalle.titulo }}" loading="lazy" style="max-width:100%;height:auto;border-radius:var(--r-md);">
+    <img src="{% static banner_detalle.imagen_static %}" alt="{{ banner_detalle.texto_alternativo|default:banner_detalle.titulo }}" loading="lazy" width="800" height="200" style="max-width:100%;height:auto;border-radius:var(--r-md);">
   {% elif banner_detalle.imagen %}
-    <img src="{{ banner_detalle.imagen.url }}" alt="{{ banner_detalle.texto_alternativo|default:banner_detalle.titulo }}" loading="lazy" style="max-width:100%;height:auto;border-radius:var(--r-md);">
+    <img src="{{ banner_detalle.imagen.url }}" alt="{{ banner_detalle.texto_alternativo|default:banner_detalle.titulo }}" loading="lazy" width="800" height="200" style="max-width:100%;height:auto;border-radius:var(--r-md);">
   {% else %}
     <div style="background:var(--bg-2);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 20px;display:inline-block;font:500 12px/1 var(--font-ui);color:var(--muted);">Publicidad · {{ banner_detalle.titulo }}</div>
   {% endif %}

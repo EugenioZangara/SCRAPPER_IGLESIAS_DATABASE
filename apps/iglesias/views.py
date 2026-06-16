@@ -3,6 +3,7 @@ import logging
 import math
 import os
 from datetime import date, datetime, time as dtime, timedelta
+from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login as auth_login
@@ -1649,6 +1650,7 @@ def set_parroquia_favorita(request, pk):
         })
 
 
+@cache_page(60 * 30)
 def parroquias_geo_json(request):
     from django.http import JsonResponse
     from datetime import date

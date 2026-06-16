@@ -378,7 +378,7 @@
 
   <!-- Brand -->
   <a href="{% url 'iglesias:publico_inicio' %}" class="pg-top-brand" aria-label="Inicio - ParroGuía">
-    <img src="/static/iglesias/img/parroguia_logo.png" alt="ParroGuía" class="pg-top-brand-logo">
+    <img src="/static/iglesias/img/parroguia_logo.png" alt="ParroGuía" class="pg-top-brand-logo" width="32" height="32">
     <span class="pg-top-brand-word">Parro<strong>G</strong>uía</span>
   </a>
 
@@ -428,6 +428,7 @@
       <div class="pg-top-pill-av">
         {% if request.user.perfil.get_avatar %}
           <img src="{{ request.user.perfil.get_avatar }}" alt="{{ request.user.first_name }}"
+               width="32" height="32" loading="lazy"
                style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">
         {% else %}
           {{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
@@ -553,7 +554,7 @@
   {% endif %}
 </nav>
 
-<script src="https://unpkg.com/htmx.org@1.9.12"></script>
+<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
 <script>
 {% if request.user.is_authenticated %}
 function toggleFavorita(pk) {
