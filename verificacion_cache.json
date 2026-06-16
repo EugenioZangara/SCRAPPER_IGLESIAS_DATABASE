@@ -3045,5 +3045,9 @@
   },
   "1291": {
     "resultado": "sin_imagen_valida"
+  },
+  "1293": {
+    "resultado": "ok",
+    "descripcion": "Interior de una iglesia con altar y crucifijo"
   }
 }
