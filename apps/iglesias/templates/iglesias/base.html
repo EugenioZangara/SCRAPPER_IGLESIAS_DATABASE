@@ -907,16 +907,26 @@
             return '';
         }
         function detenerScraper() {
+            const token = getCsrf();
+            console.log('CSRF token:', token);
+            if (!token) {
+                alert('Error: no se encontró el token CSRF. Recargá la página.');
+                return;
+            }
             fetch('/scraper/detener/', {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCsrf(),
+                    'X-CSRFToken': token,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 body: 'next=',
                 credentials: 'same-origin',
-            }).then(() => {
+            }).then(r => {
+                console.log('Respuesta detener:', r.status, r.url);
                 window.location.href = '/eventos/moderacion/';
+            }).catch(err => {
+                console.error('Error detener:', err);
+                alert('Error al detener: ' + err);
             });
         }
 
