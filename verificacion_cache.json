@@ -3023,5 +3023,9 @@
   "1285": {
     "resultado": "ok",
     "descripcion": "Interior de una iglesia con crucifijo y estatuas"
+  },
+  "1286": {
+    "resultado": "ok",
+    "descripcion": "Fachada exterior de una iglesia con arco y escaleras"
   }
 }
