@@ -3027,5 +3027,23 @@
   "1286": {
     "resultado": "ok",
     "descripcion": "Fachada exterior de una iglesia con arco y escaleras"
+  },
+  "1287": {
+    "resultado": "sin_imagen_valida"
+  },
+  "1288": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia blanca con cruz y torre"
+  },
+  "1289": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia con campanario"
+  },
+  "1290": {
+    "resultado": "ok",
+    "descripcion": "fachada de una iglesia con torre campanario"
+  },
+  "1291": {
+    "resultado": "sin_imagen_valida"
   }
 }
