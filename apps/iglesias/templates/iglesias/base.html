@@ -932,7 +932,14 @@
                 credentials: 'same-origin',
             }).then(r => {
                 console.log('Respuesta detener:', r.status, r.url);
-                window.location.href = '/eventos/moderacion/';
+                const btn = document.getElementById('scraper-stop-btn');
+                btn.textContent = '✓ Scraper detenido';
+                btn.style.color = '#2d7a2d';
+                btn.style.borderColor = '#2d7a2d';
+                btn.disabled = true;
+                setTimeout(() => {
+                    window.location.href = '/eventos/moderacion/';
+                }, 1500);
             }).catch(err => {
                 console.error('Error detener:', err);
                 alert('Error al detener: ' + err);
