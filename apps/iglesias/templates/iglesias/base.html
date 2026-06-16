@@ -781,19 +781,13 @@
                     background:#eeedfe;
                     color:#4f46e5;">
         </div>
-        <form method="post" action="/scraper/detener/" id="scraper-stop-form"
-              style="display:none; margin-top:10px;">
-            <input type="hidden" name="csrfmiddlewaretoken" id="scraper-csrf">
-            <input type="hidden" name="next" value="">
-            <button type="submit"
-                    style="width:100%; padding:6px 0; font-family:var(--mono);
-                           font-size:10px; letter-spacing:0.06em; cursor:pointer;
-                           background:none; border:1px solid var(--rule, #ccc);
-                           border-radius:6px; color:var(--muted, #666);
-                           text-transform:uppercase;">
-                ✕ Detener scraper
-            </button>
-        </form>
+        <button id="scraper-stop-form" onclick="detenerScraper()"
+                style="display:none; margin-top:10px; width:100%; padding:6px 0;
+                       font-family:var(--mono); font-size:10px; letter-spacing:0.06em;
+                       cursor:pointer; background:none; border:1px solid var(--rule, #ccc);
+                       border-radius:6px; color:var(--muted, #666); text-transform:uppercase;">
+            ✕ Detener scraper
+        </button>
     </div>
     <script>
     (function() {
@@ -912,7 +906,22 @@
             }
             return '';
         }
-        document.getElementById('scraper-csrf').value = getCsrf();
+        function detenerScraper() {
+            const token = getCsrf();
+            fetch('/scraper/detener/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': token,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'next=',
+                credentials: 'same-origin',
+            }).then(r => {
+                if (r.ok || r.redirected) {
+                    window.location.href = '/eventos/moderacion/';
+                }
+            });
+        }
 
         window.iniciarScraperPolling = iniciarPolling;
     })();

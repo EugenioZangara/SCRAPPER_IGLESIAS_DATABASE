@@ -3,7 +3,7 @@ import logging
 import math
 import os
 from datetime import date, datetime, time as dtime, timedelta
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required
@@ -370,6 +370,7 @@ def rechazar_evento(request, pk):
     return redirect(request.POST.get("next") or "iglesias:lista_parroquias")
 
 
+@ensure_csrf_cookie
 def moderacion_eventos(request):
     if not request.user.is_staff:
         from django.http import HttpResponse
@@ -2877,3 +2878,15 @@ def toggle_avisos_view(request):
         'activa': suscripcion.activa,
         'mensaje': 'Avisos activados' if suscripcion.activa else 'Avisos desactivados'
     })
+
+
+def error_403(request, exception=None):
+    return render(request, 'iglesias/403.html', status=403)
+
+
+def error_404(request, exception=None):
+    return render(request, 'iglesias/404.html', status=404)
+
+
+def error_500(request):
+    return render(request, 'iglesias/500.html', status=500)

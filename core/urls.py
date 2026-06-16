@@ -21,6 +21,10 @@ from django.conf.urls.static import static
 from django.views.static import serve
 from apps.iglesias import views as iglesias_views
 
+handler403 = 'apps.iglesias.views.error_403'
+handler404 = 'apps.iglesias.views.error_404'
+handler500 = 'apps.iglesias.views.error_500'
+
 urlpatterns = [
     path('', include('apps.iglesias.urls')),
     path('admin/', admin.site.urls),

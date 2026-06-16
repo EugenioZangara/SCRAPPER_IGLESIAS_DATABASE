@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error del servidor — ParroGuía</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --primary: #2a4494;
+            --primary-dark: #1e3270;
+            --ink: #1a2a5c;
+            --muted: #6b7280;
+            --rule: #e5e7eb;
+            --paper: #ffffff;
+            --gold: #FFD700;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8f9fc;
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        nav {
+            background: var(--primary);
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: -0.01em;
+        }
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+        }
+        .card {
+            background: var(--paper);
+            border: 1px solid var(--rule);
+            border-radius: 16px;
+            padding: 48px 40px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+        }
+        .code {
+            font-size: 72px;
+            font-weight: 600;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+        .title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .desc {
+            font-size: 15px;
+            color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: #fff;
+            text-decoration: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: background 0.15s;
+        }
+        .btn:hover { background: var(--primary-dark); }
+        .accent { width: 48px; height: 4px; background: var(--gold); border-radius: 2px; margin: 0 auto 24px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">ParroGuía</a>
+    </nav>
+    <main>
+        <div class="card">
+            <div class="code">500</div>
+            <div class="accent"></div>
+            <div class="title">Error interno del servidor</div>
+            <p class="desc">Algo salió mal de nuestro lado. Ya fuimos notificados. Intentá de nuevo en unos minutos o volvé al inicio.</p>
+            <a href="/" class="btn">Volver al inicio</a>
+        </div>
+    </main>
+</body>
+</html>
