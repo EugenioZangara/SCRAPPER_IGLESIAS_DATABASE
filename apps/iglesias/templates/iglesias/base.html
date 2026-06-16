@@ -623,6 +623,8 @@
     .message-close:hover { opacity: 1; }
     </style>
     <link rel="stylesheet" href="{% static 'iglesias/css/admin.css' %}">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    {% csrf_token %}
 </head>
 <body>
     <header class="masthead">
@@ -896,6 +898,7 @@
             .catch(() => {});
 
         function getCsrf() {
+            // Intenta desde cookie primero
             const name = 'csrftoken';
             const cookies = document.cookie.split(';');
             for (let c of cookies) {
@@ -904,6 +907,12 @@
                     return decodeURIComponent(c.slice(name.length + 1));
                 }
             }
+            // Fallback: buscar en el DOM (input hidden con name=csrfmiddlewaretoken)
+            const input = document.querySelector('input[name=csrfmiddlewaretoken]');
+            if (input) return input.value;
+            // Fallback: desde meta tag
+            const meta = document.querySelector('meta[name=csrf-token]');
+            if (meta) return meta.getAttribute('content');
             return '';
         }
         function detenerScraper() {
