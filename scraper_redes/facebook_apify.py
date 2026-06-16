@@ -59,7 +59,7 @@ def scrapear_perfil_facebook(url: str, limite: int = 5) -> list[dict]:
                 timeout=30,
             )
             if resp.status_code == 403:
-                print(f"  [Apify FB] Token agotado, intentando siguiente...")
+                print(f"  [Apify FB] Token #{tokens.index(token)+1} dio {resp.status_code}: {resp.text[:200]}")
                 last_error = "403 Forbidden"
                 continue
             resp.raise_for_status()
@@ -70,7 +70,7 @@ def scrapear_perfil_facebook(url: str, limite: int = 5) -> list[dict]:
         except Exception as e:
             last_error = str(e)
             if "403" in str(e):
-                print(f"  [Apify FB] Token agotado, intentando siguiente...")
+                print(f"  [Apify FB] Token #{tokens.index(token)+1} dio error 403: {str(e)[:200]}")
                 continue
             raise
 
