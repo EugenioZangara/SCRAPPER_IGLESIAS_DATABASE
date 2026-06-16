@@ -2,105 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
     <title>Acceso denegado — ParroGuía</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root {
-            --primary: #2a4494;
-            --primary-dark: #1e3270;
-            --ink: #1a2a5c;
-            --muted: #6b7280;
-            --rule: #e5e7eb;
-            --paper: #ffffff;
-            --gold: #FFD700;
-            --gold-soft: #FFF9CC;
-        }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #f8f9fc;
-            color: var(--ink);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        nav {
-            background: var(--primary);
-            padding: 0 24px;
-            height: 56px;
-            display: flex;
-            align-items: center;
-        }
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
-            letter-spacing: -0.01em;
-        }
-        main {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 48px 24px;
-        }
-        .card {
-            background: var(--paper);
-            border: 1px solid var(--rule);
-            border-radius: 16px;
-            padding: 48px 40px;
-            max-width: 480px;
-            width: 100%;
-            text-align: center;
-        }
-        .code {
-            font-size: 72px;
-            font-weight: 600;
-            color: var(--primary);
-            line-height: 1;
-            margin-bottom: 16px;
-        }
-        .title {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-        .desc {
-            font-size: 15px;
-            color: var(--muted);
-            line-height: 1.6;
-            margin-bottom: 32px;
-        }
-        .btn {
-            display: inline-block;
-            background: var(--primary);
-            color: #fff;
-            text-decoration: none;
-            padding: 12px 28px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 500;
-            transition: background 0.15s;
-        }
-        .btn:hover { background: var(--primary-dark); }
-        .accent { width: 48px; height: 4px; background: var(--gold); border-radius: 2px; margin: 0 auto 24px; }
+        body { font-family: sans-serif; background: #faf9f5; color: #14315E; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .box { text-align: center; padding: 2rem; }
+        h1 { font-size: 4rem; color: #F2A007; margin: 0; }
+        h2 { margin: 0.5rem 0 1rem; }
+        a { display: inline-block; margin-top: 1.5rem; padding: 0.6rem 1.5rem; background: #14315E; color: #fff; text-decoration: none; border-radius: 6px; }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="/">ParroGuía</a>
-    </nav>
-    <main>
-        <div class="card">
-            <div class="code">403</div>
-            <div class="accent"></div>
-            <div class="title">Acceso denegado</div>
-            <p class="desc">No tenés permiso para ver esta página. Si creés que es un error, iniciá sesión con una cuenta autorizada.</p>
-            <a href="/" class="btn">Volver al inicio</a>
-        </div>
-    </main>
+    <div class="box">
+        <h1>403</h1>
+        <h2>Acceso denegado</h2>
+        <p>No tenés permiso para acceder a esta página.</p>
+        <a href="/">Volver al inicio</a>
+    </div>
 </body>
 </html>
