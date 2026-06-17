@@ -403,12 +403,13 @@
     {% if mi_parroquia %}
     <!-- Card próxima misa -->
     <div id="mi-parroquia"
-         style="background:linear-gradient(135deg,#1E4585 0%,#0E2647 100%);
-                border-radius:var(--r-xl); overflow:hidden;
+         style="background:url('{% if mi_parroquia.imagen_url %}{{ mi_parroquia.imagen_url }}{% else %}{% static 'iglesias/img/parroquia-header-detalle.png' %}{% endif %}') center/cover no-repeat #0E2647;
+                position:relative; border-radius:var(--r-xl); overflow:hidden;
                 box-shadow:0 14px 36px rgba(14,38,71,.32);
                 margin-bottom:24px; transition:box-shadow .18s, transform .15s;"
          onmouseenter="this.style.boxShadow='0 20px 48px rgba(14,38,71,.42)';this.style.transform='translateY(-2px)'"
          onmouseleave="this.style.boxShadow='0 14px 36px rgba(14,38,71,.32)';this.style.transform=''">
+      <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(14,38,71,.85) 0%,rgba(14,38,71,.55) 40%,rgba(14,38,71,.1) 70%,transparent 100%);z-index:0;pointer-events:none;"></div>
       <a href="{% url 'iglesias:publico_detalle' mi_parroquia.pk %}"
          class="pg-mip {% if mi_parroquia.proxima_misa %}has-badge{% endif %}"
          style="background:transparent; border-radius:0; margin-bottom:0; box-shadow:none; display:flex;">
@@ -453,9 +454,11 @@
         </div>
       </a>
       {% if request.user.is_authenticated %}
-      <div style="border-top:1px solid rgba(255,255,255,.12);
+      <div style="border-top:1px solid rgba(255,255,255,.15);
                   padding:10px 20px;
-                  display:flex; align-items:center; gap:10px;">
+                  display:flex; align-items:center; gap:10px;
+                  position:relative;
+                  background:rgba(10,25,60,.55); backdrop-filter:blur(8px);">
         <button onclick="toggleFavorita({{ mi_parroquia.pk }})"
                 data-favorita-pk="{{ mi_parroquia.pk }}"
                 title="Quitar de favoritas"
@@ -468,7 +471,7 @@
           </svg>
         </button>
         <span style="color:rgba(255,255,255,.7); font:500 11px/1.3 var(--font-ui);
-                     display:flex; align-items:center; gap:6px; flex:1;">
+                     display:flex; align-items:center; gap:6px; margin-left:auto;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".7">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
@@ -497,12 +500,13 @@
     {% cycle '#2d6a4f' '#6d3b8e' '#8b3a2a' '#1a6b7a' '#1E4585' as fav_c1 silent %}
     {% cycle '#1b4332' '#4a1f6e' '#5c1f10' '#0d3d47' '#0E2647' as fav_c2 silent %}
     <div id="mi-parroquia-{{ p.pk }}"
-         style="background:linear-gradient(135deg,{{ fav_c1 }} 0%,{{ fav_c2 }} 100%);
-                border-radius:var(--r-xl); overflow:hidden;
+         style="background:url('{% if p.imagen_url %}{{ p.imagen_url }}{% else %}{% static 'iglesias/img/parroquia-header-detalle.png' %}{% endif %}') center/cover no-repeat #0E2647;
+                position:relative; border-radius:var(--r-xl); overflow:hidden;
                 box-shadow:0 14px 36px rgba(14,38,71,.32);
                 margin-bottom:24px; transition:box-shadow .18s, transform .15s;"
          onmouseenter="this.style.boxShadow='0 20px 48px rgba(14,38,71,.42)';this.style.transform='translateY(-2px)'"
          onmouseleave="this.style.boxShadow='0 14px 36px rgba(14,38,71,.32)';this.style.transform=''">
+      <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(14,38,71,.85) 0%,rgba(14,38,71,.55) 40%,rgba(14,38,71,.1) 70%,transparent 100%);z-index:0;pointer-events:none;"></div>
       <a href="{% url 'iglesias:publico_detalle' p.pk %}"
          class="pg-mip {% if p.proxima_misa %}has-badge{% endif %}"
          style="background:transparent; border-radius:0; margin-bottom:0; box-shadow:none; display:flex;">
@@ -547,9 +551,11 @@
         </div>
       </a>
       {% if request.user.is_authenticated %}
-      <div style="border-top:1px solid rgba(255,255,255,.12);
+      <div style="border-top:1px solid rgba(255,255,255,.15);
                   padding:10px 20px;
-                  display:flex; align-items:center; gap:10px;">
+                  display:flex; align-items:center; gap:10px;
+                  position:relative;
+                  background:rgba(10,25,60,.55); backdrop-filter:blur(8px);">
         <button onclick="toggleFavorita({{ p.pk }})"
                 data-favorita-pk="{{ p.pk }}"
                 title="Quitar de favoritas"
@@ -562,7 +568,7 @@
           </svg>
         </button>
         <span style="color:rgba(255,255,255,.7); font:500 11px/1.3 var(--font-ui);
-                     display:flex; align-items:center; gap:6px; flex:1;">
+                     display:flex; align-items:center; gap:6px; margin-left:auto;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".7">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
@@ -895,21 +901,24 @@ function buildFavoritaCard(p, colorIdx) {
   const cta = p.tiene_horarios ? 'Ver horarios →' : 'Ver detalle →';
   const heartSvg = '<svg width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="rgba(242,160,7,.9)" fill="rgba(242,160,7,.9)"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
   const bellSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
-  const actionStrip = '<div style="border-top:1px solid rgba(255,255,255,.12);padding:10px 20px;display:flex;align-items:center;gap:10px;">'
+  const actionStrip = '<div style="border-top:1px solid rgba(255,255,255,.15);padding:10px 20px;display:flex;align-items:center;gap:10px;position:relative;background:rgba(10,25,60,.55);backdrop-filter:blur(8px);">'
     + '<button onclick="toggleFavorita(' + p.pk + ')" data-favorita-pk="' + p.pk + '" title="Quitar de favoritas" '
     + 'style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;">'
     + heartSvg + '</button>'
-    + '<span style="color:rgba(255,255,255,.7);font:500 11px/1.3 var(--font-ui);display:flex;align-items:center;gap:6px;flex:1;">'
+    + '<span style="color:rgba(255,255,255,.7);font:500 11px/1.3 var(--font-ui);display:flex;align-items:center;gap:6px;margin-left:auto;">'
     + bellSvg + 'Avisame 1 hora antes</span>'
     + '<button id="btn-aviso-' + p.pk + '" onclick="toggleAvisoCard(event,' + p.pk + ')" '
     + 'style="flex-shrink:0;padding:6px 14px;border-radius:999px;font:700 12px/1 var(--font-ui);cursor:pointer;transition:background .15s,color .15s,border-color .15s;background:transparent;color:rgba(255,255,255,.9);border:1.5px solid rgba(255,255,255,.4);">'
     + 'Activar</button>'
     + '</div>';
+  const imgUrl = p.imagen_url || PLACEHOLDER_URL;
+  const overlay = '<div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(14,38,71,.85) 0%,rgba(14,38,71,.55) 40%,rgba(14,38,71,.1) 70%,transparent 100%);z-index:0;pointer-events:none;"></div>';
   return '<div id="fav-dyn-' + p.pk + '" '
-    + 'style="background:linear-gradient(135deg,' + c1 + ',' + c2 + ');border-radius:var(--r-xl);overflow:hidden;'
+    + 'style="background:url(\'' + imgUrl + '\') center/cover no-repeat #0E2647;position:relative;border-radius:var(--r-xl);overflow:hidden;'
     + 'box-shadow:0 14px 36px rgba(14,38,71,.32);margin-bottom:24px;transition:box-shadow .18s,transform .15s;" '
     + 'onmouseenter="this.style.boxShadow=\'0 20px 48px rgba(14,38,71,.42)\';this.style.transform=\'translateY(-2px)\'" '
     + 'onmouseleave="this.style.boxShadow=\'0 14px 36px rgba(14,38,71,.32)\';this.style.transform=\'\'">'
+    + overlay
     + '<a href="/publico/' + p.pk + '/" class="pg-mip ' + (pm ? 'has-badge' : '') + '" '
     + 'style="background:transparent;border-radius:0;margin-bottom:0;box-shadow:none;display:flex;">'
     + hills + badge + time
