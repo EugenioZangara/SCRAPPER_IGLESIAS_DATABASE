@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Lanzar scraper
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" \
+          response=$(curl -s -o /dev/null -w "%{http_code}" -L \
             -X POST \
             -H "X-Scraper-Token: ${{ secrets.SCRAPER_SECRET_TOKEN }}" \
             ${{ secrets.SCRAPER_URL }}/api/scraper/ejecutar/)
