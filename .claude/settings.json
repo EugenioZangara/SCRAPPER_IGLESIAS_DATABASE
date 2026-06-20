@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import json; c=json.load\\(open\\('verificacion_cache.json'\\)\\); results=[v['resultado'] for v in c.values\\(\\)]; from collections import Counter; print\\(Counter\\(results\\)\\)\")"
+    ]
+  }
+}

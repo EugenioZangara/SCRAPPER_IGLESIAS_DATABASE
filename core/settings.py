@@ -72,7 +72,7 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = "https"
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http" if DEBUG else "https"
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = True
@@ -92,6 +92,7 @@ LOGIN_URL = "/accounts/login/"
 FACEBOOK_APP_ID = env("FACEBOOK_APP_ID", default="")
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 SITE_URL = env("SITE_URL", default="https://parroguia.com")
+GOOGLE_SITE_VERIFICATION = env("GOOGLE_SITE_VERIFICATION", default="")
 
 IMAGEKIT_PUBLIC_KEY   = env("IMAGEKIT_PUBLI_KEY",    default="")
 IMAGEKIT_PRIVATE_KEY  = env("IMAGEKIT_PRIVA_KEY",    default="")
@@ -184,7 +185,7 @@ AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1  # hours
 AXES_LOCKOUT_PARAMETERS = ["ip_address"]
 AXES_RESET_ON_SUCCESS = True
-AXES_LOCKOUT_TEMPLATE = None  # returns 403 by default
+AXES_LOCKOUT_TEMPLATE = "iglesias/axes_lockout.html"
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -250,9 +251,9 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 # HTTPS
 SECURE_SSL_REDIRECT = not DEBUG
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
 
 # Cookies seguras
 SESSION_COOKIE_SECURE = not DEBUG

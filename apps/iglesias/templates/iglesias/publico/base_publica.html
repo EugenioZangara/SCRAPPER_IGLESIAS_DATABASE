@@ -371,6 +371,7 @@
   <meta name="twitter:image:alt" content="{% block twitter_image_alt %}ParroGuía — Encontrá tu próxima misa a un click{% endblock %}">
   <link rel="canonical" href="{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
   <meta name="theme-color" content="#14315E">
+  {% if GOOGLE_SITE_VERIFICATION %}<meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}">{% endif %}
   {% block meta_extra %}{% endblock %}
 </head>
 <body>
@@ -571,13 +572,13 @@ function toggleFavorita(pk) {
     const p = b.querySelector('path');
     if (!p) return;
     if (esFavorita) {
-      b.style.background = 'rgba(255,255,255,.2)';
+      b.style.background = 'rgba(255,255,255,.88)';
       p.setAttribute('fill', 'none');
-      p.setAttribute('stroke', 'white');
+      p.setAttribute('stroke', '#9ca3af');
     } else {
-      b.style.background = 'rgba(79,70,229,.15)';
-      p.setAttribute('fill', '#4f46e5');
-      p.setAttribute('stroke', '#4f46e5');
+      b.style.background = 'rgba(225,29,72,.1)';
+      p.setAttribute('fill', '#e11d48');
+      p.setAttribute('stroke', '#e11d48');
     }
   });
 
@@ -595,9 +596,9 @@ function toggleFavorita(pk) {
       btns.forEach(b => {
         const p = b.querySelector('path');
         if (!p) return;
-        b.style.background = 'rgba(255,255,255,.2)';
+        b.style.background = 'rgba(255,255,255,.88)';
         p.setAttribute('fill', 'none');
-        p.setAttribute('stroke', 'white');
+        p.setAttribute('stroke', '#9ca3af');
       });
       sessionStorage.setItem('pendingFavorita', pk);
       window.location.href = '/accounts/login/?next=' + window.location.pathname;
@@ -608,13 +609,13 @@ function toggleFavorita(pk) {
         const p = b.querySelector('path');
         if (!p) return;
         if (esFavorita) {
-          b.style.background = 'rgba(79,70,229,.15)';
-          p.setAttribute('fill', '#4f46e5');
-          p.setAttribute('stroke', '#4f46e5');
+          b.style.background = 'rgba(225,29,72,.1)';
+          p.setAttribute('fill', '#e11d48');
+          p.setAttribute('stroke', '#e11d48');
         } else {
-          b.style.background = 'rgba(255,255,255,.2)';
+          b.style.background = 'rgba(255,255,255,.88)';
           p.setAttribute('fill', 'none');
-          p.setAttribute('stroke', 'white');
+          p.setAttribute('stroke', '#9ca3af');
         }
       });
     }
@@ -627,13 +628,13 @@ function toggleFavorita(pk) {
       const p = b.querySelector('path');
       if (!p) return;
       if (esFavorita) {
-        b.style.background = 'rgba(79,70,229,.15)';
-        p.setAttribute('fill', '#4f46e5');
-        p.setAttribute('stroke', '#4f46e5');
+        b.style.background = 'rgba(225,29,72,.1)';
+        p.setAttribute('fill', '#e11d48');
+        p.setAttribute('stroke', '#e11d48');
       } else {
-        b.style.background = 'rgba(255,255,255,.2)';
+        b.style.background = 'rgba(255,255,255,.88)';
         p.setAttribute('fill', 'none');
-        p.setAttribute('stroke', 'white');
+        p.setAttribute('stroke', '#9ca3af');
       }
     });
   });

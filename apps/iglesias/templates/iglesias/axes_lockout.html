@@ -1,0 +1,59 @@
+{% extends "iglesias/publico/base_publica.html" %}
+
+{% block page_title %}Acceso bloqueado — ParroGuía{% endblock %}
+
+{% block meta_extra %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+<style>
+  .auth-card { max-width:440px; margin:32px auto; background:var(--paper);
+    border:1px solid var(--line-soft); border-radius:var(--r-lg);
+    box-shadow:var(--sh-card); padding:40px 36px; text-align:center; }
+  .auth-icon { width:56px; height:56px; background:#fef2f2; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; margin:0 auto 20px; }
+  .auth-title { font:800 22px/1.2 var(--font-display); color:var(--ink); margin-bottom:8px; }
+  .auth-sub { font:500 14px/1.6 var(--font-ui); color:var(--muted); margin-bottom:28px; }
+  .auth-footer { margin-top:20px; font:500 13px/1.4 var(--font-ui); color:var(--muted); }
+  .auth-footer a { color:var(--navy); font-weight:700; text-decoration:none; }
+  .auth-footer a:hover { text-decoration:underline; }
+  @media (max-width:480px) {
+    .auth-card { margin:16px; padding:28px 20px; border-radius:var(--r-md); }
+  }
+</style>
+
+<div class="auth-card">
+  <div class="auth-icon" aria-hidden="true">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  </div>
+
+  <h1 class="auth-title">Acceso bloqueado temporalmente</h1>
+  <p class="auth-sub">
+    Detectamos demasiados intentos fallidos de inicio de sesión desde tu red.
+  </p>
+
+  <div style="background:var(--rule-2); border:1px solid var(--rule); border-radius:var(--r-md);
+              padding:16px 20px; margin-bottom:24px; text-align:left;">
+    <p style="font:700 12px/1 var(--font-ui); letter-spacing:.06em; text-transform:uppercase;
+               color:var(--muted); margin:0 0 12px;">¿Qué podés hacer?</p>
+    <ul style="margin:0; padding-left:18px; display:flex; flex-direction:column; gap:8px;
+                font:500 14px/1.5 var(--font-ui); color:var(--ink);">
+      <li><strong>Esperá 1 hora</strong> — el acceso se restaura automáticamente.</li>
+      <li><strong>Restablecé tu contraseña</strong> — el botón de abajo te envía un enlace por email y el bloqueo se levanta al ingresar.</li>
+      <li>Si nunca llegaste a registrarte, <a href="{% url 'account_signup' %}" style="color:var(--navy); font-weight:700;">creá una cuenta nueva</a>.</li>
+    </ul>
+  </div>
+
+  <a href="{% url 'account_reset_password' %}" class="btn btn-accent" style="display:block; width:100%;">
+    Restablecer contraseña por email
+  </a>
+
+  <p class="auth-footer">
+    <a href="{% url 'iglesias:publico_inicio' %}">← Volver al inicio</a>
+  </p>
+</div>
+{% endblock %}

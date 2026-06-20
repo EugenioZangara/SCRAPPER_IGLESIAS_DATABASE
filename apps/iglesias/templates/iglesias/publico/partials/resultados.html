@@ -49,12 +49,12 @@
   }
   .pg-rcard-fav {
     width: 26px; height: 26px; border-radius: 50%;
-    background: rgba(255,255,255,.2); backdrop-filter: blur(4px);
+    background: rgba(255,255,255,.88); backdrop-filter: blur(4px);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; border: 0; transition: background .15s;
     position: absolute; top: 8px; right: 8px; z-index: 2;
   }
-  .pg-rcard-fav:hover { background: rgba(255,255,255,.35); }
+  .pg-rcard-fav:hover { background: rgba(255,255,255,1); }
   .pg-rcard-body { padding: 8px 10px 6px; display: flex; flex-direction: column; gap: 0; }
   .pg-rcard-name {
     font: 700 14px/1.25 var(--font-display); color: var(--ink);
@@ -132,13 +132,12 @@ if (!window.pgGrad) {
       <button class="pg-rcard-fav"
               data-favorita-pk="{{ item.parroquia.pk }}"
               onclick="event.stopPropagation(); event.preventDefault(); toggleFavorita({{ item.parroquia.pk }});"
-              aria-label="Marcar como favorita"
-              style="{% if item.es_favorita %}background:rgba(79,70,229,.15);{% endif %}">
-        <svg width="12" height="12" viewBox="0 0 24 24"
-             fill="{% if item.es_favorita %}#4f46e5{% else %}none{% endif %}"
-             stroke="{% if item.es_favorita %}#4f46e5{% else %}white{% endif %}"
-             stroke-width="2">
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              aria-label="{% if item.es_favorita %}Quitar de favoritas{% else %}Marcar como favorita{% endif %}"
+              style="{% if item.es_favorita %}background:rgba(225,29,72,.1);{% endif %}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="none" stroke-width="2">
+          <path fill="{% if item.es_favorita %}#e11d48{% else %}none{% endif %}"
+                stroke="{% if item.es_favorita %}#e11d48{% else %}#9ca3af{% endif %}"
+                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
       </button>
     </div>

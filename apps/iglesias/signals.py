@@ -2,6 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from allauth.socialaccount.signals import social_account_added
+from allauth.account.signals import password_reset as allauth_password_reset
 
 
 @receiver(post_save, sender=User)
@@ -83,6 +84,28 @@ def actualizar_score_validacion(validacion):
         perfil.validaciones_enviadas += 1
         perfil.score += 1
         perfil.save()
+    except Exception:
+        pass
+
+
+@receiver(allauth_password_reset)
+def limpiar_bloqueo_axes_tras_reset(sender, request, user, **kwargs):
+    """Cuando el usuario completa un reset de contraseña:
+    - Levanta el bloqueo de axes (pueden hacer login inmediatamente)
+    - Marca el email como verificado (haber usado el link prueba que es dueño del email)
+    """
+    try:
+        from axes.utils import reset_request
+        reset_request(request)
+    except Exception:
+        pass
+
+    try:
+        from allauth.account.models import EmailAddress
+        email_obj = EmailAddress.objects.get_primary(user)
+        if email_obj and not email_obj.verified:
+            email_obj.verified = True
+            email_obj.save(update_fields=["verified"])
     except Exception:
         pass
 

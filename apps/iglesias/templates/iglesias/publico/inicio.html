@@ -324,11 +324,11 @@
   .pg-parish-card-fav {
     position: absolute; top: 8px; right: 8px;
     width: 28px; height: 28px; border-radius: 50%;
-    background: rgba(255,255,255,.2); backdrop-filter: blur(6px);
+    background: rgba(255,255,255,.88); backdrop-filter: blur(6px);
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; border: 0; transition: background .15s;
   }
-  .pg-parish-card-fav:hover { background: rgba(255,255,255,.35); }
+  .pg-parish-card-fav:hover { background: rgba(255,255,255,1); }
   .pg-parish-card-body { padding: 8px 10px 6px; display: flex; flex-direction: column; }
   .pg-parish-card-name {
     font: 700 14px/1.25 var(--font-display); color: var(--ink);
@@ -466,8 +466,8 @@
                        background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
                        cursor:pointer; display:flex; align-items:center; justify-content:center;
                        transition:background .15s;">
-          <svg width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="rgba(242,160,7,.9)" fill="rgba(242,160,7,.9)">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none" stroke-width="2">
+            <path fill="rgba(242,160,7,.9)" stroke="rgba(242,160,7,.9)" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
         </button>
         <span style="color:rgba(255,255,255,.7); font:500 11px/1.3 var(--font-ui);
@@ -563,8 +563,8 @@
                        background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
                        cursor:pointer; display:flex; align-items:center; justify-content:center;
                        transition:background .15s;">
-          <svg width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="rgba(242,160,7,.9)" fill="rgba(242,160,7,.9)">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none" stroke-width="2">
+            <path fill="rgba(242,160,7,.9)" stroke="rgba(242,160,7,.9)" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
         </button>
         <span style="color:rgba(255,255,255,.7); font:500 11px/1.3 var(--font-ui);
@@ -703,6 +703,7 @@
 {% load static %}
 const AVATAR_URL = "{% static 'iglesias/img/avatar-parroquia.png' %}";
 const PLACEHOLDER_URL = "{% static 'iglesias/img/parroquia-header-detalle.png' %}";
+const FAVORITAS_PKS = new Set([{% if mi_parroquia %}{{ mi_parroquia.pk }},{% endif %}{% for p in mis_favoritas %}{{ p.pk }},{% endfor %}]);
 /* Greeting by time */
 (function() {
   const h = new Date().getHours();
@@ -788,13 +789,21 @@ function mostrarCercanas(parroquias) {
              onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
          <img class="pg-parish-card-img-el" src="${PLACEHOLDER_URL}" alt="" style="display:none" aria-hidden="true">`
       : `<img class="pg-parish-card-avatar" src="${PLACEHOLDER_URL}" alt="" loading="lazy" aria-hidden="true">`;
+    const esFav = FAVORITAS_PKS.has(p.pk);
+    const favFill = esFav ? '#e11d48' : 'none';
+    const favStroke = esFav ? '#e11d48' : '#9ca3af';
+    const favBg = esFav ? 'background:rgba(225,29,72,.1);' : '';
     html += `<a href="/publico/${p.pk}/" class="pg-parish-card">
       <div class="${topClass}" style="background:${grad}">
         ${imgContent}
         <div class="pg-parish-card-overlay"></div>
-        <button class="pg-parish-card-fav" onclick="event.preventDefault();" aria-label="Favorita">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        <button class="pg-parish-card-fav"
+                data-favorita-pk="${p.pk}"
+                onclick="event.stopPropagation(); event.preventDefault(); toggleFavorita(${p.pk});"
+                aria-label="${esFav ? 'Quitar de favoritas' : 'Marcar como favorita'}"
+                style="${favBg}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="none" stroke-width="2">
+            <path fill="${favFill}" stroke="${favStroke}" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
         </button>
       </div>
@@ -899,7 +908,7 @@ function buildFavoritaCard(p, colorIdx) {
   }
   const barrio = p.barrio ? '<div class="pg-mip-barrio"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' + p.barrio + '</div>' : '';
   const cta = p.tiene_horarios ? 'Ver horarios →' : 'Ver detalle →';
-  const heartSvg = '<svg width="14" height="14" viewBox="0 0 24 24" stroke-width="2" stroke="rgba(242,160,7,.9)" fill="rgba(242,160,7,.9)"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+  const heartSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="none" stroke-width="2"><path fill="rgba(242,160,7,.9)" stroke="rgba(242,160,7,.9)" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
   const bellSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".7"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
   const actionStrip = '<div style="border-top:1px solid rgba(255,255,255,.15);padding:10px 20px;display:flex;align-items:center;gap:10px;position:relative;background:rgba(10,25,60,.55);backdrop-filter:blur(8px);">'
     + '<button onclick="toggleFavorita(' + p.pk + ')" data-favorita-pk="' + p.pk + '" title="Quitar de favoritas" '
@@ -929,6 +938,7 @@ function buildFavoritaCard(p, colorIdx) {
 
 document.addEventListener('favoritaToggled', function(e) {
   const {pk, favorita, parroquia} = e.detail;
+  if (favorita) { FAVORITAS_PKS.add(pk); } else { FAVORITAS_PKS.delete(pk); }
   const container = document.getElementById('favoritas-dinamicas');
   if (!container) return;
   if (favorita && parroquia) {
