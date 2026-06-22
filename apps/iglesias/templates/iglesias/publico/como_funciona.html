@@ -3,8 +3,9 @@
 {% block page_title %}{{ titulo_seo }}{% endblock %}
 {% block canonical %}{{ canonical }}{% endblock %}
 
+{% block meta_description %}{{ descripcion_seo }}{% endblock %}
+
 {% block meta_extra %}
-<meta name="description" content="{{ descripcion_seo }}">
 <meta property="og:title" content="{{ titulo_seo }}">
 <meta property="og:description" content="{{ descripcion_seo }}">
 <meta property="og:url" content="{{ canonical }}">

@@ -4,8 +4,9 @@
 {% block page_title %}ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires{% endblock %}
 {% block og_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_inicio' %}{% endblock %}
 {% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_inicio' %}{% endblock %}
+{% block meta_description %}Encontrá tu parroquia en Buenos Aires. Horarios de misas, eventos, contacto y ubicación de las {{ total }} parroquias de la Arquidiócesis de Buenos Aires.{% endblock %}
+
 {% block meta_extra %}
-<meta name="description" content="Encontrá tu parroquia en Buenos Aires. Horarios de misas, eventos, contacto y ubicación de las {{ total }} parroquias de la Arquidiócesis de Buenos Aires.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -674,13 +675,6 @@
     <div id="resultados"></div>
     <div hx-get="{% url 'iglesias:publico_buscar' %}" hx-trigger="load"
          hx-target="#resultados" hx-indicator="#skeleton-loader" style="display:none;"></div>
-
-    <!-- SEO static list (hidden, crawlable) -->
-    <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;" aria-hidden="true">
-      <ul>{% for p in todas_parroquias %}
-        <li><a href="{% url 'iglesias:publico_detalle' p.pk %}">{{ p.nombre }}{% if p.barrio %}, {{ p.barrio }}{% endif %}</a></li>
-      {% endfor %}</ul>
-    </div>
 
   </div><!-- /columna principal -->
 

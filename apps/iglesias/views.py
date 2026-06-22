@@ -2494,7 +2494,7 @@ def robots_txt(request):
         "User-agent: Applebot\n"
         "Allow: /\n"
         "\n"
-        "Sitemap: https://parroguia.com/sitemap.xml\n"
+        f"Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml\n"
     )
     from django.http import HttpResponse
     return HttpResponse(content, content_type="text/plain")

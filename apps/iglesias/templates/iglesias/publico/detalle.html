@@ -16,8 +16,9 @@
 {% block twitter_image %}{{ parroquia.imagen_url }}?tr=w-1200,h-630,c-at_max,q-85,f-webp{% endblock %}
 {% endif %}
 
+{% block meta_description %}Horarios de misas{% if horarios %} y eventos{% endif %} de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% elif parroquia.ciudad %} en {{ parroquia.ciudad }}{% endif %}{% if parroquia.provincia %}, {{ parroquia.provincia }}{% endif %}.{% if parroquia.diocesis %} {{ parroquia.diocesis }}.{% endif %}{% endblock %}
+
 {% block meta_extra %}
-<meta name="description" content="Horarios de misas{% if horarios %} y eventos{% endif %} de {{ parroquia.nombre }}{% if parroquia.barrio %} en {{ parroquia.barrio }}{% elif parroquia.ciudad %} en {{ parroquia.ciudad }}{% endif %}{% if parroquia.provincia %}, {{ parroquia.provincia }}{% endif %}.{% if parroquia.diocesis %} {{ parroquia.diocesis }}.{% endif %}">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",

@@ -3,9 +3,7 @@
 {% block page_title %}Términos de Servicio — ParroGuía{% endblock %}
 {% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:terminos' %}{% endblock %}
 
-{% block meta_extra %}
-<meta name="description" content="Términos y condiciones de uso de ParroGuía, directorio de parroquias de la Arquidiócesis de Buenos Aires.">
-{% endblock %}
+{% block meta_description %}Términos y condiciones de uso de ParroGuía, directorio de parroquias de la Arquidiócesis de Buenos Aires.{% endblock %}
 
 {% block content %}
 <a href="{% url 'iglesias:publico_inicio' %}" class="pub-back">← Volver al inicio</a>
