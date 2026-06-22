@@ -1,4 +1,6 @@
-# CLAUDE.md — Scrapper Iglesias Database
+# CLAUDE.md — ParroGuía
+
+**Aplicación en producción: [parroguia.com](https://parroguia.com)**
 
 ## Prioridades de desarrollo
 
