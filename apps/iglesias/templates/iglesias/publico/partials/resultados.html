@@ -6,6 +6,9 @@
 {% endif %}
 
 <style>
+  .ad-mobile-only { display: none; }
+  @media (max-width: 768px) { .ad-mobile-only { display: block; } }
+
   .pg-results-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -224,6 +227,18 @@ if (!window.pgGrad) {
       </picture>
     </a>
     {% endif %}
+  </div>
+  {% endif %}
+
+  {% if forloop.counter|divisibleby:3 and not forloop.counter|divisibleby:6 and not forloop.last %}
+  <div class="ad-mobile-only" style="grid-column:1/-1;margin:6px 0;" aria-label="Publicidad">
+    <ins class="adsbygoogle"
+         style="display:block;width:100%;height:auto;"
+         data-ad-client="ca-pub-4234618099895611"
+         data-ad-slot="5422807511"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
   {% endif %}
 
