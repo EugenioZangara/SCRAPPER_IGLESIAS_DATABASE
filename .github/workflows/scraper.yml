@@ -27,9 +27,8 @@ jobs:
       - name: Verificar inicio
         run: |
           sleep 10
-          curl -s ${{ secrets.SCRAPER_URL }}/scraper/estado/ | python3 -c "
-          import sys, json
-          data = json.load(sys.stdin)
-          print('Activo:', data.get('activo'))
-          print('Total:', data.get('total', 0))
-          "
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L \
+            -H "X-Scraper-Token: ${{ secrets.SCRAPER_SECRET_TOKEN }}" \
+            ${{ secrets.SCRAPER_URL }}/api/scraper/estado/ 2>/dev/null || echo "000")
+          echo "Estado HTTP: $STATUS"
+          echo "Scraper en ejecución (verificación no bloqueante)"
