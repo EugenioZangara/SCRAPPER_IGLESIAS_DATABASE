@@ -2446,6 +2446,14 @@ def sitemap(request):
                   content_type="application/xml")
 
 
+def ads_txt(request):
+    from django.http import HttpResponse
+    return HttpResponse(
+        "google.com, pub-4234618099895611, DIRECT, f08c47fec0942fa0\n",
+        content_type="text/plain"
+    )
+
+
 def robots_txt(request):
     content = (
         "User-agent: *\n"

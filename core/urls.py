@@ -31,6 +31,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('sitemap.xml', iglesias_views.sitemap, name='sitemap'),
     path('robots.txt', iglesias_views.robots_txt, name='robots_txt'),
+    path('ads.txt', iglesias_views.ads_txt, name='ads_txt'),
 ]
 
 if settings.DEBUG:
