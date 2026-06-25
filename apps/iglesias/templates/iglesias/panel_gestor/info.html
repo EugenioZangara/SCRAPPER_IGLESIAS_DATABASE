@@ -1,0 +1,49 @@
+{% extends "iglesias/panel_gestor/base_panel_gestor.html" %}
+{% block title %}Información básica{% endblock %}
+{% block nav_info %}active{% endblock %}
+
+{% block content %}
+<h1 class="pg-page-title">Información básica</h1>
+
+{% if success %}
+<div class="pg-alert pg-alert--success">✔ {{ success }}</div>
+{% endif %}
+{% if error %}
+<div class="pg-alert pg-alert--error">✖ {{ error }}</div>
+{% endif %}
+
+<div class="pg-card">
+  <div class="pg-card__title">Datos de la parroquia</div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="pg-field">
+      <label class="pg-label" for="nombre">Nombre</label>
+      <input class="pg-input" type="text" id="nombre" name="nombre" value="{{ parroquia.nombre }}" maxlength="255" required>
+    </div>
+    <div class="pg-field">
+      <label class="pg-label" for="direccion">Dirección</label>
+      <input class="pg-input" type="text" id="direccion" name="direccion" value="{{ parroquia.direccion|default:'' }}" maxlength="255">
+    </div>
+    <div class="pg-field">
+      <label class="pg-label" for="telefonos">Teléfonos</label>
+      <input class="pg-input" type="text" id="telefonos" name="telefonos" value="{{ parroquia.telefonos|default:'' }}" maxlength="255" placeholder="Ej: 011-4567-8901">
+    </div>
+    <div class="pg-field">
+      <label class="pg-label" for="sitio_web">Sitio web</label>
+      <input class="pg-input" type="url" id="sitio_web" name="sitio_web" value="{{ parroquia.sitio_web|default:'' }}" maxlength="500" placeholder="https://...">
+    </div>
+    <div class="pg-field">
+      <label class="pg-label" for="parroco">Párroco</label>
+      <input class="pg-input" type="text" id="parroco" name="parroco" value="{{ parroquia.parroco|default:'' }}" maxlength="255">
+    </div>
+    <div style="margin-top:1.25rem;display:flex;gap:.75rem;align-items:center">
+      <button type="submit" class="pg-btn pg-btn--primary">Guardar cambios</button>
+      <a href="/panel-parroquia/" class="pg-btn pg-btn--outline">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<div class="pg-alert pg-alert--info" style="font-size:.8125rem">
+  ℹ Los cambios guardados aquí tienen prioridad sobre los datos del scraping automático.
+</div>
+{% endblock %}

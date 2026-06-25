@@ -1,0 +1,103 @@
+{% extends "iglesias/base.html" %}
+
+{% block title %}Gestores de Parroquia{% endblock %}
+
+{% block content %}
+<div class="head">
+    <div>
+        <p class="eyebrow">Administración</p>
+        <h1 class="page-title">Gestores de Parroquia</h1>
+        <p class="page-sub">Usuarios con acceso al panel de su parroquia.</p>
+    </div>
+    <div>
+        <a href="{% url 'iglesias:gestor_crear' %}" class="btn btn-primary">
+            + Nuevo gestor
+        </a>
+    </div>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+<div style="background:{% if msg.tags == 'success' %}#f0fdf4{% else %}#fef2f2{% endif %};
+            border:1px solid {% if msg.tags == 'success' %}#bbf7d0{% else %}#fecaca{% endif %};
+            color:{% if msg.tags == 'success' %}#16a34a{% else %}#dc2626{% endif %};
+            padding:.65rem 1rem; border-radius:8px; font-size:13px; margin-bottom:1rem;">
+    {{ msg }}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if not gestores %}
+<div style="text-align:center; padding:3rem 1rem; color:var(--muted);">
+    <p style="font-size:15px; margin-bottom:1rem;">No hay gestores creados todavía.</p>
+    <a href="{% url 'iglesias:gestor_crear' %}" class="btn btn-primary">Crear primer gestor</a>
+</div>
+{% else %}
+<div class="card" style="padding:0; overflow:hidden;">
+    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead>
+            <tr style="border-bottom:2px solid var(--rule); background:var(--paper-2);">
+                <th style="padding:10px 16px; text-align:left; font-weight:600; color:var(--muted); text-transform:uppercase; font-size:11px; letter-spacing:.05em;">Usuario</th>
+                <th style="padding:10px 16px; text-align:left; font-weight:600; color:var(--muted); text-transform:uppercase; font-size:11px; letter-spacing:.05em;">Parroquia asignada</th>
+                <th style="padding:10px 16px; text-align:left; font-weight:600; color:var(--muted); text-transform:uppercase; font-size:11px; letter-spacing:.05em;">Estado</th>
+                <th style="padding:10px 16px; text-align:left; font-weight:600; color:var(--muted); text-transform:uppercase; font-size:11px; letter-spacing:.05em;">Creado</th>
+                <th style="padding:10px 16px; text-align:right; font-weight:600; color:var(--muted); text-transform:uppercase; font-size:11px; letter-spacing:.05em;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for g in gestores %}
+            <tr style="border-bottom:1px solid var(--rule);{% if not g.activo %}opacity:.55;{% endif %}">
+                <td style="padding:12px 16px;">
+                    <div style="font-weight:600; color:var(--ink);">{{ g.user.username }}</div>
+                    {% if g.user.get_full_name %}
+                    <div style="font-size:12px; color:var(--muted);">{{ g.user.get_full_name }}</div>
+                    {% endif %}
+                    {% if g.user.email %}
+                    <div style="font-size:12px; color:var(--muted);">{{ g.user.email }}</div>
+                    {% endif %}
+                </td>
+                <td style="padding:12px 16px;">
+                    <a href="{% url 'iglesias:detalle_parroquia' g.parroquia.pk %}"
+                       style="color:var(--primary); text-decoration:none; font-weight:500;">
+                        {{ g.parroquia.nombre }}
+                    </a>
+                    {% if g.parroquia.ciudad %}
+                    <div style="font-size:12px; color:var(--muted);">{{ g.parroquia.ciudad }}</div>
+                    {% endif %}
+                </td>
+                <td style="padding:12px 16px;">
+                    {% if g.activo %}
+                    <span style="background:#dcfce7; color:#16a34a; border-radius:999px; padding:2px 10px; font-size:11px; font-weight:600;">Activo</span>
+                    {% else %}
+                    <span style="background:#fee2e2; color:#dc2626; border-radius:999px; padding:2px 10px; font-size:11px; font-weight:600;">Inactivo</span>
+                    {% endif %}
+                </td>
+                <td style="padding:12px 16px; color:var(--muted); font-size:12px;">
+                    {{ g.creado|date:"d/m/Y" }}
+                </td>
+                <td style="padding:12px 16px; text-align:right; white-space:nowrap;">
+                    <a href="{% url 'iglesias:gestor_editar' g.pk %}"
+                       style="font-size:12px; font-weight:600; color:var(--primary); text-decoration:none;
+                              padding:4px 10px; border:1px solid var(--primary-soft); border-radius:6px;
+                              background:var(--primary-soft);">
+                        Editar
+                    </a>
+                    <form method="post" action="{% url 'iglesias:gestor_eliminar' g.pk %}"
+                          style="display:inline;"
+                          onsubmit="return confirm('¿Eliminar al gestor {{ g.user.username }}? Se eliminará también su cuenta de usuario.')">
+                        {% csrf_token %}
+                        <button type="submit"
+                                style="font-size:12px; font-weight:600; color:#dc2626;
+                                       padding:4px 10px; border:1px solid #fecaca; border-radius:6px;
+                                       background:#fee2e2; cursor:pointer; margin-left:6px;">
+                            Eliminar
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

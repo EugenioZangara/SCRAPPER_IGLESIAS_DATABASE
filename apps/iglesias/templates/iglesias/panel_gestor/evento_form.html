@@ -1,0 +1,55 @@
+{% extends "iglesias/panel_gestor/base_panel_gestor.html" %}
+{% block title %}{% if evento %}Editar evento{% else %}Nuevo evento{% endif %}{% endblock %}
+{% block nav_eventos %}active{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem">
+  <a href="/panel-parroquia/eventos/" style="color:var(--muted);text-decoration:none;font-size:.9rem">← Volver</a>
+  <h1 class="pg-page-title" style="margin-bottom:0">{% if evento %}Editar evento{% else %}Nuevo evento{% endif %}</h1>
+</div>
+
+{% if error %}
+<div class="pg-alert pg-alert--error">✖ {{ error }}</div>
+{% endif %}
+
+<div class="pg-card">
+  <form method="post">
+    {% csrf_token %}
+    <div class="pg-field">
+      <label class="pg-label" for="titulo">Título del evento *</label>
+      <input class="pg-input" type="text" id="titulo" name="titulo"
+        value="{{ evento.titulo_evento|default:'' }}" maxlength="200" required autofocus>
+    </div>
+    <div class="pg-field">
+      <label class="pg-label" for="descripcion">Descripción</label>
+      <textarea class="pg-textarea" id="descripcion" name="descripcion">{{ evento.descripcion_evento|default:'' }}</textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="pg-field">
+        <label class="pg-label" for="fecha">Fecha</label>
+        <input class="pg-input" type="date" id="fecha" name="fecha"
+          value="{{ evento.fecha_evento|date:'Y-m-d'|default:'' }}">
+      </div>
+      <div class="pg-field">
+        <label class="pg-label" for="hora">Hora</label>
+        <input class="pg-input" type="time" id="hora" name="hora"
+          value="{{ evento.hora_evento|time:'H:i'|default:'' }}">
+      </div>
+    </div>
+    <div class="pg-field">
+      <label class="pg-label" for="imagen_url">URL de imagen (opcional)</label>
+      <input class="pg-input" type="url" id="imagen_url" name="imagen_url"
+        value="{{ evento.imagen_url|default:'' }}" placeholder="https://...">
+      <div style="font-size:.75rem;color:var(--muted);margin-top:.25rem">
+        Podés subir la imagen en la sección <a href="/panel-parroquia/imagenes/">Imagen</a> y copiar la URL.
+      </div>
+    </div>
+    <div style="margin-top:1.25rem;display:flex;gap:.75rem;align-items:center">
+      <button type="submit" class="pg-btn pg-btn--primary">
+        {% if evento %}Guardar cambios{% else %}Crear evento{% endif %}
+      </button>
+      <a href="/panel-parroquia/eventos/" class="pg-btn pg-btn--outline">Cancelar</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

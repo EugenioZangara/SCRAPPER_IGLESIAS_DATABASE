@@ -12,6 +12,7 @@ from .models import (
     ReporteHorario,
     PerfilUsuario,
     Banner,
+    PerfilGestorParroquia,
 )
 
 
@@ -116,3 +117,12 @@ class BannerAdmin(admin.ModelAdmin):
     list_display = ("titulo", "posicion", "activo", "orden", "creado_en")
     list_filter = ("posicion", "activo")
     list_editable = ("activo", "orden")
+
+
+@admin.register(PerfilGestorParroquia)
+class PerfilGestorParroquiaAdmin(admin.ModelAdmin):
+    list_display = ("user", "parroquia", "activo", "creado")
+    list_filter = ("activo",)
+    search_fields = ("user__username", "user__email", "parroquia__nombre")
+    raw_id_fields = ("user", "parroquia")
+    readonly_fields = ("creado",)

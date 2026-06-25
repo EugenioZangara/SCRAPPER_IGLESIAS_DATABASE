@@ -1,0 +1,52 @@
+{% extends "iglesias/panel_gestor/base_panel_gestor.html" %}
+{% block title %}Eventos{% endblock %}
+{% block nav_eventos %}active{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+  <h1 class="pg-page-title" style="margin-bottom:0">Mis eventos</h1>
+  <a href="/panel-parroquia/eventos/nuevo/" class="pg-btn pg-btn--gold">+ Nuevo evento</a>
+</div>
+
+{% if not eventos %}
+<div class="pg-card" style="text-align:center;padding:2.5rem">
+  <div style="font-size:2.5rem;margin-bottom:.75rem">📅</div>
+  <p style="color:var(--muted);margin-bottom:1.25rem">Todavía no cargaste ningún evento.</p>
+  <a href="/panel-parroquia/eventos/nuevo/" class="pg-btn pg-btn--primary">Crear primer evento</a>
+</div>
+{% else %}
+<div class="pg-card" style="padding:0;overflow:hidden">
+  {% for ev in eventos %}
+  <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--rule);display:flex;align-items:center;gap:1rem{% if forloop.last %};border-bottom:none{% endif %}">
+    {% if ev.imagen_url %}
+    <img src="{{ ev.imagen_url }}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:7px;flex-shrink:0">
+    {% else %}
+    <div style="width:56px;height:56px;background:var(--navy-soft);border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem">📅</div>
+    {% endif %}
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:600;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        {{ ev.titulo_evento|default:"Sin título" }}
+      </div>
+      {% if ev.fecha_evento %}
+      <div style="font-size:.8rem;color:var(--muted)">
+        {{ ev.fecha_evento }}{% if ev.hora_evento %} · {{ ev.hora_evento|time:"H:i" }}{% endif %}
+      </div>
+      {% else %}
+      <div style="font-size:.8rem;color:var(--muted)">Sin fecha definida</div>
+      {% endif %}
+      {% if ev.descripcion_evento %}
+      <div style="font-size:.8rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px">{{ ev.descripcion_evento }}</div>
+      {% endif %}
+    </div>
+    <div style="display:flex;gap:.5rem;flex-shrink:0">
+      <a href="/panel-parroquia/eventos/{{ ev.pk }}/editar/" class="pg-btn pg-btn--outline pg-btn--sm">Editar</a>
+      <form method="post" action="/panel-parroquia/eventos/{{ ev.pk }}/eliminar/" onsubmit="return confirm('¿Eliminar este evento?')">
+        {% csrf_token %}
+        <button type="submit" class="pg-btn pg-btn--danger pg-btn--sm">Eliminar</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

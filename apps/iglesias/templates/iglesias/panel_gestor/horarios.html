@@ -1,0 +1,58 @@
+{% extends "iglesias/panel_gestor/base_panel_gestor.html" %}
+{% block title %}Horarios de Misa{% endblock %}
+{% block nav_horarios %}active{% endblock %}
+
+{% block content %}
+<h1 class="pg-page-title">Horarios de Misa</h1>
+
+{% if success %}
+<div class="pg-alert pg-alert--success">✔ {{ success }}</div>
+{% endif %}
+{% if error %}
+<div class="pg-alert pg-alert--error">✖ {{ error }}</div>
+{% endif %}
+
+<div class="pg-card">
+  <div class="pg-card__title">Horarios semanales</div>
+  <p style="font-size:.8125rem;color:var(--muted);margin-bottom:1.25rem">
+    Ingresá los horarios separados por · (punto medio). Ej: <strong>8:00 · 11:00 · 19:30</strong><br>
+    Dejá el campo vacío para eliminar el horario del día.
+  </p>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="guardar">
+    {% for dia_num, dia_nombre, horario_obj in dias %}
+    <div style="display:grid;grid-template-columns:110px 1fr 1fr;gap:.75rem;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--rule)">
+      <div style="font-weight:500;font-size:.875rem">{{ dia_nombre }}</div>
+      <div>
+        <input
+          class="pg-input"
+          type="text"
+          name="horario_{{ dia_num }}"
+          value="{{ horario_obj.horarios|default:'' }}"
+          placeholder="8:00 · 19:30"
+        >
+      </div>
+      <div>
+        <input
+          class="pg-input"
+          type="text"
+          name="nota_{{ dia_num }}"
+          value="{{ horario_obj.nota|default:'' }}"
+          placeholder="Nota opcional"
+          style="font-size:.8125rem"
+        >
+      </div>
+    </div>
+    {% endfor %}
+    <div style="margin-top:1.25rem;display:flex;gap:.75rem">
+      <button type="submit" class="pg-btn pg-btn--primary">Guardar horarios</button>
+      <a href="/panel-parroquia/" class="pg-btn pg-btn--outline">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<div class="pg-alert pg-alert--info" style="font-size:.8125rem">
+  ℹ Al guardar, los horarios ingresados aquí aparecerán en la página pública de tu parroquia. El scraping automático no sobreescribirá estos datos.
+</div>
+{% endblock %}

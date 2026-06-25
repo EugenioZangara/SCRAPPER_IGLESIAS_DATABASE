@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -c \"import json; c=json.load\\(open\\('verificacion_cache.json'\\)\\); results=[v['resultado'] for v in c.values\\(\\)]; from collections import Counter; print\\(Counter\\(results\\)\\)\")"
+      "Bash(python -c \"import json; c=json.load\\(open\\('verificacion_cache.json'\\)\\); results=[v['resultado'] for v in c.values\\(\\)]; from collections import Counter; print\\(Counter\\(results\\)\\)\")",
+      "Bash(entorno_SID\\\\Scripts\\\\python.exe manage.py makemigrations iglesias --name panel_gestor_parroquia)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\eugen\\.claude\\projects\\c--Users-eugen-OneDrive-Documentos-PROYECTOS-SCRAPPER-IGLESIAS-DATABASE\\memory"
     ]
   }
 }

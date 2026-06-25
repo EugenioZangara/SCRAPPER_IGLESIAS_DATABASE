@@ -1,0 +1,74 @@
+{% extends "iglesias/panel_gestor/base_panel_gestor.html" %}
+{% block title %}Inicio{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+<h1 class="pg-page-title">Bienvenido al panel</h1>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;">
+  <div class="pg-card" style="text-align:center;padding:1.25rem">
+    <div style="font-size:2rem;margin-bottom:.5rem">🕐</div>
+    <div style="font-size:1.5rem;font-weight:700;color:var(--navy)">{{ horarios|length }}</div>
+    <div style="font-size:.8125rem;color:var(--muted)">Días con horarios cargados</div>
+    <a href="/panel-parroquia/horarios/" class="pg-btn pg-btn--outline pg-btn--sm" style="margin-top:.75rem">Gestionar</a>
+  </div>
+  <div class="pg-card" style="text-align:center;padding:1.25rem">
+    <div style="font-size:2rem;margin-bottom:.5rem">📅</div>
+    <div style="font-size:1.5rem;font-weight:700;color:var(--navy)">{{ eventos|length }}</div>
+    <div style="font-size:.8125rem;color:var(--muted)">Eventos recientes</div>
+    <a href="/panel-parroquia/eventos/" class="pg-btn pg-btn--outline pg-btn--sm" style="margin-top:.75rem">Ver todos</a>
+  </div>
+  <div class="pg-card" style="text-align:center;padding:1.25rem">
+    <div style="font-size:2rem;margin-bottom:.5rem">🖼️</div>
+    <div style="font-size:.875rem;color:var(--muted);margin-bottom:.5rem">Imagen principal</div>
+    {% if parroquia.imagen_principal %}
+      <div style="font-size:.8rem;color:var(--success)">✔ Cargada</div>
+    {% else %}
+      <div style="font-size:.8rem;color:var(--muted)">Sin imagen</div>
+    {% endif %}
+    <a href="/panel-parroquia/imagenes/" class="pg-btn pg-btn--outline pg-btn--sm" style="margin-top:.75rem">Subir imagen</a>
+  </div>
+</div>
+
+<div class="pg-card">
+  <div class="pg-card__title">Tu parroquia</div>
+  <table style="width:100%;font-size:.875rem;border-collapse:collapse">
+    {% if parroquia.direccion %}
+    <tr><td style="padding:.4rem .25rem;color:var(--muted);width:130px">Dirección</td><td>{{ parroquia.direccion }}</td></tr>
+    {% endif %}
+    {% if parroquia.telefonos %}
+    <tr><td style="padding:.4rem .25rem;color:var(--muted)">Teléfonos</td><td>{{ parroquia.telefonos }}</td></tr>
+    {% endif %}
+    {% if parroquia.parroco %}
+    <tr><td style="padding:.4rem .25rem;color:var(--muted)">Párroco</td><td>{{ parroquia.parroco }}</td></tr>
+    {% endif %}
+    {% if parroquia.sitio_web %}
+    <tr><td style="padding:.4rem .25rem;color:var(--muted)">Sitio web</td><td><a href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener">{{ parroquia.sitio_web }}</a></td></tr>
+    {% endif %}
+  </table>
+  <div style="margin-top:1rem">
+    <a href="/panel-parroquia/info/" class="pg-btn pg-btn--primary pg-btn--sm">Editar información</a>
+    <a href="/publico/{{ parroquia.pk }}/" target="_blank" rel="noopener" class="pg-btn pg-btn--outline pg-btn--sm" style="margin-left:.5rem">Ver página pública</a>
+  </div>
+</div>
+
+{% if eventos %}
+<div class="pg-card">
+  <div class="pg-card__title">Eventos recientes</div>
+  {% for ev in eventos %}
+  <div style="padding:.6rem 0;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;gap:.5rem">
+    <div>
+      <div style="font-size:.875rem;font-weight:500">{{ ev.titulo_evento|default:"Sin título" }}</div>
+      {% if ev.fecha_evento %}
+      <div style="font-size:.75rem;color:var(--muted)">{{ ev.fecha_evento }}</div>
+      {% endif %}
+    </div>
+    <a href="/panel-parroquia/eventos/{{ ev.pk }}/editar/" class="pg-btn pg-btn--outline pg-btn--sm">Editar</a>
+  </div>
+  {% endfor %}
+  <div style="margin-top:.75rem">
+    <a href="/panel-parroquia/eventos/" class="pg-btn pg-btn--outline pg-btn--sm">Ver todos los eventos</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

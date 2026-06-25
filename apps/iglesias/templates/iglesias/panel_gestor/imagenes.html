@@ -1,0 +1,40 @@
+{% extends "iglesias/panel_gestor/base_panel_gestor.html" %}
+{% block title %}Imagen principal{% endblock %}
+{% block nav_imagenes %}active{% endblock %}
+
+{% block content %}
+<h1 class="pg-page-title">Imagen principal</h1>
+
+{% if success %}
+<div class="pg-alert pg-alert--success">✔ {{ success }}</div>
+{% endif %}
+{% if error %}
+<div class="pg-alert pg-alert--error">✖ {{ error }}</div>
+{% endif %}
+
+{% if parroquia.imagen_principal %}
+<div class="pg-card">
+  <div class="pg-card__title">Imagen actual</div>
+  <img src="{{ parroquia.imagen_principal }}" alt="Imagen de {{ parroquia.nombre }}"
+    style="max-width:100%;max-height:280px;object-fit:cover;border-radius:8px;margin-bottom:.75rem">
+  <div style="font-size:.8rem;color:var(--muted);word-break:break-all">{{ parroquia.imagen_principal }}</div>
+</div>
+{% endif %}
+
+<div class="pg-card">
+  <div class="pg-card__title">{% if parroquia.imagen_principal %}Reemplazar imagen{% else %}Subir imagen principal{% endif %}</div>
+  <p style="font-size:.8125rem;color:var(--muted);margin-bottom:1.25rem">
+    Formatos aceptados: JPG, PNG, WEBP. Tamaño máximo recomendado: 2 MB.<br>
+    La imagen se guardará en ImageKit y aparecerá en la página pública de tu parroquia.
+  </p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="pg-field">
+      <label class="pg-label" for="imagen">Seleccioná una imagen</label>
+      <input type="file" id="imagen" name="imagen" accept="image/*"
+        style="display:block;font-size:.875rem;color:var(--ink)">
+    </div>
+    <button type="submit" class="pg-btn pg-btn--primary" style="margin-top:.5rem">Subir imagen</button>
+  </form>
+</div>
+{% endblock %}

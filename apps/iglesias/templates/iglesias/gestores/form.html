@@ -1,0 +1,197 @@
+{% extends "iglesias/base.html" %}
+
+{% block title %}{% if accion == 'crear' %}Nuevo gestor{% else %}Editar gestor{% endif %}{% endblock %}
+
+{% block content %}
+<div class="head">
+    <div>
+        <p class="eyebrow">
+            <a href="{% url 'iglesias:gestores_lista' %}" style="color:inherit; text-decoration:none;">Gestores</a>
+            &rsaquo;
+            {% if accion == 'crear' %}Nuevo gestor{% else %}Editar &ldquo;{{ gestor.user.username }}&rdquo;{% endif %}
+        </p>
+        <h1 style="font-family:var(--sans); font-size:24px; font-weight:600; color:var(--ink); margin:6px 0 0;">
+            {% if accion == 'crear' %}Crear gestor de parroquia{% else %}Editar gestor{% endif %}
+        </h1>
+    </div>
+</div>
+
+{% if error %}
+<div style="background:#fee2e2; border:1px solid #fecaca; color:#dc2626;
+            padding:.65rem 1rem; border-radius:8px; font-size:13px; margin-bottom:1.25rem;">
+    {{ error }}
+</div>
+{% endif %}
+
+<div style="display:grid; grid-template-columns:1fr 340px; gap:18px; align-items:start; max-width:860px;">
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="panel">
+            <div class="section">
+                <div style="padding-bottom:10px; border-bottom:1px solid var(--line); margin-bottom:14px;">
+                    <h2 style="font-size:14px; font-weight:600; color:var(--ink); text-transform:uppercase; letter-spacing:.05em; margin:0;">
+                        {% if accion == 'crear' %}Datos del nuevo usuario{% else %}Datos del usuario{% endif %}
+                    </h2>
+                </div>
+
+                {% if accion == 'crear' %}
+                <div style="display:grid; gap:12px;">
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">
+                            Usuario *
+                        </label>
+                        <input type="text" name="username" required autocomplete="off"
+                               value="{{ request.POST.username|default:'' }}"
+                               style="width:100%; padding:7px 10px; border:1.5px solid var(--rule); border-radius:7px; font-size:13px; font-family:var(--sans); color:var(--ink);">
+                        <p style="font-size:11px; color:var(--muted); margin:4px 0 0;">Solo letras, números y @/./+/-/_</p>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div>
+                            <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">Nombre</label>
+                            <input type="text" name="first_name" value="{{ request.POST.first_name|default:'' }}"
+                                   style="width:100%; padding:7px 10px; border:1.5px solid var(--rule); border-radius:7px; font-size:13px; font-family:var(--sans); color:var(--ink);">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">Apellido</label>
+                            <input type="text" name="last_name" value="{{ request.POST.last_name|default:'' }}"
+                                   style="width:100%; padding:7px 10px; border:1.5px solid var(--rule); border-radius:7px; font-size:13px; font-family:var(--sans); color:var(--ink);">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">Email</label>
+                        <input type="email" name="email" value="{{ request.POST.email|default:'' }}"
+                               style="width:100%; padding:7px 10px; border:1.5px solid var(--rule); border-radius:7px; font-size:13px; font-family:var(--sans); color:var(--ink);">
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div>
+                            <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">Contraseña *</label>
+                            <input type="password" name="password" required autocomplete="new-password"
+                                   style="width:100%; padding:7px 10px; border:1.5px solid var(--rule); border-radius:7px; font-size:13px; font-family:var(--sans); color:var(--ink);">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">Repetir contraseña *</label>
+                            <input type="password" name="password2" required autocomplete="new-password"
+                                   style="width:100%; padding:7px 10px; border:1.5px solid var(--rule); border-radius:7px; font-size:13px; font-family:var(--sans); color:var(--ink);">
+                        </div>
+                    </div>
+                </div>
+
+                {% else %}{# editar #}
+                <div style="display:grid; gap:12px;">
+                    <div style="padding:8px 10px; background:var(--paper-2); border-radius:7px; font-size:13px;">
+                        <span style="color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.05em; font-weight:600;">Usuario</span><br>
+                        <strong>{{ gestor.user.username }}</strong>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div>
+                            <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">Nombre</label>
+                            <input type="text" name="first_name" value="{{ gestor.user.first_name }}"
+                                   style="width:100%; padding:7px 10px; border:1.5px solid var(--rule); border-radius:7px; font-size:13px; font-family:var(--sans); color:var(--ink);">
+                        </div>
+                        <div>
+                            <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">Apellido</label>
+                            <input type="text" name="last_name" value="{{ gestor.user.last_name }}"
+                                   style="width:100%; padding:7px 10px; border:1.5px solid var(--rule); border-radius:7px; font-size:13px; font-family:var(--sans); color:var(--ink);">
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">Email</label>
+                        <input type="email" name="email" value="{{ gestor.user.email }}"
+                               style="width:100%; padding:7px 10px; border:1.5px solid var(--rule); border-radius:7px; font-size:13px; font-family:var(--sans); color:var(--ink);">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">
+                            Nueva contraseña <span style="font-weight:400; text-transform:none;">(dejar vacío para no cambiar)</span>
+                        </label>
+                        <input type="password" name="new_password" autocomplete="new-password"
+                               style="width:100%; padding:7px 10px; border:1.5px solid var(--rule); border-radius:7px; font-size:13px; font-family:var(--sans); color:var(--ink);">
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="section">
+                <div style="padding-bottom:10px; border-bottom:1px solid var(--line); margin-bottom:14px;">
+                    <h2 style="font-size:14px; font-weight:600; color:var(--ink); text-transform:uppercase; letter-spacing:.05em; margin:0;">Asignación</h2>
+                </div>
+                <div style="display:grid; gap:12px;">
+                    <div>
+                        <label style="display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px;">Parroquia *</label>
+                        <select name="parroquia" required
+                                style="width:100%; padding:7px 10px; border:1.5px solid var(--rule); border-radius:7px; font-size:13px; font-family:var(--sans); color:var(--ink); background:var(--paper);">
+                            <option value="">— Seleccioná una parroquia —</option>
+                            {% for p in parroquias %}
+                            <option value="{{ p.pk }}"
+                                {% if accion == 'editar' and p.pk == gestor.parroquia.pk %}selected{% endif %}>
+                                {{ p.nombre }}{% if p.ciudad %} · {{ p.ciudad }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if accion == 'crear' %}
+                        <p style="font-size:11px; color:var(--muted); margin:4px 0 0;">Solo aparecen parroquias sin gestor asignado.</p>
+                        {% endif %}
+                    </div>
+
+                    {% if accion == 'editar' %}
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--ink);">
+                        <input type="checkbox" name="activo" {% if gestor.activo %}checked{% endif %}
+                               style="width:15px; height:15px; cursor:pointer; accent-color:var(--primary);">
+                        Gestor activo (puede acceder al panel)
+                    </label>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="section" style="display:flex; gap:10px; align-items:center;">
+                <button type="submit"
+                        style="padding:8px 20px; background:var(--primary); color:#fff; border:none; border-radius:8px;
+                               font-size:13px; font-weight:600; font-family:var(--sans); cursor:pointer;">
+                    {% if accion == 'crear' %}Crear gestor{% else %}Guardar cambios{% endif %}
+                </button>
+                <a href="{% url 'iglesias:gestores_lista' %}"
+                   style="padding:8px 16px; border:1px solid var(--rule); border-radius:8px;
+                          font-size:13px; font-weight:500; color:var(--muted); text-decoration:none; background:var(--paper);">
+                    Cancelar
+                </a>
+            </div>
+        </div>
+
+    </form>
+
+    <div>
+        <div class="panel">
+            <div class="section">
+                <p style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 10px;">¿Qué puede hacer un gestor?</p>
+                <ul style="font-size:13px; color:var(--ink-2); line-height:1.8; padding-left:1.1rem; margin:0;">
+                    <li>Editar información básica de su parroquia</li>
+                    <li>Gestionar horarios de misa</li>
+                    <li>Publicar eventos propios</li>
+                    <li>Subir imagen principal (ImageKit)</li>
+                    <li>Cambiar su contraseña</li>
+                </ul>
+                <p style="font-size:12px; color:var(--muted); margin:12px 0 0; line-height:1.5;">
+                    Accede al panel en <strong>/panel-parroquia/</strong>.<br>
+                    No tiene acceso al panel de administración.
+                </p>
+            </div>
+            {% if accion == 'editar' %}
+            <div class="section" style="border-top:1px solid var(--line);">
+                <p style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 8px;">Datos actuales</p>
+                <div style="font-size:12px; color:var(--ink); line-height:1.8;">
+                    <div><span style="color:var(--muted);">Creado:</span> {{ gestor.creado|date:"d/m/Y H:i" }}</div>
+                    <div><span style="color:var(--muted);">Último login:</span>
+                        {% if gestor.user.last_login %}{{ gestor.user.last_login|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}
+                    </div>
+                    <div><span style="color:var(--muted);">Parroquia gestionada:</span>
+                        {% if gestor.parroquia.gestionado_por_parroquia %}Sí{% else %}No (sin datos del gestor aún){% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

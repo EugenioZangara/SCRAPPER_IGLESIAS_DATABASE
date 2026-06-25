@@ -138,4 +138,23 @@ urlpatterns = [
     path("publico/perfil/toggle-avisos/", views.toggle_avisos_view, name="toggle_avisos"),
     path("publico/perfil/upload-avatar/", views.upload_avatar, name="upload_avatar"),
     path("publico/perfil/delete-avatar/", views.delete_avatar, name="delete_avatar"),
+
+    # Gestión de Gestores (staff)
+    path("gestores/", views.gestores_lista, name="gestores_lista"),
+    path("gestores/nuevo/", views.gestor_crear, name="gestor_crear"),
+    path("gestores/<int:pk>/editar/", views.gestor_editar, name="gestor_editar"),
+    path("gestores/<int:pk>/eliminar/", views.gestor_eliminar, name="gestor_eliminar"),
+
+    # Panel Gestor de Parroquia
+    path("panel-parroquia/login/", views.panel_login, name="panel_login"),
+    path("panel-parroquia/logout/", views.panel_logout, name="panel_logout"),
+    path("panel-parroquia/", views.panel_dashboard, name="panel_dashboard"),
+    path("panel-parroquia/info/", views.panel_info, name="panel_info"),
+    path("panel-parroquia/horarios/", views.panel_horarios, name="panel_horarios"),
+    path("panel-parroquia/eventos/", views.panel_eventos_lista, name="panel_eventos_lista"),
+    path("panel-parroquia/eventos/nuevo/", views.panel_evento_nuevo, name="panel_evento_nuevo"),
+    path("panel-parroquia/eventos/<int:pk>/editar/", views.panel_evento_editar, name="panel_evento_editar"),
+    path("panel-parroquia/eventos/<int:pk>/eliminar/", views.panel_evento_eliminar, name="panel_evento_eliminar"),
+    path("panel-parroquia/imagenes/", views.panel_imagenes, name="panel_imagenes"),
+    path("panel-parroquia/cambiar-password/", views.panel_cambiar_password, name="panel_cambiar_password"),
 ]

@@ -2472,6 +2472,7 @@ def robots_txt(request):
         "Disallow: /posts/\n"
         "Disallow: /debug/\n"
         "Disallow: /api/\n"
+        "Disallow: /panel-parroquia/\n"
         "Disallow: /publico/buscar/\n"
         "Disallow: /publico/geo/\n"
         "Disallow: /publico/*/favorita/\n"
@@ -2923,6 +2924,135 @@ def toggle_avisos_view(request):
     })
 
 
+# ---------------------------------------------------------------------------
+# Gestión de Gestores de Parroquia (solo staff)
+# ---------------------------------------------------------------------------
+
+from django.contrib.auth.models import User as _User
+
+
+@staff_member_required
+def gestores_lista(request):
+    gestores = PerfilGestorParroquia.objects.select_related(
+        'user', 'parroquia'
+    ).order_by('parroquia__nombre')
+    return render(request, 'iglesias/gestores/lista.html', {'gestores': gestores})
+
+
+@staff_member_required
+def gestor_crear(request):
+    parroquias_sin_gestor = Parroquia.objects.filter(gestor__isnull=True).order_by('nombre')
+    error = None
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '').strip()
+        password2 = request.POST.get('password2', '').strip()
+        parroquia_id = request.POST.get('parroquia', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+
+        if not username:
+            error = 'El nombre de usuario es obligatorio.'
+        elif _User.objects.filter(username=username).exists():
+            error = f'El usuario "{username}" ya existe.'
+        elif not password:
+            error = 'La contraseña es obligatoria.'
+        elif password != password2:
+            error = 'Las contraseñas no coinciden.'
+        elif len(password) < 8:
+            error = 'La contraseña debe tener al menos 8 caracteres.'
+        elif not parroquia_id:
+            error = 'Seleccioná una parroquia.'
+        else:
+            try:
+                parroquia = Parroquia.objects.get(pk=parroquia_id)
+            except Parroquia.DoesNotExist:
+                error = 'Parroquia no encontrada.'
+
+            if not error:
+                user = _User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                    is_staff=False,
+                    is_superuser=False,
+                )
+                PerfilGestorParroquia.objects.create(user=user, parroquia=parroquia, activo=True)
+                messages.success(request, f'Gestor "{username}" creado y asignado a {parroquia.nombre}.')
+                return redirect('iglesias:gestores_lista')
+
+    return render(request, 'iglesias/gestores/form.html', {
+        'parroquias': parroquias_sin_gestor,
+        'error': error,
+        'accion': 'crear',
+    })
+
+
+@staff_member_required
+def gestor_editar(request, pk):
+    gestor = get_object_or_404(PerfilGestorParroquia, pk=pk)
+    parroquias_disponibles = Parroquia.objects.filter(
+        Q(gestor__isnull=True) | Q(pk=gestor.parroquia_id)
+    ).order_by('nombre')
+    error = None
+
+    if request.method == 'POST':
+        parroquia_id = request.POST.get('parroquia', '').strip()
+        activo = request.POST.get('activo') == 'on'
+        new_password = request.POST.get('new_password', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+
+        if not parroquia_id:
+            error = 'Seleccioná una parroquia.'
+        else:
+            try:
+                parroquia = Parroquia.objects.get(pk=parroquia_id)
+            except Parroquia.DoesNotExist:
+                error = 'Parroquia no encontrada.'
+
+            if not error:
+                gestor.parroquia = parroquia
+                gestor.activo = activo
+                gestor.save()
+
+                gestor.user.first_name = first_name
+                gestor.user.last_name = last_name
+                gestor.user.email = email
+                if new_password:
+                    if len(new_password) < 8:
+                        error = 'La nueva contraseña debe tener al menos 8 caracteres.'
+                    else:
+                        gestor.user.set_password(new_password)
+                if not error:
+                    gestor.user.save()
+                    messages.success(request, f'Gestor "{gestor.user.username}" actualizado.')
+                    return redirect('iglesias:gestores_lista')
+
+    return render(request, 'iglesias/gestores/form.html', {
+        'gestor': gestor,
+        'parroquias': parroquias_disponibles,
+        'error': error,
+        'accion': 'editar',
+    })
+
+
+@staff_member_required
+@require_POST
+def gestor_eliminar(request, pk):
+    gestor = get_object_or_404(PerfilGestorParroquia, pk=pk)
+    nombre = gestor.user.username
+    parroquia = gestor.parroquia.nombre
+    gestor.user.delete()  # cascadea a PerfilGestorParroquia
+    messages.success(request, f'Gestor "{nombre}" eliminado (parroquia: {parroquia}).')
+    return redirect('iglesias:gestores_lista')
+
+
 def error_403(request, exception=None):
     return render(request, 'iglesias/403.html', status=403)
 
@@ -2933,3 +3063,311 @@ def error_404(request, exception=None):
 
 def error_500(request):
     return render(request, 'iglesias/500.html', status=500)
+
+
+# ---------------------------------------------------------------------------
+# Panel Gestor de Parroquia
+# ---------------------------------------------------------------------------
+
+from .models import PerfilGestorParroquia
+from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+import uuid
+
+
+def _gestor_requerido(view_func):
+    """Decorator: verifica que el usuario tenga PerfilGestorParroquia activo."""
+    from functools import wraps
+
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('/panel-parroquia/login/')
+        try:
+            perfil = request.user.gestor_parroquia
+            if not perfil.activo:
+                auth_logout(request)
+                return redirect('/panel-parroquia/login/')
+        except PerfilGestorParroquia.DoesNotExist:
+            return redirect('/panel-parroquia/login/')
+        return view_func(request, *args, **kwargs)
+
+    return wrapper
+
+
+def panel_login(request):
+    error = None
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            try:
+                perfil = user.gestor_parroquia
+                if perfil.activo:
+                    auth_login(request, user)
+                    return redirect('/panel-parroquia/')
+                else:
+                    error = 'Tu acceso al panel está desactivado.'
+            except PerfilGestorParroquia.DoesNotExist:
+                error = 'No tenés acceso al panel de gestores.'
+        else:
+            error = 'Usuario o contraseña incorrectos.'
+    return render(request, 'iglesias/panel_gestor/login.html', {'error': error})
+
+
+@_gestor_requerido
+def panel_dashboard(request):
+    parroquia = request.user.gestor_parroquia.parroquia
+    horarios = HorarioMisa.objects.filter(parroquia=parroquia).order_by('dia_semana')
+    eventos = PostParroquia.objects.filter(
+        parroquia=parroquia, red_social='gestor', es_evento=True
+    ).order_by('-creado_en')[:5]
+    return render(request, 'iglesias/panel_gestor/dashboard.html', {
+        'parroquia': parroquia,
+        'horarios': horarios,
+        'eventos': eventos,
+    })
+
+
+@_gestor_requerido
+def panel_info(request):
+    parroquia = request.user.gestor_parroquia.parroquia
+    error = None
+    success = None
+
+    if request.method == 'POST':
+        campos = ['nombre', 'direccion', 'telefonos', 'sitio_web', 'parroco', 'descripcion_breve']
+        for campo in ['nombre', 'direccion', 'telefonos', 'sitio_web', 'parroco']:
+            valor = request.POST.get(campo, '').strip()
+            if valor:
+                setattr(parroquia, campo, valor)
+        parroquia.gestionado_por_parroquia = True
+        parroquia.save()
+        success = 'Información actualizada correctamente.'
+
+    return render(request, 'iglesias/panel_gestor/info.html', {
+        'parroquia': parroquia,
+        'error': error,
+        'success': success,
+    })
+
+
+@_gestor_requerido
+def panel_horarios(request):
+    parroquia = request.user.gestor_parroquia.parroquia
+    DIA_CHOICES = [
+        (0, 'Lunes'), (1, 'Martes'), (2, 'Miércoles'),
+        (3, 'Jueves'), (4, 'Viernes'), (5, 'Sábado'), (6, 'Domingo'),
+    ]
+    success = None
+    error = None
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+        if action == 'guardar':
+            # Guardar/actualizar todos los días enviados
+            for dia, _ in DIA_CHOICES:
+                horario_str = request.POST.get(f'horario_{dia}', '').strip()
+                nota_str = request.POST.get(f'nota_{dia}', '').strip()
+                if horario_str:
+                    HorarioMisa.objects.update_or_create(
+                        parroquia=parroquia,
+                        dia_semana=dia,
+                        defaults={'horarios': horario_str, 'nota': nota_str, 'fuente': 'web_propia'}
+                    )
+                else:
+                    HorarioMisa.objects.filter(parroquia=parroquia, dia_semana=dia).delete()
+            parroquia.gestionado_por_parroquia = True
+            parroquia.save()
+            success = 'Horarios guardados correctamente.'
+        elif action == 'eliminar':
+            dia = int(request.POST.get('dia', -1))
+            if 0 <= dia <= 6:
+                HorarioMisa.objects.filter(parroquia=parroquia, dia_semana=dia).delete()
+                success = 'Horario eliminado.'
+
+    horarios = {h.dia_semana: h for h in HorarioMisa.objects.filter(parroquia=parroquia)}
+    dias = [(dia, nombre, horarios.get(dia)) for dia, nombre in DIA_CHOICES]
+
+    return render(request, 'iglesias/panel_gestor/horarios.html', {
+        'parroquia': parroquia,
+        'dias': dias,
+        'success': success,
+        'error': error,
+    })
+
+
+@_gestor_requerido
+def panel_eventos_lista(request):
+    parroquia = request.user.gestor_parroquia.parroquia
+    eventos = PostParroquia.objects.filter(
+        parroquia=parroquia, red_social='gestor', es_evento=True
+    ).order_by('-creado_en')
+    return render(request, 'iglesias/panel_gestor/eventos_lista.html', {
+        'parroquia': parroquia,
+        'eventos': eventos,
+    })
+
+
+@_gestor_requerido
+def panel_evento_nuevo(request):
+    parroquia = request.user.gestor_parroquia.parroquia
+    error = None
+
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo', '').strip()
+        descripcion = request.POST.get('descripcion', '').strip()
+        fecha_str = request.POST.get('fecha', '').strip()
+        hora_str = request.POST.get('hora', '').strip()
+        imagen_url_val = request.POST.get('imagen_url', '').strip()
+
+        if not titulo:
+            error = 'El título es obligatorio.'
+        else:
+            from datetime import date as _date, time as _time
+            fecha_val = None
+            hora_val = None
+            try:
+                if fecha_str:
+                    fecha_val = _date.fromisoformat(fecha_str)
+                if hora_str:
+                    hora_val = _time.fromisoformat(hora_str)
+            except ValueError:
+                error = 'Fecha u hora inválida.'
+
+            if not error:
+                PostParroquia.objects.create(
+                    parroquia=parroquia,
+                    post_id=f'gestor_{uuid.uuid4().hex[:12]}',
+                    red_social='gestor',
+                    es_evento=True,
+                    procesado=True,
+                    imagen_url=imagen_url_val,
+                    titulo_evento=titulo,
+                    descripcion_evento=descripcion,
+                    fecha_evento=fecha_val,
+                    hora_evento=hora_val,
+                )
+                return redirect('/panel-parroquia/eventos/')
+
+    return render(request, 'iglesias/panel_gestor/evento_form.html', {
+        'parroquia': parroquia,
+        'error': error,
+        'evento': None,
+    })
+
+
+@_gestor_requerido
+def panel_evento_editar(request, pk):
+    parroquia = request.user.gestor_parroquia.parroquia
+    evento = get_object_or_404(PostParroquia, pk=pk, parroquia=parroquia, red_social='gestor')
+    error = None
+
+    if request.method == 'POST':
+        titulo = request.POST.get('titulo', '').strip()
+        descripcion = request.POST.get('descripcion', '').strip()
+        fecha_str = request.POST.get('fecha', '').strip()
+        hora_str = request.POST.get('hora', '').strip()
+        imagen_url_val = request.POST.get('imagen_url', '').strip()
+
+        if not titulo:
+            error = 'El título es obligatorio.'
+        else:
+            from datetime import date as _date, time as _time
+            try:
+                evento.fecha_evento = _date.fromisoformat(fecha_str) if fecha_str else None
+                evento.hora_evento = _time.fromisoformat(hora_str) if hora_str else None
+            except ValueError:
+                error = 'Fecha u hora inválida.'
+
+            if not error:
+                evento.titulo_evento = titulo
+                evento.descripcion_evento = descripcion
+                evento.imagen_url = imagen_url_val
+                evento.save()
+                return redirect('/panel-parroquia/eventos/')
+
+    return render(request, 'iglesias/panel_gestor/evento_form.html', {
+        'parroquia': parroquia,
+        'error': error,
+        'evento': evento,
+    })
+
+
+@_gestor_requerido
+@require_POST
+def panel_evento_eliminar(request, pk):
+    parroquia = request.user.gestor_parroquia.parroquia
+    evento = get_object_or_404(PostParroquia, pk=pk, parroquia=parroquia, red_social='gestor')
+    evento.delete()
+    return redirect('/panel-parroquia/eventos/')
+
+
+@_gestor_requerido
+def panel_imagenes(request):
+    from django.conf import settings as _settings
+    parroquia = request.user.gestor_parroquia.parroquia
+    error = None
+    success = None
+
+    if request.method == 'POST':
+        imagen_file = request.FILES.get('imagen')
+        if not imagen_file:
+            error = 'Seleccioná una imagen para subir.'
+        else:
+            try:
+                from imagekitio import ImageKit
+                ik = ImageKit(
+                    public_key=_settings.IMAGEKIT_PUBLIC_KEY,
+                    private_key=_settings.IMAGEKIT_PRIVATE_KEY,
+                    url_endpoint=_settings.IMAGEKIT_URL_ENDPOINT,
+                )
+                resultado = ik.upload_file(
+                    file=imagen_file.read(),
+                    file_name=imagen_file.name,
+                    options={"folder": f"/parroquias/{parroquia.pk}/"},
+                )
+                url = resultado.response_metadata.raw['url']
+                parroquia.imagen_principal = url
+                parroquia.save(update_fields=['imagen_principal'])
+                success = 'Imagen subida correctamente.'
+            except Exception as e:
+                error = f'Error al subir la imagen: {e}'
+
+    return render(request, 'iglesias/panel_gestor/imagenes.html', {
+        'parroquia': parroquia,
+        'error': error,
+        'success': success,
+    })
+
+
+@_gestor_requerido
+def panel_cambiar_password(request):
+    error = None
+    success = None
+
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            success = 'Contraseña actualizada correctamente.'
+            form = PasswordChangeForm(request.user)
+        else:
+            error = 'Corregí los errores del formulario.'
+    else:
+        form = PasswordChangeForm(request.user)
+
+    return render(request, 'iglesias/panel_gestor/cambiar_password.html', {
+        'form': form,
+        'error': error,
+        'success': success,
+    })
+
+
+@_gestor_requerido
+def panel_logout(request):
+    auth_logout(request)
+    return redirect('/panel-parroquia/login/')

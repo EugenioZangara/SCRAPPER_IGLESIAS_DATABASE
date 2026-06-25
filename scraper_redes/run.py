@@ -89,7 +89,8 @@ def procesar_posts_pendientes(parroquia):
             crear_evento_desde_post(post_obj, resultado)
 
         # Crear ReporteHorario si se detectaron horarios semanales
-        if resultado.get("tiene_horarios") and resultado.get("horarios_detectados"):
+        if resultado.get("tiene_horarios") and resultado.get("horarios_detectados") \
+                and not post_obj.parroquia.gestionado_por_parroquia:
             from datetime import timedelta
             hace_7_dias = timezone.now() - timedelta(days=7)
             if not ReporteHorario.objects.filter(

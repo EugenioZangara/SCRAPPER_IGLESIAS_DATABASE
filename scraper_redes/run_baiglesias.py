@@ -35,15 +35,18 @@ def procesar_parroquia(parroquia) -> bool:
         },
     )
 
-    # Borrar horarios anteriores y recrear
-    HorarioMisa.objects.filter(parroquia=parroquia).delete()
-    for h in resultado["horarios"]:
-        HorarioMisa.objects.create(
-            parroquia=parroquia,
-            dias=h["dias"],
-            horarios=h["horarios"],
-            nota=h.get("nota"),
-        )
+    # Borrar horarios anteriores y recrear (solo si no está gestionado manualmente)
+    if not parroquia.gestionado_por_parroquia:
+        HorarioMisa.objects.filter(parroquia=parroquia).delete()
+        for h in resultado["horarios"]:
+            HorarioMisa.objects.create(
+                parroquia=parroquia,
+                dias=h["dias"],
+                horarios=h["horarios"],
+                nota=h.get("nota"),
+            )
+    else:
+        print(f"  ⏭  Horarios omitidos — parroquia gestionada manualmente")
 
     print(f"  ✅ Info guardada — {len(resultado['horarios'])} horarios")
     if resultado["direccion_completa"]:

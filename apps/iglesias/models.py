@@ -67,6 +67,17 @@ class Parroquia(models.Model):
     latitud = models.FloatField(null=True, blank=True)
     longitud = models.FloatField(null=True, blank=True)
 
+    # Panel de gestor de parroquia
+    gestionado_por_parroquia = models.BooleanField(
+        default=False,
+        help_text="Si True, los datos del gestor tienen prioridad; el scraper no sobreescribe campos clave"
+    )
+    imagen_principal = models.URLField(
+        max_length=1000,
+        blank=True,
+        help_text="URL de imagen subida vía ImageKit por el gestor de la parroquia"
+    )
+
     class Meta:
         verbose_name = "Parroquia"
         verbose_name_plural = "Parroquias"
@@ -107,6 +118,7 @@ class PostParroquia(models.Model):
     RED_SOCIAL_CHOICES = [
         ("facebook", "Facebook"),
         ("instagram", "Instagram"),
+        ("gestor", "Gestor de Parroquia"),
     ]
 
     parroquia = models.ForeignKey(
@@ -114,12 +126,18 @@ class PostParroquia(models.Model):
     )
     post_id = models.CharField(max_length=100, unique=True, help_text="ID nativo de Meta")
     red_social = models.CharField(max_length=20, choices=RED_SOCIAL_CHOICES)
-    imagen_url = models.URLField(max_length=1000, help_text="Puede caducar en Instagram")
+    imagen_url = models.URLField(max_length=1000, blank=True, default='', help_text="Puede caducar en Instagram")
     fecha_publicacion = models.DateTimeField(null=True, blank=True, help_text="Fecha de publicación en la red social")
     procesado = models.BooleanField(default=False)
     es_evento = models.BooleanField(null=True, help_text="null = sin procesar")
     creado_en = models.DateTimeField(auto_now_add=True)
     raw_data = models.JSONField(blank=True, null=True, help_text="Respuesta cruda de la API")
+
+    # Campos para eventos creados por gestores de parroquia
+    titulo_evento = models.CharField(max_length=200, blank=True)
+    descripcion_evento = models.TextField(blank=True)
+    fecha_evento = models.DateField(null=True, blank=True)
+    hora_evento = models.TimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-creado_en"]
@@ -635,3 +653,25 @@ class SuscripcionAvisoMisa(models.Model):
 
     def __str__(self):
         return f"{self.usuario.email} → {self.parroquia.nombre}"
+
+
+class PerfilGestorParroquia(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='gestor_parroquia'
+    )
+    parroquia = models.OneToOneField(
+        'Parroquia',
+        on_delete=models.PROTECT,
+        related_name='gestor'
+    )
+    activo = models.BooleanField(default=True)
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Perfil de Gestor de Parroquia'
+        verbose_name_plural = 'Perfiles de Gestores de Parroquia'
+
+    def __str__(self):
+        return f"Gestor: {self.user.username} → {self.parroquia.nombre}"
