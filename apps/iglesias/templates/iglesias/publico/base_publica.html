@@ -362,7 +362,7 @@
   {% if FACEBOOK_APP_ID %}<meta property="fb:app_id" content="{{ FACEBOOK_APP_ID }}">{% endif %}
   <meta property="og:title" content="{% block og_title %}ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires{% endblock %}">
   <meta property="og:description" content="{% block og_description %}Directorio de parroquias católicas de la Arquidiócesis de Buenos Aires con horarios de misas y eventos.{% endblock %}">
-  <meta property="og:url" content="{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
+  <meta property="og:url" content="{% block og_url %}{{ SITE_URL }}{{ request.path }}{% endblock %}">
   <meta property="og:image" content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}/static/iglesias/img/og_parroguia.png{% endblock %}">
   <meta property="og:image:width" content="{% block og_image_width %}1200{% endblock %}">
   <meta property="og:image:height" content="{% block og_image_height %}630{% endblock %}">
@@ -372,7 +372,7 @@
   <meta name="twitter:description" content="{% block twitter_description %}Directorio de parroquias católicas de la Arquidiócesis de Buenos Aires.{% endblock %}">
   <meta name="twitter:image" content="{% block twitter_image %}{{ request.scheme }}://{{ request.get_host }}/static/iglesias/img/og_parroguia.png{% endblock %}">
   <meta name="twitter:image:alt" content="{% block twitter_image_alt %}ParroGuía — Encontrá tu próxima misa a un click{% endblock %}">
-  <link rel="canonical" href="{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
+  <link rel="canonical" href="{% block canonical %}{{ SITE_URL }}{{ request.path }}{% endblock %}">
   <meta name="theme-color" content="#14315E">
   {% if GOOGLE_SITE_VERIFICATION %}<meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}">{% endif %}
   {% block meta_extra %}{% endblock %}

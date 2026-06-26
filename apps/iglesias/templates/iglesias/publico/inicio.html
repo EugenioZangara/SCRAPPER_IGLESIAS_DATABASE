@@ -1,10 +1,10 @@
 {% extends "iglesias/publico/base_publica.html" %}
 {% load static %}
 
-{% block page_title %}ParroGuía — Parroquias de la Arquidiócesis de Buenos Aires{% endblock %}
-{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_inicio' %}{% endblock %}
-{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_inicio' %}{% endblock %}
-{% block meta_description %}Encontrá tu parroquia en Buenos Aires. Horarios de misas, eventos, contacto y ubicación de las {{ total }} parroquias de la Arquidiócesis de Buenos Aires.{% endblock %}
+{% block page_title %}Horarios de Misa en Buenos Aires y Argentina | ParroGuía{% endblock %}
+{% block og_url %}{{ SITE_URL }}{% url 'iglesias:publico_inicio' %}{% endblock %}
+{% block canonical %}{{ SITE_URL }}{% url 'iglesias:publico_inicio' %}{% endblock %}
+{% block meta_description %}Encontrá horarios de misa en parroquias de Buenos Aires y toda Argentina. Más de {{ total }} parroquias con horarios actualizados, eventos y contacto. Buscá tu parroquia más cercana.{% endblock %}
 
 {% block meta_extra %}
 <script type="application/ld+json">
