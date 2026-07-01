@@ -1816,6 +1816,38 @@ def publico_buscar(request):
     })
 
 
+def _meta_description_detalle(parroquia, tiene_horarios):
+    lugar = parroquia.barrio or parroquia.ciudad
+    partes = ["Horarios de misas"]
+    if tiene_horarios:
+        partes.append(" y eventos")
+    partes.append(f" de {parroquia.nombre}")
+    if lugar:
+        partes.append(f" en {lugar}")
+    if parroquia.provincia:
+        partes.append(f", {parroquia.provincia}")
+    partes.append(".")
+    if parroquia.diocesis:
+        partes.append(f" {parroquia.diocesis}.")
+    descripcion = "".join(partes)
+
+    rellenos = [
+        " Consultá contacto, dirección y horarios de misa actualizados.",
+        " Sumate a la comunidad parroquial en ParroGuía.",
+        " Información verificada por vecinos y feligreses.",
+    ]
+    for relleno in rellenos:
+        if len(descripcion) >= 120:
+            break
+        descripcion += relleno
+
+    if len(descripcion) > 160:
+        recortado = descripcion[:157].rsplit(" ", 1)[0]
+        descripcion = recortado.rstrip(",.") + "..."
+
+    return descripcion
+
+
 def publico_detalle(request, pk):
     parroquia = get_object_or_404(Parroquia, pk=pk)
     hoy = date.today()
@@ -1903,6 +1935,7 @@ def publico_detalle(request, pk):
 
     return render(request, "iglesias/publico/detalle.html", {
         "parroquia": parroquia,
+        "meta_description": _meta_description_detalle(parroquia, horarios.exists()),
         "foto_url": foto_url,
         "redes": redes_verificadas,
         "eventos": eventos_proximos,
