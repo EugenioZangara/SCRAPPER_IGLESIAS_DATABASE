@@ -806,9 +806,19 @@ def editar_evento(request, pk):
         evento.ubicacion_cp = request.POST.get("ubicacion_cp", "").strip() or None
         evento.ubicacion_provincia = request.POST.get("ubicacion_provincia", "Buenos Aires").strip()
 
+        if request.POST.get("aprobar"):
+            evento.verificado = True
+            evento.activo = True
+
         evento.save()
 
         next_url = request.POST.get("next", "").strip()
+        if request.POST.get("aprobar"):
+            messages.success(request, f'Evento "{evento.titulo}" guardado y aprobado.')
+            if next_url and next_url.startswith("/"):
+                return redirect(next_url)
+            return redirect("iglesias:moderacion_eventos")
+
         if next_url and next_url.startswith("/"):
             return redirect(next_url)
         return redirect("iglesias:detalle_parroquia", pk=parroquia.pk)
