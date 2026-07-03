@@ -18,7 +18,7 @@ services:
       - key: ALLOWED_HOSTS
         value: scrapper-iglesias-database.onrender.com,parroguia.com,www.parroguia.com
       - key: CSRF_TRUSTED_ORIGINS
-        value: https://scraper-catolico.onrender.com
+        value: https://scrapper-iglesias-database.onrender.com,https://parroguia.com,https://www.parroguia.com
       - key: DEBUG
         value: false
       - key: GEMINI_API_KEY
