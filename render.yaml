@@ -16,7 +16,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
-        value: scraper-catolico.onrender.com
+        value: scrapper-iglesias-database.onrender.com,parroguia.com,www.parroguia.com
       - key: CSRF_TRUSTED_ORIGINS
         value: https://scraper-catolico.onrender.com
       - key: DEBUG
