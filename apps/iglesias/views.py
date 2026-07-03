@@ -2482,7 +2482,7 @@ def reporte_card(request, pk):
 def sitemap(request):
     from datetime import date as _date
     parroquias = Parroquia.objects.all().order_by("id")
-    base_url = f"{request.scheme}://{request.get_host()}"
+    base_url = settings.SITE_URL
     return render(request, "iglesias/publico/sitemap.xml",
                   {"parroquias": parroquias, "base_url": base_url,
                    "today": _date.today().isoformat()},
@@ -2546,7 +2546,7 @@ def robots_txt(request):
         "User-agent: Applebot\n"
         "Allow: /\n"
         "\n"
-        f"Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml\n"
+        f"Sitemap: {settings.SITE_URL}/sitemap.xml\n"
     )
     from django.http import HttpResponse
     return HttpResponse(content, content_type="text/plain")
@@ -2824,7 +2824,7 @@ def pagina_terminos(request):
 
 
 def como_funciona(request):
-    canonical = f"{request.scheme}://{request.get_host()}/publico/como-funciona/"
+    canonical = f"{settings.SITE_URL}/publico/como-funciona/"
     niveles = [
         {"emoji": "🗺️", "nombre": "Explorador", "rango": "0 – 49 pts"},
         {"emoji": "🏘️", "nombre": "Vecino", "rango": "50 – 149 pts"},

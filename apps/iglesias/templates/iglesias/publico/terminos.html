@@ -1,7 +1,7 @@
 {% extends "iglesias/publico/base_publica.html" %}
 
 {% block page_title %}Términos de Servicio — ParroGuía{% endblock %}
-{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:terminos' %}{% endblock %}
+{% block canonical %}{{ SITE_URL }}{% url 'iglesias:terminos' %}{% endblock %}
 
 {% block meta_description %}Términos y condiciones de uso de ParroGuía, directorio de parroquias de la Arquidiócesis de Buenos Aires.{% endblock %}
 

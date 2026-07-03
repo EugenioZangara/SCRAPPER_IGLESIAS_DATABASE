@@ -1,7 +1,7 @@
 {% extends "iglesias/publico/base_publica.html" %}
 
 {% block page_title %}Mis aportes | ParroGuía{% endblock %}
-{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:publico_mis_aportes' %}{% endblock %}
+{% block canonical %}{{ SITE_URL }}{% url 'iglesias:publico_mis_aportes' %}{% endblock %}
 {% block meta_extra %}
 <meta name="robots" content="noindex, nofollow">
 {% endblock %}

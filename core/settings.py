@@ -137,6 +137,7 @@ SOCIALACCOUNT_PROVIDERS = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'apps.iglesias.middleware.CanonicalDomainRedirectMiddleware',
     'django_permissions_policy.PermissionsPolicyMiddleware',
     'csp.middleware.CSPMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -250,6 +251,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 # ── Security Headers ──────────────────────────────────────────────
 
 # HTTPS
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG

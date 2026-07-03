@@ -1,7 +1,7 @@
 {% extends "iglesias/publico/base_publica.html" %}
 
 {% block page_title %}Política de Privacidad — ParroGuía{% endblock %}
-{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{% url 'iglesias:privacidad' %}{% endblock %}
+{% block canonical %}{{ SITE_URL }}{% url 'iglesias:privacidad' %}{% endblock %}
 
 {% block meta_description %}Política de privacidad de ParroGuía. Información sobre el tratamiento de datos personales, cookies y publicidad en nuestro sitio.{% endblock %}
 
