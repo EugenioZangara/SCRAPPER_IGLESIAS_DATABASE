@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-        <loc>{{ base_url }}/publico/</loc>
+        <loc>{{ base_url }}/</loc>
         <lastmod>{{ today }}</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
@@ -17,6 +17,18 @@
         <lastmod>{{ today }}</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>{{ base_url }}/publico/privacidad/</loc>
+        <lastmod>{{ today }}</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.3</priority>
+    </url>
+    <url>
+        <loc>{{ base_url }}/publico/terminos/</loc>
+        <lastmod>{{ today }}</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.3</priority>
     </url>
     {% for p in parroquias %}
     <url>

@@ -136,8 +136,8 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
     'apps.iglesias.middleware.CanonicalDomainRedirectMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django_permissions_policy.PermissionsPolicyMiddleware',
     'csp.middleware.CSPMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',

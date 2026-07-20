@@ -5,11 +5,11 @@ from django.http import HttpResponsePermanentRedirect
 
 
 class CanonicalDomainRedirectMiddleware:
-    """Redirige (301) el host no-www al dominio canónico definido en SITE_URL.
+    """Redirige (301) al dominio y esquema canónicos definidos en SITE_URL.
 
-    Defensa en profundidad a nivel Django: aunque Render/DNS deban tener
-    configurado el mismo redirect, esto garantiza una única versión
-    indexable incluso si esa config se pierde o cambia.
+    Corrige host (no-www → www) y esquema (http → https) en un único hop,
+    evitando cadenas de redirects (http://bare → https://bare → https://www)
+    que Search Console puede marcar como exclusión de indexado.
     """
 
     def __init__(self, get_response):
@@ -21,7 +21,9 @@ class CanonicalDomainRedirectMiddleware:
 
     def __call__(self, request):
         host = request.get_host()
-        if self.bare_host and host == self.bare_host:
+        wrong_host = bool(self.bare_host) and host == self.bare_host
+        wrong_scheme = self.canonical_scheme == "https" and not request.is_secure()
+        if wrong_host or wrong_scheme:
             url = f"{self.canonical_scheme}://{self.canonical_host}{request.get_full_path()}"
             return HttpResponsePermanentRedirect(url)
         return self.get_response(request)
