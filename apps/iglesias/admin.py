@@ -13,7 +13,22 @@ from .models import (
     PerfilUsuario,
     Banner,
     PerfilGestorParroquia,
+    MetricaDiaria,
 )
+
+
+@admin.register(MetricaDiaria)
+class MetricaDiariaAdmin(admin.ModelAdmin):
+    list_display = ("fecha", "tipo", "parroquia", "banner", "cantidad")
+    list_filter = ("tipo", "fecha")
+    search_fields = ("parroquia__nombre",)
+    date_hierarchy = "fecha"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 class HorarioMisaInline(admin.TabularInline):

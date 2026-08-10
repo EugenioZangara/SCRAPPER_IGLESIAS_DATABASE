@@ -157,4 +157,9 @@ urlpatterns = [
     path("panel-parroquia/eventos/<int:pk>/eliminar/", views.panel_evento_eliminar, name="panel_evento_eliminar"),
     path("panel-parroquia/imagenes/", views.panel_imagenes, name="panel_imagenes"),
     path("panel-parroquia/cambiar-password/", views.panel_cambiar_password, name="panel_cambiar_password"),
+
+    # Analítica propia
+    path("publico/metrica/", views.metrica_click, name="metrica_click"),
+    path("r/banner/<int:pk>/", views.banner_redirect, name="banner_redirect"),
+    path("estadisticas/", views.estadisticas_panel, name="estadisticas_panel"),
 ]

@@ -93,6 +93,8 @@ FACEBOOK_APP_ID = env("FACEBOOK_APP_ID", default="")
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 SITE_URL = env("SITE_URL", default="https://www.parroguia.com")
 GOOGLE_SITE_VERIFICATION = env("GOOGLE_SITE_VERIFICATION", default="")
+# ID de medición de Google Analytics 4 (ej: G-XXXXXXXXXX). Vacío = GA apagado.
+GA_MEASUREMENT_ID = env("GA_MEASUREMENT_ID", default="")
 
 IMAGEKIT_PUBLIC_KEY   = env("IMAGEKIT_PUBLI_KEY",    default="")
 IMAGEKIT_PRIVATE_KEY  = env("IMAGEKIT_PRIVA_KEY",    default="")
@@ -290,6 +292,13 @@ CONTENT_SECURITY_POLICY = {
             "https://cdnjs.cloudflare.com",
             "https://accounts.google.com",
             "https://connect.facebook.net",
+            # AdSense
+            "https://pagead2.googlesyndication.com",
+            "https://tpc.googlesyndication.com",
+            "https://googleads.g.doubleclick.net",
+            "https://ep2.adtrafficquality.google",
+            # Google Analytics 4
+            "https://www.googletagmanager.com",
             "'unsafe-inline'",
         ],
         "style-src": [
@@ -311,10 +320,23 @@ CONTENT_SECURITY_POLICY = {
         "connect-src": [
             "'self'",
             "https://scrapper-iglesias-database.onrender.com",
+            # AdSense
+            "https://pagead2.googlesyndication.com",
+            "https://ep1.adtrafficquality.google",
+            "https://csi.gstatic.com",
+            # Google Analytics 4 (incluye endpoints regionales)
+            "https://www.googletagmanager.com",
+            "https://*.google-analytics.com",
+            "https://analytics.google.com",
         ],
         "frame-src": [
             "https://accounts.google.com",
             "https://www.facebook.com",
+            # AdSense
+            "https://googleads.g.doubleclick.net",
+            "https://tpc.googlesyndication.com",
+            "https://www.google.com",
+            "https://ep2.adtrafficquality.google",
         ],
         "object-src": ["'none'"],
         "base-uri": ["'self'"],

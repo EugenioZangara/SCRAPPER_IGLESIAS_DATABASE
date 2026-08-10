@@ -675,3 +675,65 @@ class PerfilGestorParroquia(models.Model):
 
     def __str__(self):
         return f"Gestor: {self.user.username} → {self.parroquia.nombre}"
+
+
+class MetricaDiaria(models.Model):
+    """Contador diario agregado de eventos de analítica propia.
+
+    Una fila por (fecha, tipo, parroquia, banner). Se incrementa con
+    registrar_metrica(); los reportes agregan con Sum() por si una
+    condición de carrera llegara a duplicar una fila.
+    """
+    TIPO_CHOICES = [
+        ("vista_home", "Vista de portada"),
+        ("busqueda", "Búsqueda"),
+        ("vista_parroquia", "Vista de parroquia"),
+        ("click_web", "Click en sitio web"),
+        ("click_telefono", "Click en teléfono"),
+        ("click_whatsapp", "Click en WhatsApp"),
+        ("click_email", "Click en email"),
+        ("click_red_social", "Click en red social"),
+        ("click_como_llegar", "Click en cómo llegar"),
+        ("banner_impresion", "Impresión de banner"),
+        ("banner_click", "Click en banner"),
+    ]
+
+    fecha = models.DateField(db_index=True)
+    tipo = models.CharField(max_length=30, choices=TIPO_CHOICES, db_index=True)
+    parroquia = models.ForeignKey(
+        "Parroquia", on_delete=models.CASCADE, null=True, blank=True,
+        related_name="metricas",
+    )
+    banner = models.ForeignKey(
+        "Banner", on_delete=models.CASCADE, null=True, blank=True,
+        related_name="metricas",
+    )
+    cantidad = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Métrica diaria"
+        verbose_name_plural = "Métricas diarias"
+        indexes = [
+            models.Index(fields=["fecha", "tipo"]),
+        ]
+
+    def __str__(self):
+        objeto = self.parroquia or self.banner or "sitio"
+        return f"{self.fecha} · {self.tipo} · {objeto}: {self.cantidad}"
+
+
+def registrar_metrica(tipo, parroquia=None, banner=None, cantidad=1):
+    """Incrementa el contador diario de una métrica. Nunca rompe la vista."""
+    from datetime import date as _date
+    try:
+        fila, creada = MetricaDiaria.objects.get_or_create(
+            fecha=_date.today(), tipo=tipo,
+            parroquia=parroquia, banner=banner,
+            defaults={"cantidad": cantidad},
+        )
+        if not creada:
+            MetricaDiaria.objects.filter(pk=fila.pk).update(
+                cantidad=models.F("cantidad") + cantidad
+            )
+    except Exception:
+        pass

@@ -770,7 +770,7 @@
         </div>
         <div>
           <div class="pd-info-label">Teléfono</div>
-          <div class="pd-info-val"><a href="tel:{{ parroquia.telefonos }}">{{ parroquia.telefonos }}</a></div>
+          <div class="pd-info-val"><a href="tel:{{ parroquia.telefonos }}" data-metrica="click_telefono">{{ parroquia.telefonos }}</a></div>
         </div>
       </div>
       {% endif %}
@@ -782,7 +782,7 @@
         </div>
         <div>
           <div class="pd-info-label">Email</div>
-          <div class="pd-info-val">{% if parroquia.mail_1 %}<a href="mailto:{{ parroquia.mail_1 }}">{{ parroquia.mail_1 }}</a>{% endif %}{% if parroquia.mail_1 and parroquia.mail_2 %} / {% endif %}{% if parroquia.mail_2 %}<a href="mailto:{{ parroquia.mail_2 }}">{{ parroquia.mail_2 }}</a>{% endif %}</div>
+          <div class="pd-info-val">{% if parroquia.mail_1 %}<a href="mailto:{{ parroquia.mail_1 }}" data-metrica="click_email">{{ parroquia.mail_1 }}</a>{% endif %}{% if parroquia.mail_1 and parroquia.mail_2 %} / {% endif %}{% if parroquia.mail_2 %}<a href="mailto:{{ parroquia.mail_2 }}" data-metrica="click_email">{{ parroquia.mail_2 }}</a>{% endif %}</div>
         </div>
       </div>
       {% endif %}
@@ -794,7 +794,7 @@
         </div>
         <div>
           <div class="pd-info-label">Web</div>
-          <div class="pd-info-val"><a href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener">{{ parroquia.sitio_web }}</a></div>
+          <div class="pd-info-val"><a href="{{ parroquia.sitio_web }}" target="_blank" rel="noopener" data-metrica="click_web">{{ parroquia.sitio_web }}</a></div>
         </div>
       </div>
       {% endif %}
@@ -821,7 +821,7 @@
         </div>
         <div style="flex:1;min-width:0;">
           <div class="pd-info-label">{{ red.get_tipo_display }}</div>
-          <div class="pd-info-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><a href="{{ red.url }}" target="_blank" rel="noopener noreferrer">{{ red.url }}</a></div>
+          <div class="pd-info-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><a href="{{ red.url }}" target="_blank" rel="noopener noreferrer" data-metrica="{% if red.tipo == 'whatsapp' %}click_whatsapp{% else %}click_red_social{% endif %}">{{ red.url }}</a></div>
         </div>
       </div>
       {% endfor %}
@@ -916,7 +916,7 @@
 
 {% if banner_detalle %}
 <div style="margin-top:24px;text-align:center;" aria-label="Publicidad">
-  {% if banner_detalle.url_destino %}<a href="{{ banner_detalle.url_destino }}" target="_blank" rel="noopener sponsored" style="display:inline-block;text-decoration:none;">{% endif %}
+  {% if banner_detalle.url_destino %}<a href="{% url 'iglesias:banner_redirect' banner_detalle.pk %}" target="_blank" rel="noopener sponsored nofollow" style="display:inline-block;text-decoration:none;">{% endif %}
   {% if banner_detalle.imagen_static %}
     <img src="{% static banner_detalle.imagen_static %}" alt="{{ banner_detalle.texto_alternativo|default:banner_detalle.titulo }}" loading="lazy" width="800" height="200" style="max-width:100%;height:auto;border-radius:var(--r-md);">
   {% elif banner_detalle.imagen %}
@@ -1174,5 +1174,22 @@ function mostrarMasComentarios(btn) {
   });
   btn.remove();
 }
+
+// Analítica propia: registra clicks salientes sin frenar la navegación
+document.addEventListener('click', function(e) {
+  const el = e.target.closest('[data-metrica]');
+  if (!el) return;
+  try {
+    const payload = JSON.stringify({
+      tipo: el.getAttribute('data-metrica'),
+      parroquia: {{ parroquia.pk }}
+    });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon("{% url 'iglesias:metrica_click' %}", new Blob([payload], {type: 'application/json'}));
+    } else {
+      fetch("{% url 'iglesias:metrica_click' %}", {method: 'POST', body: payload, keepalive: true});
+    }
+  } catch (err) { /* nunca frenar el click del usuario */ }
+});
 </script>
 {% endblock %}
