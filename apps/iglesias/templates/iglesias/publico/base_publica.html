@@ -191,6 +191,26 @@
     }
     .pg-top-login:hover { background: var(--navy-700); }
 
+    /* User menu dropdown */
+    .pg-user-menu { position: relative; flex-shrink: 0; }
+    .pg-user-menu-trigger { font-family: inherit; }
+    .pg-user-menu-dropdown {
+      display: none;
+      position: absolute; top: calc(100% + 8px); right: 0;
+      min-width: 190px; background: var(--paper);
+      border: 1px solid var(--line); border-radius: var(--r-md);
+      box-shadow: var(--sh-pop); padding: 6px; z-index: 200;
+    }
+    .pg-user-menu-dropdown.open { display: block; }
+    .pg-user-menu-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 11px; border-radius: var(--r-sm);
+      font: 600 13px/1 var(--font-ui); color: var(--ink-soft);
+      text-decoration: none; white-space: nowrap;
+      transition: background .12s, color .12s;
+    }
+    .pg-user-menu-item:hover { background: var(--bg-2); color: var(--navy); }
+
     /* ── Ad layout: 3-col [ad | content | ad] ── */
     .pg-ad-layout {
       display: flex;
@@ -452,19 +472,39 @@
     </a>
 {% endif %}
 {% if request.user.is_authenticated %}
-    <a href="{% url 'iglesias:publico_perfil' %}" class="pg-top-pill">
-      <div class="pg-top-pill-av">
-        {% if request.user.perfil.get_avatar %}
-          <img src="{{ request.user.perfil.get_avatar }}" alt="{{ request.user.first_name }}"
-               width="32" height="32" loading="lazy"
-               style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">
-        {% else %}
-          {{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
-        {% endif %}
+    <div class="pg-user-menu">
+      <button type="button" class="pg-top-pill pg-user-menu-trigger" id="pg-user-menu-btn"
+              aria-haspopup="true" aria-expanded="false" aria-controls="pg-user-menu-dropdown">
+        <div class="pg-top-pill-av">
+          {% if request.user.perfil.get_avatar %}
+            <img src="{{ request.user.perfil.get_avatar }}" alt="{{ request.user.first_name }}"
+                 width="32" height="32" loading="lazy"
+                 style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">
+          {% else %}
+            {{ request.user.first_name|slice:":1"|upper|default:request.user.username|slice:":1"|upper }}
+          {% endif %}
+        </div>
+        {{ request.user.first_name|default:request.user.email|truncatechars:15 }}
+        ✨ {% if nivel_info %}{{ request.user.perfil.score }}{% else %}0{% endif %} pts
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      <div class="pg-user-menu-dropdown" id="pg-user-menu-dropdown" role="menu">
+        <a href="{% url 'iglesias:publico_perfil' %}" class="pg-user-menu-item" role="menuitem">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          Mi perfil
+        </a>
+        <a href="{% url 'account_logout' %}" class="pg-user-menu-item" role="menuitem">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          Cerrar sesión
+        </a>
       </div>
-      {{ request.user.first_name|default:request.user.email|truncatechars:15 }}
-      ✨ {% if nivel_info %}{{ request.user.perfil.score }}{% else %}0{% endif %} pts
-    </a>
+    </div>
     {% else %}
     <a href="{% url 'account_login' %}" class="pg-top-login">Iniciar sesión</a>
     {% endif %}
@@ -655,6 +695,31 @@ function toggleFavorita(pk) {
   window.location.href = '/accounts/login/?next=' + window.location.pathname;
 }
 {% endif %}
+</script>
+<script>
+/* User menu dropdown */
+document.addEventListener('DOMContentLoaded', function() {
+  const btn = document.getElementById('pg-user-menu-btn');
+  const menu = document.getElementById('pg-user-menu-dropdown');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const open = menu.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function(e) {
+    if (!menu.classList.contains('open')) return;
+    if (menu.contains(e.target) || btn.contains(e.target)) return;
+    menu.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      menu.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+  });
+});
 </script>
 <script>
 /* Topbar search: focus main search on home page, else navigate */
