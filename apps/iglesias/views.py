@@ -15,7 +15,7 @@ from django.views.decorators.http import require_POST
 
 logger = logging.getLogger(__name__)
 
-from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, ValidacionHorario, Banner, VotoHorario, ComentarioParroquia, PerfilUsuario, HorarioPropuestoAgregado
+from .models import Parroquia, RedSocial, PostParroquia, TipoEvento, Evento, CategoriaEvento, HorarioMisa, ScraperJob, ReporteHorario, ValidacionHorario, Banner, VotoHorario, ComentarioParroquia, PerfilUsuario, HorarioPropuestoAgregado, MetricaDiaria, registrar_metrica
 
 from django.conf import settings
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -1357,8 +1357,31 @@ def _proxima_misa(p_horarios):
     return None
 
 
+_BOT_UA_FRAGMENTOS = (
+    "bot", "crawl", "spider", "slurp", "curl", "wget", "python-requests",
+    "headless", "lighthouse", "pingdom", "uptime", "monitor", "preview",
+)
+
+
+def _es_bot(request):
+    ua = (request.META.get("HTTP_USER_AGENT") or "").lower()
+    if not ua:
+        return True
+    return any(f in ua for f in _BOT_UA_FRAGMENTOS)
+
+
+def _contar(request, tipo, parroquia=None, banner=None):
+    """Registra una métrica propia salvo bots y usuarios staff."""
+    if _es_bot(request):
+        return
+    if request.user.is_authenticated and request.user.is_staff:
+        return
+    registrar_metrica(tipo, parroquia=parroquia, banner=banner)
+
+
 def publico_inicio(request):
     from .models import PerfilUsuario
+    _contar(request, "vista_home")
     hoy = date.today()
 
     mi_parroquia = None
@@ -1713,6 +1736,7 @@ def _fmt_dist(km):
 
 
 def publico_buscar(request):
+    _contar(request, "busqueda")
     q = request.GET.get("q", "").strip()
     barrio = request.GET.get("barrio", "").strip()
     filtro = request.GET.get("filtro", "todas").strip()
@@ -1860,6 +1884,7 @@ def _meta_description_detalle(parroquia, tiene_horarios):
 
 def publico_detalle(request, pk):
     parroquia = get_object_or_404(Parroquia, pk=pk)
+    _contar(request, "vista_parroquia", parroquia=parroquia)
     hoy = date.today()
 
     redes_verificadas = parroquia.redes.filter(
@@ -1888,6 +1913,8 @@ def publico_detalle(request, pk):
             pass
 
     banner_detalle = Banner.objects.filter(posicion="detalle", activo=True).first()
+    if banner_detalle:
+        _contar(request, "banner_impresion", banner=banner_detalle)
 
     comentarios = ComentarioParroquia.objects.filter(
         parroquia=parroquia,
@@ -3414,3 +3441,141 @@ def panel_cambiar_password(request):
 def panel_logout(request):
     auth_logout(request)
     return redirect('/panel-parroquia/login/')
+
+
+# ============================================================
+# Analítica propia
+# ============================================================
+
+_METRICAS_CLICK_VALIDAS = {
+    "click_web", "click_telefono", "click_whatsapp",
+    "click_email", "click_red_social", "click_como_llegar",
+}
+
+
+@csrf_exempt
+@require_POST
+def metrica_click(request):
+    """Beacon liviano desde las vistas públicas (navigator.sendBeacon)."""
+    import json as _json
+    try:
+        data = _json.loads(request.body.decode("utf-8") or "{}")
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({"ok": False}, status=400)
+
+    tipo = data.get("tipo", "")
+    if tipo not in _METRICAS_CLICK_VALIDAS:
+        return JsonResponse({"ok": False}, status=400)
+
+    parroquia = None
+    pk = data.get("parroquia")
+    if pk:
+        try:
+            parroquia = Parroquia.objects.filter(pk=int(pk)).first()
+        except (TypeError, ValueError):
+            parroquia = None
+
+    _contar(request, tipo, parroquia=parroquia)
+    return JsonResponse({"ok": True})
+
+
+def banner_redirect(request, pk):
+    """Cuenta el click en un banner propio y redirige a su destino."""
+    banner = get_object_or_404(Banner, pk=pk, activo=True)
+    if not banner.url_destino:
+        return redirect("iglesias:publico_inicio")
+    _contar(request, "banner_click", banner=banner)
+    return redirect(banner.url_destino)
+
+
+def estadisticas_panel(request):
+    """Panel staff con métricas propias: visitas, clicks y banners."""
+    if not request.user.is_staff:
+        return HttpResponse("Forbidden", status=403)
+
+    from django.db.models import Sum
+
+    hoy = date.today()
+    hace_7 = hoy - timedelta(days=7)
+    hace_30 = hoy - timedelta(days=30)
+
+    def _suma(qs):
+        return qs.aggregate(total=Sum("cantidad"))["total"] or 0
+
+    base = MetricaDiaria.objects.all()
+
+    def _resumen_tipo(tipo):
+        qs = base.filter(tipo=tipo)
+        return {
+            "hoy": _suma(qs.filter(fecha=hoy)),
+            "d7": _suma(qs.filter(fecha__gte=hace_7)),
+            "d30": _suma(qs.filter(fecha__gte=hace_30)),
+        }
+
+    tarjetas = [
+        ("Vistas de portada", _resumen_tipo("vista_home")),
+        ("Búsquedas", _resumen_tipo("busqueda")),
+        ("Vistas de parroquia", _resumen_tipo("vista_parroquia")),
+        ("Clicks a sitios web", _resumen_tipo("click_web")),
+        ("Clicks a teléfono", _resumen_tipo("click_telefono")),
+        ("Clicks a WhatsApp", _resumen_tipo("click_whatsapp")),
+        ("Clicks a redes sociales", _resumen_tipo("click_red_social")),
+        ("Clicks en cómo llegar", _resumen_tipo("click_como_llegar")),
+    ]
+
+    # Top parroquias por vistas (30 días)
+    top_vistas = (
+        base.filter(tipo="vista_parroquia", fecha__gte=hace_30, parroquia__isnull=False)
+        .values("parroquia__pk", "parroquia__nombre", "parroquia__barrio", "parroquia__ciudad")
+        .annotate(total=Sum("cantidad"))
+        .order_by("-total")[:20]
+    )
+    max_vistas = max((t["total"] for t in top_vistas), default=0)
+    top_vistas = [
+        {**t, "pct": round(t["total"] / max_vistas * 100) if max_vistas else 0}
+        for t in top_vistas
+    ]
+
+    # Top parroquias por clicks (30 días, todos los tipos de click)
+    top_clicks = (
+        base.filter(tipo__in=_METRICAS_CLICK_VALIDAS, fecha__gte=hace_30, parroquia__isnull=False)
+        .values("parroquia__pk", "parroquia__nombre", "parroquia__barrio")
+        .annotate(total=Sum("cantidad"))
+        .order_by("-total")[:20]
+    )
+
+    # Banners propios: impresiones, clicks y CTR (30 días)
+    banners_stats = []
+    for b in Banner.objects.all().order_by("-activo", "orden"):
+        imp = _suma(base.filter(tipo="banner_impresion", banner=b, fecha__gte=hace_30))
+        clk = _suma(base.filter(tipo="banner_click", banner=b, fecha__gte=hace_30))
+        banners_stats.append({
+            "banner": b,
+            "impresiones": imp,
+            "clicks": clk,
+            "ctr": round(clk / imp * 100, 2) if imp else 0,
+        })
+
+    # Serie diaria de vistas de parroquia (últimos 30 días) para el gráfico
+    serie_raw = dict(
+        base.filter(tipo="vista_parroquia", fecha__gte=hace_30)
+        .values_list("fecha")
+        .annotate(total=Sum("cantidad"))
+        .values_list("fecha", "total")
+    )
+    serie = []
+    for i in range(30, -1, -1):
+        d = hoy - timedelta(days=i)
+        serie.append({"fecha": d, "total": serie_raw.get(d, 0)})
+    max_serie = max((s["total"] for s in serie), default=0)
+    for s in serie:
+        s["pct"] = round(s["total"] / max_serie * 100) if max_serie else 0
+
+    return render(request, "iglesias/estadisticas.html", {
+        "tarjetas": tarjetas,
+        "top_vistas": top_vistas,
+        "top_clicks": top_clicks,
+        "banners_stats": banners_stats,
+        "serie": serie,
+        "hoy": hoy,
+    })

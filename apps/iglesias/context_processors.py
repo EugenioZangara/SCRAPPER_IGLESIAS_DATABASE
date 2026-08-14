@@ -7,4 +7,5 @@ def seo_context(request):
         "SITE_URL": getattr(settings, "SITE_URL", "https://www.parroguia.com"),
         "IMAGEKIT_URL_ENDPOINT": getattr(settings, "IMAGEKIT_URL_ENDPOINT", ""),
         "GOOGLE_SITE_VERIFICATION": getattr(settings, "GOOGLE_SITE_VERIFICATION", ""),
+        "GA_MEASUREMENT_ID": getattr(settings, "GA_MEASUREMENT_ID", ""),
     }

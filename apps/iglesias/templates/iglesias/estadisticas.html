@@ -1,0 +1,122 @@
+{% extends "iglesias/base.html" %}
+
+{% block title %}Estadísticas · ParroGuía{% endblock %}
+
+{% block content %}
+
+<section class="head">
+    <div>
+        <div class="eyebrow">Analítica propia</div>
+        <h1 class="title">Estadísticas de <em>ParroGuía</em></h1>
+        <p class="lede">Visitas, clicks por parroquia y rendimiento de banners propios. Datos desde el {{ hoy|date:"d/m/Y" }} hacia atrás (excluye bots y usuarios staff).</p>
+    </div>
+    <div class="head-meta">
+        <strong>Fuentes externas</strong>
+        <a href="https://analytics.google.com" target="_blank" rel="noopener">Google Analytics</a><br>
+        <a href="https://search.google.com/search-console" target="_blank" rel="noopener">Search Console</a><br>
+        <a href="https://www.google.com/adsense" target="_blank" rel="noopener">AdSense</a>
+    </div>
+</section>
+
+<style>
+  .st-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:12px; margin:18px 0 28px; }
+  .st-card { background:#fff; border:1px solid #e5e0d3; border-radius:12px; padding:14px 16px; }
+  .st-card h3 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:#76859C; margin:0 0 8px; }
+  .st-nums { display:flex; gap:14px; align-items:baseline; }
+  .st-hoy { font-size:26px; font-weight:800; color:#14315E; }
+  .st-sub { font-size:12px; color:#76859C; }
+  .st-table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #e5e0d3; border-radius:12px; overflow:hidden; margin-bottom:28px; }
+  .st-table th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#76859C; padding:10px 14px; border-bottom:1px solid #e5e0d3; background:#FDF8EE; }
+  .st-table td { padding:9px 14px; border-bottom:1px solid #f2ead8; font-size:14px; color:#15243C; }
+  .st-table tr:last-child td { border-bottom:none; }
+  .st-bar { height:8px; background:#F2A007; border-radius:4px; min-width:2px; }
+  .st-bar-wrap { background:#f2ead8; border-radius:4px; width:100%; max-width:220px; }
+  .st-serie { display:flex; align-items:flex-end; gap:3px; height:120px; background:#fff; border:1px solid #e5e0d3; border-radius:12px; padding:14px; margin-bottom:28px; }
+  .st-serie .dia { flex:1; background:#14315E; border-radius:3px 3px 0 0; min-height:2px; position:relative; }
+  .st-serie .dia:hover::after { content:attr(data-tip); position:absolute; bottom:100%; left:50%; transform:translateX(-50%); background:#14315E; color:#fff; font-size:11px; padding:3px 7px; border-radius:6px; white-space:nowrap; z-index:5; }
+  .st-h2 { font-size:16px; font-weight:800; color:#14315E; margin:0 0 10px; }
+</style>
+
+<h2 class="st-h2">Resumen (hoy · 7 días · 30 días)</h2>
+<div class="st-grid">
+  {% for nombre, r in tarjetas %}
+  <div class="st-card">
+    <h3>{{ nombre }}</h3>
+    <div class="st-nums">
+      <span class="st-hoy">{{ r.hoy }}</span>
+      <span class="st-sub">7d: <strong>{{ r.d7 }}</strong></span>
+      <span class="st-sub">30d: <strong>{{ r.d30 }}</strong></span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<h2 class="st-h2">Vistas de parroquia por día (últimos 30 días)</h2>
+<div class="st-serie">
+  {% for s in serie %}
+  <div class="dia" style="height:{{ s.pct }}%;" data-tip="{{ s.fecha|date:'d/m' }}: {{ s.total }}"></div>
+  {% endfor %}
+</div>
+
+<h2 class="st-h2">Top parroquias por vistas (30 días)</h2>
+<table class="st-table">
+  <thead><tr><th>#</th><th>Parroquia</th><th>Ubicación</th><th>Vistas</th><th></th></tr></thead>
+  <tbody>
+    {% for t in top_vistas %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td><a href="{% url 'iglesias:publico_detalle' t.parroquia__pk %}" target="_blank" rel="noopener">{{ t.parroquia__nombre }}</a></td>
+      <td>{{ t.parroquia__barrio|default:t.parroquia__ciudad|default:"—" }}</td>
+      <td><strong>{{ t.total }}</strong></td>
+      <td><div class="st-bar-wrap"><div class="st-bar" style="width:{{ t.pct }}%;"></div></div></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">Todavía no hay datos — se empiezan a acumular desde el deploy.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2 class="st-h2">Top parroquias por clicks de contacto (30 días)</h2>
+<table class="st-table">
+  <thead><tr><th>#</th><th>Parroquia</th><th>Barrio</th><th>Clicks (web + tel + redes + email)</th></tr></thead>
+  <tbody>
+    {% for t in top_clicks %}
+    <tr>
+      <td>{{ forloop.counter }}</td>
+      <td><a href="{% url 'iglesias:publico_detalle' t.parroquia__pk %}" target="_blank" rel="noopener">{{ t.parroquia__nombre }}</a></td>
+      <td>{{ t.parroquia__barrio|default:"—" }}</td>
+      <td><strong>{{ t.total }}</strong></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">Todavía no hay datos de clicks.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2 class="st-h2">Banners propios (30 días)</h2>
+<table class="st-table">
+  <thead><tr><th>Banner</th><th>Posición</th><th>Estado</th><th>Impresiones</th><th>Clicks</th><th>CTR</th></tr></thead>
+  <tbody>
+    {% for b in banners_stats %}
+    <tr>
+      <td>{{ b.banner.titulo }}</td>
+      <td>{{ b.banner.get_posicion_display }}</td>
+      <td>{% if b.banner.activo %}Activo{% else %}Pausado{% endif %}</td>
+      <td>{{ b.impresiones }}</td>
+      <td><strong>{{ b.clicks }}</strong></td>
+      <td>{{ b.ctr }}%</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">No hay banners cargados.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p class="st-sub" style="max-width:640px;">
+  <strong>Nota:</strong> las impresiones y clicks de los anuncios de <strong>AdSense</strong> los reporta Google en el
+  <a href="https://www.google.com/adsense" target="_blank" rel="noopener">panel de AdSense</a> (van dentro de un iframe de Google y no se pueden medir desde el sitio).
+  Las visitas e impresiones que vienen del buscador de Google se ven en
+  <a href="https://search.google.com/search-console" target="_blank" rel="noopener">Search Console</a>.
+</p>
+
+{% endblock %}
