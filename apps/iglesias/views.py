@@ -2,6 +2,7 @@ import glob as _glob
 import logging
 import math
 import os
+import unicodedata
 from datetime import date, datetime, time as dtime, timedelta
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
@@ -9,6 +10,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Case, Count, IntegerField, Q, Value, When
+from django.db.models.functions import Lower, Replace
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -1735,6 +1737,25 @@ def _fmt_dist(km):
     return f"{km:.1f}km"
 
 
+_TILDES = [("á", "a"), ("é", "e"), ("í", "i"), ("ó", "o"), ("ú", "u"), ("ü", "u"), ("ñ", "n")]
+
+
+def _normalizar(texto):
+    """Minúsculas y sin tildes, para comparar contra campos normalizados en la DB."""
+    if not texto:
+        return ""
+    nfkd = unicodedata.normalize("NFKD", texto.lower())
+    return "".join(c for c in nfkd if not unicodedata.combining(c))
+
+
+def _sin_tildes(field_name):
+    """Expresión ORM: campo en minúsculas y sin tildes, para búsquedas accent-insensitive."""
+    expr = Lower(field_name)
+    for con_tilde, sin_tilde in _TILDES:
+        expr = Replace(expr, Value(con_tilde), Value(sin_tilde))
+    return expr
+
+
 def publico_buscar(request):
     _contar(request, "busqueda")
     q = request.GET.get("q", "").strip()
@@ -1758,18 +1779,25 @@ def publico_buscar(request):
         parroquias = parroquias.filter(provincia__icontains=provincia)
 
     if q:
-        parroquias = parroquias.filter(
-            Q(nombre__icontains=q)
-            | Q(barrio__icontains=q)
-            | Q(ciudad__icontains=q)
-            | Q(parroco__icontains=q)
-            | Q(direccion__icontains=q)
+        nq = _normalizar(q)
+        parroquias = parroquias.annotate(
+            nombre_norm=_sin_tildes("nombre"),
+            barrio_norm=_sin_tildes("barrio"),
+            ciudad_norm=_sin_tildes("ciudad"),
+            parroco_norm=_sin_tildes("parroco"),
+            direccion_norm=_sin_tildes("direccion"),
+        ).filter(
+            Q(nombre_norm__contains=nq)
+            | Q(barrio_norm__contains=nq)
+            | Q(ciudad_norm__contains=nq)
+            | Q(parroco_norm__contains=nq)
+            | Q(direccion_norm__contains=nq)
         ).annotate(
             relevancia=Case(
-                When(nombre__istartswith=q, then=Value(0)),
-                When(nombre__icontains=q, then=Value(1)),
-                When(barrio__icontains=q, then=Value(2)),
-                When(ciudad__icontains=q, then=Value(3)),
+                When(nombre_norm__startswith=nq, then=Value(0)),
+                When(nombre_norm__contains=nq, then=Value(1)),
+                When(barrio_norm__contains=nq, then=Value(2)),
+                When(ciudad_norm__contains=nq, then=Value(3)),
                 default=Value(4),
                 output_field=IntegerField(),
             )
