@@ -11,3 +11,7 @@ google_credentials.json
 /imagenes_parroquias/
 /imagenes_rechazadas/
 subir_imagenes_imagekit.pydb.sqlite3
+
+# base local de desarrollo
+db.sqlite3
+*.sqlite3
