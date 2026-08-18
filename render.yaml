@@ -1,6 +1,7 @@
-databases:
-  - name: scraper-catolico-db
-    plan: free
+# La base de producción es Supabase (proyecto Parroguia-prod), NO una base de Render.
+# DATABASE_URL se gestiona desde el dashboard de Render (sync: false) en los dos
+# servicios. No volver a declarar bloques `databases:` ni `fromDatabase:` acá:
+# un blueprint apply repuntaría la app a una base equivocada en silencio.
 
 services:
   - type: web
@@ -10,9 +11,7 @@ services:
     startCommand: "gunicorn core.wsgi:application --timeout 120"
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: scraper-catolico-db
-          property: connectionString
+        sync: false
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
@@ -44,9 +43,7 @@ services:
     startCommand: python -m scraper_redes.run --produccion
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: scraper-catolico-db
-          property: connectionString
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: OPENROUTER_API_KEY
