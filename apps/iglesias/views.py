@@ -1358,25 +1358,61 @@ def _proxima_misa(p_horarios):
 
 
 _BOT_UA_FRAGMENTOS = (
+    # genéricos
     "bot", "crawl", "spider", "slurp", "curl", "wget", "python-requests",
     "headless", "lighthouse", "pingdom", "uptime", "monitor", "preview",
+    # clientes HTTP y automatización de navegador
+    "scrapy", "phantomjs", "puppeteer", "playwright", "selenium",
+    "okhttp", "go-http", "java/", "axios", "node-fetch", "http-client",
+    "libwww", "httpx", "aiohttp", "postman", "insomnia",
+    # previsualizadores de enlaces (no son personas navegando)
+    "facebookexternalhit", "whatsapp", "telegram", "discord", "slackbot",
+    "embedly", "quora link", "vkshare", "skypeuripreview",
+    # SEO, archivo e IA
+    "ahrefs", "semrush", "dataforseo", "mj12", "dotbot", "petal",
+    "ia_archiver", "archive.org", "gptbot", "claudebot", "perplexity",
+    "ccbot", "bytespider", "amazonbot", "applebot", "yandex", "baidu",
 )
 
 
-def _es_bot(request):
-    ua = (request.META.get("HTTP_USER_AGENT") or "").lower()
+def clasificar_origen(request):
+    """Devuelve 'humano' o 'bot' para una request.
+
+    No descarta nada: sólo etiqueta. La regla más útil no es la lista de
+    nombres —que siempre queda corta— sino las dos señales estructurales:
+    un navegador real manda User-Agent con 'Mozilla' y manda
+    Accept-Language. Los rastreadores casi nunca hacen las dos cosas.
+    """
+    ua = (request.META.get("HTTP_USER_AGENT") or "").strip().lower()
     if not ua:
-        return True
-    return any(f in ua for f in _BOT_UA_FRAGMENTOS)
+        return "bot"
+    if any(f in ua for f in _BOT_UA_FRAGMENTOS):
+        return "bot"
+    if "mozilla" not in ua:
+        return "bot"
+    if not request.META.get("HTTP_ACCEPT_LANGUAGE"):
+        return "bot"
+    return "humano"
+
+
+def _es_bot(request):
+    """Compatibilidad con llamadas previas."""
+    return clasificar_origen(request) == "bot"
 
 
 def _contar(request, tipo, parroquia=None, banner=None):
-    """Registra una métrica propia salvo bots y usuarios staff."""
-    if _es_bot(request):
-        return
+    """Registra una métrica propia, etiquetada por origen.
+
+    El staff se sigue excluyendo por completo: no es tráfico, somos
+    nosotros. Los rastreadores sí se registran, marcados como 'bot', para
+    poder auditarlos en vez de perderlos en silencio.
+    """
     if request.user.is_authenticated and request.user.is_staff:
         return
-    registrar_metrica(tipo, parroquia=parroquia, banner=banner)
+    registrar_metrica(
+        tipo, parroquia=parroquia, banner=banner,
+        origen=clasificar_origen(request),
+    )
 
 
 def publico_inicio(request):
@@ -3502,7 +3538,20 @@ def estadisticas_panel(request):
     def _suma(qs):
         return qs.aggregate(total=Sum("cantidad"))["total"] or 0
 
-    base = MetricaDiaria.objects.all()
+    # Sólo tráfico de personas. Los rastreadores siguen guardados con
+    # origen='bot' para poder auditarlos, pero no inflan el tablero.
+    # 'desconocido' son los datos previos a la clasificación: se muestran
+    # porque no podemos re-clasificarlos hacia atrás, pero conviene leerlos
+    # con reservas.
+    base = MetricaDiaria.objects.exclude(origen="bot")
+    metricas_bot_30d = (
+        MetricaDiaria.objects.filter(origen="bot", fecha__gte=hace_30)
+        .aggregate(total=Sum("cantidad"))["total"] or 0
+    )
+    metricas_sin_clasificar_30d = (
+        MetricaDiaria.objects.filter(origen="desconocido", fecha__gte=hace_30)
+        .aggregate(total=Sum("cantidad"))["total"] or 0
+    )
 
     def _resumen_tipo(tipo):
         qs = base.filter(tipo=tipo)
