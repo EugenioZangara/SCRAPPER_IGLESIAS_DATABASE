@@ -600,7 +600,7 @@ Festividades patronales, Actividades solidarias, Formación y talleres.
 ## Deploy en Render
 
 ### Archivos de configuración
-- `render.yaml` — Blueprint con web service, cron job y base de datos
+- `render.yaml` — Blueprint con web service y cron job (sin recurso de base de datos propio)
 - `build.sh` — Script de build: `pip install`, `collectstatic`, `migrate`
 
 ### Servicios en Render
@@ -608,10 +608,24 @@ Festividades patronales, Actividades solidarias, Formación y talleres.
 |---|---|---|
 | `scraper-catolico` | Web | App Django con gunicorn |
 | `scraper-instagram` | Cron | Scraper bisemanal, lunes y jueves 06:00 UTC |
-| `scraper-catolico-db` | PostgreSQL | Plan free |
+
+### Base de datos de producción
+**Supabase** (`aws-0-sa-east-1.pooler.supabase.com`), gestionada manualmente vía
+variable de entorno con `sync: false` en `render.yaml` para `DATABASE_URL`, en
+los dos servicios (`scraper-catolico` y `scraper-instagram`).
+
+**NO usar `fromDatabase` para `DATABASE_URL`** ni declarar un bloque `databases:`
+en `render.yaml` — Render no gestiona esta base. Antiguamente existía un recurso
+Postgres propio de Render (`scraper-catolico-db`) referenciado via `fromDatabase`,
+pero producción real corría contra Supabase seteado a mano en el dashboard; un
+Blueprint sync sobrescribía silenciosamente esa variable con la base de Render
+(vacía), lo que hubiera roto producción. Se eliminó el bloque `databases:` y se
+fijó `DATABASE_URL` a `sync: false` en ambos servicios para evitar que un sync
+futuro repunte la app a una base equivocada.
 
 ### Variables de entorno (configurar manualmente en Render)
 Las siguientes variables tienen `sync: false` y deben setearse a mano en el dashboard:
+- `DATABASE_URL` — connection string de Supabase (ver sección "Base de datos de producción" arriba)
 - `GEMINI_API_KEY`
 - `OPENROUTER_API_KEY`
 - `META_ACCESS_TOKEN`
@@ -625,7 +639,6 @@ Las siguientes variables tienen `sync: false` y deben setearse a mano en el dash
   Renovar cuando caduque la sesión: correr `instagram_login.py` localmente y actualizar la variable.
 
 Las siguientes se generan o setean automáticamente via `render.yaml`:
-- `DATABASE_URL` — inyectada desde la base de datos
 - `SECRET_KEY` — generada automáticamente por Render
 - `ALLOWED_HOSTS` — dominio de Render
 - `CSRF_TRUSTED_ORIGINS` — origen HTTPS de Render
