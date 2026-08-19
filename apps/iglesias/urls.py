@@ -135,6 +135,8 @@ urlpatterns = [
         name="toggle_verificacion",
     ),
     path("api/avisos/enviar/", views.enviar_avisos_view, name="enviar_avisos"),
+    # TODO: eliminar tras diagnóstico DB
+    path("api/debug/db-check/", views.debug_db_check, name="debug_db_check"),
     path("publico/perfil/toggle-avisos/", views.toggle_avisos_view, name="toggle_avisos"),
     path("publico/perfil/upload-avatar/", views.upload_avatar, name="upload_avatar"),
     path("publico/perfil/delete-avatar/", views.delete_avatar, name="delete_avatar"),

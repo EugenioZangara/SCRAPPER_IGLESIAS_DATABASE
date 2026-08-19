@@ -2982,6 +2982,26 @@ def enviar_avisos_view(request):
 
 
 @csrf_exempt
+def debug_db_check(request):
+    """Endpoint temporal para diagnosticar a qué base de datos apunta el proceso.
+    # TODO: eliminar tras diagnóstico DB
+    """
+    if request.method != "GET":
+        return JsonResponse({"error": "Método no permitido"}, status=405)
+
+    token = request.headers.get("X-Scraper-Token", "")
+    if not settings.SCRAPER_SECRET_TOKEN or token != settings.SCRAPER_SECRET_TOKEN:
+        return JsonResponse({"error": "No autorizado"}, status=403)
+
+    db_config = settings.DATABASES["default"]
+    return JsonResponse({
+        "host": db_config.get("HOST", ""),
+        "parroquias_count": Parroquia.objects.count(),
+        "posts_count": PostParroquia.objects.count(),
+    })
+
+
+@csrf_exempt
 @login_required
 @require_POST
 def toggle_avisos_view(request):
