@@ -684,6 +684,12 @@ class MetricaDiaria(models.Model):
     registrar_metrica(); los reportes agregan con Sum() por si una
     condición de carrera llegara a duplicar una fila.
     """
+    ORIGEN_CHOICES = [
+        ("humano", "Persona"),
+        ("bot", "Rastreador automático"),
+        ("desconocido", "Sin clasificar"),
+    ]
+
     TIPO_CHOICES = [
         ("vista_home", "Vista de portada"),
         ("busqueda", "Búsqueda"),
@@ -709,12 +715,19 @@ class MetricaDiaria(models.Model):
         related_name="metricas",
     )
     cantidad = models.PositiveIntegerField(default=0)
+    origen = models.CharField(
+        max_length=12, choices=ORIGEN_CHOICES, default="desconocido",
+        db_index=True,
+        help_text="Quién generó el evento. 'desconocido' son los datos "
+                  "previos a que empezáramos a clasificar.",
+    )
 
     class Meta:
         verbose_name = "Métrica diaria"
         verbose_name_plural = "Métricas diarias"
         indexes = [
             models.Index(fields=["fecha", "tipo"]),
+            models.Index(fields=["fecha", "tipo", "origen"], name="metrica_fecha_tipo_origen"),
         ]
 
     def __str__(self):
@@ -722,13 +735,19 @@ class MetricaDiaria(models.Model):
         return f"{self.fecha} · {self.tipo} · {objeto}: {self.cantidad}"
 
 
-def registrar_metrica(tipo, parroquia=None, banner=None, cantidad=1):
-    """Incrementa el contador diario de una métrica. Nunca rompe la vista."""
+def registrar_metrica(tipo, parroquia=None, banner=None, cantidad=1,
+                      origen="desconocido"):
+    """Incrementa el contador diario de una métrica. Nunca rompe la vista.
+
+    `origen` separa personas de rastreadores. No se descarta nada: se
+    etiqueta, para que el panel pueda mostrar tráfico real y al mismo
+    tiempo quede auditable qué hicieron los bots.
+    """
     from datetime import date as _date
     try:
         fila, creada = MetricaDiaria.objects.get_or_create(
             fecha=_date.today(), tipo=tipo,
-            parroquia=parroquia, banner=banner,
+            parroquia=parroquia, banner=banner, origen=origen,
             defaults={"cantidad": cantidad},
         )
         if not creada:

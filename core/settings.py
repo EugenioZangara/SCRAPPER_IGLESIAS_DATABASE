@@ -183,6 +183,19 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {"default": env.db("DATABASE_URL")}
 
+# Esquema dedicado de Postgres.
+# Permite convivir con otros proyectos del ecosistema en la misma base
+# (por ejemplo Catia) sin que las tablas se pisen en el esquema `public`.
+# Si DATABASE_SCHEMA no esta definida, el comportamiento es identico al de
+# siempre: Django usa `public`. Es decir, este bloque es un no-op hasta que
+# alguien active la variable de entorno.
+DATABASE_SCHEMA = env("DATABASE_SCHEMA", default=None)
+if DATABASE_SCHEMA:
+    DATABASES["default"].setdefault("OPTIONS", {})
+    DATABASES["default"]["OPTIONS"]["options"] = (
+        f"-c search_path={DATABASE_SCHEMA},public"
+    )
+
 
 # django-axes — brute force protection
 AXES_FAILURE_LIMIT = 5

@@ -1,6 +1,7 @@
-databases:
-  - name: scraper-catolico-db
-    plan: free
+# La base de producción es Supabase (proyecto Parroguia-prod), NO una base de Render.
+# DATABASE_URL se gestiona desde el dashboard de Render (sync: false) en los dos
+# servicios. No volver a declarar bloques `databases:` ni `fromDatabase:` acá:
+# un blueprint apply repuntaría la app a una base equivocada en silencio.
 
 services:
   - type: web
